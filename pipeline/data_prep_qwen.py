@@ -34,8 +34,11 @@ def main():
     for name, urls in GUTENBERG.items():
         texts[name] = unwrap_paragraphs(
             normalize_newlines(strip_gutenberg(fetch(urls))))
-    texts["bhd"] = normalize_newlines(
-        "\n\n".join(open(p, encoding="utf-8").read() for p in BHD_FILES))
+    if BHD_FILES:            # your own documents in ./manuscripts/, if any
+        texts["bhd"] = normalize_newlines(
+            "\n\n".join(open(p, encoding="utf-8").read() for p in BHD_FILES))
+    else:
+        print("NOTE: ./manuscripts/ is empty -- skipping the 'bhd' stream.")
     meta_path = os.path.join("data", "meta.json")
     meta = json.load(open(meta_path)) if os.path.exists(meta_path) else {}
     for name, text in texts.items():

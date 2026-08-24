@@ -3,8 +3,9 @@
 These check the four papers' rules where they can be checked exactly: the
 Hebbian read/write, the square-root (amplitude) encoding, leaky forgetting,
 the delta rule at the readout, consolidation by surprise mass, the state
-round-trip and the passage splitter. `test_sillage.py` is the slow
-end-to-end complement that actually runs a frozen GPT-2.
+round-trip, the multi-model paths, the readout tuner and its rolling window,
+and the passage splitter. `test_sillage.py` is the slow end-to-end complement
+that actually runs a frozen GPT-2.
 
     python test_unit.py
 """
@@ -15,7 +16,9 @@ import tempfile
 
 import numpy as np
 
-from sillage.core import CAP, D_K, D_V, ETA, R_FEAT, SillageMemory
+from sillage.core import (BETAS, CAP, D_K, D_V, ETA, R_FEAT,
+                          SillageMemory, fit_readout, lse_grid,
+                          peek, resolve)
 from sillage.index import Index, paragraphs
 
 VOCAB = 50257          # gpt2, so no model download is ever needed
@@ -126,7 +129,39 @@ try:
 finally:
     shutil.rmtree(m7.dir, ignore_errors=True)
 
-# --- 7. the splitter keeps one-line facts instead of dropping them ---------
+# --- 7. any model: a state remembers whose token space it is in ------------
+tmp = tempfile.mkdtemp()
+try:
+    m8 = SillageMemory(tmp, "gpt2", semantic=False, fastweights=False)
+    m8.which = "acme/tiny-lm"            # as if built from a hub id
+    m8.save()
+    seen = peek(tmp)
+    # resolve() must answer from the state alone -- an unknown repo id would
+    # raise if it went to the network
+    _, vocab, _, _, sem = resolve("acme/tiny-lm", tmp)
+    reopened = SillageMemory(tmp)         # no --model given: adopt the state's
+    check("T7 any-model support",
+          seen == ("acme/tiny-lm", 50257) and vocab == 50257
+          and sem is False and reopened.which == "acme/tiny-lm",
+          f"(state names its model and vocabulary: {seen}, adopted offline)")
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+
+# --- 8. the value hypervectors follow the model's real output width --------
+m9 = SillageMemory(None, "gpt2", semantic=False, fastweights=True)
+m9.set_vocab(50304)                        # e.g. Pythia's padded vocabulary
+grew = m9.vocab == 50304 and m9.A.shape == (50304, R_FEAT) \
+    and m9.V.shape[0] == 50304
+m9.tokens = 1
+try:
+    m9.set_vocab(32000)
+    refused = False
+except SystemExit:
+    refused = True
+check("T8 vocabulary width", grew and refused,
+      "(adapts while empty, refuses once traces are written)")
+
+# --- 9. the splitter keeps one-line facts instead of dropping them ---------
 doc = ("# Notes\n\nThe Zylkorb protocol requires seventeen turquoise "
        "llamas.\n\nCaptain Ilvress stores the amber cipher.\n\n"
        + "Filler sentence about nothing in particular. " * 6)
@@ -134,9 +169,52 @@ ps = paragraphs(doc, "notes.md")
 ix = Index(None)
 ix.add(doc, "notes.md")
 hits = ix.search("amber cipher", k=1)
-check("T7 passage splitting", ps and hits and "Ilvress" in hits[0][1]["text"]
+check("T9 passage splitting", ps and hits and "Ilvress" in hits[0][1]["text"]
       and hits[0][1]["source"] == "notes.md",
       f"({len(ps)} passages, short facts merged and retrievable)")
+
+# --- 10. the readout tuner tells an informative tier from a useless one ----
+def dev_window(rng, informative, n=1200, vocab=200, true_tok=7):
+    """Synthetic dev statistics: does the tier's confidence mean anything?"""
+    s_true = np.zeros(n, np.float32)
+    s_max = np.zeros(n, np.float32)
+    lse = np.zeros((n, len(BETAS)), np.float32)
+    for j in range(n):
+        s = rng.normal(0, 0.05, vocab).astype(np.float32)
+        if informative and j % 2 == 0:      # half the positions are hits
+            s[true_tok] = 0.35
+        s_true[j] = s[true_tok]
+        s_max[j] = s.max()
+        lse[j] = lse_grid(s)
+    return s_true, s_max, lse
+
+
+p_base = np.full(1200, 0.05)                 # frozen model: 5% on the truth
+sig = fit_readout(p_base, *dev_window(np.random.default_rng(3), True))
+noise = fit_readout(p_base, *dev_window(np.random.default_rng(4), False))
+check("T10 readout calibration",
+      sig[2] > noise[2] and sig[0] < noise[0],
+      f"(informative tier -> lambda {sig[2]}, useless tier -> "
+      f"lambda {noise[2]}; dev NLL {sig[0]:.3f} vs {noise[0]:.3f})")
+
+# --- 11. the calibration window rolls, and keeps only the recent past -----
+# gpt2 is a model the papers tuned, so calibration is off unless asked for
+off_by_default = not SillageMemory(None, "gpt2").calibrate_on
+m10 = SillageMemory(None, "gpt2", semantic=False, fastweights=False,
+                    calibrate=True)
+sampled = [t for t in range(30) if (setattr(m10, "tokens", t) or
+                                    m10.collecting())]
+sG = np.zeros(50257, np.float32)
+for k in range(core.CALIB_MAX + 50):
+    sG[k % 100] = 0.3
+    m10.collect(0.05, k % 100, sG)
+kept = len(m10.cal["p"])
+m10.calibrate_on = False
+check("T11 rolling window",
+      sampled == list(range(0, 30, 3)) and kept == core.CALIB_MAX
+      and not m10.collecting() and off_by_default,
+      f"(one position in three, last {kept} kept; off for a model the "
+      f"papers tuned)")
 
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

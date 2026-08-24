@@ -53,12 +53,6 @@ GUTENBERG = {
 import glob as _glob
 
 BHD_FILES = sorted(_glob.glob("manuscripts/*"))
-if not BHD_FILES:
-    BHD_FILES = [
-        r"C:\Users\abdel\Documents\preprint\preprint_bhd_active_inference.txt",
-        r"C:\Users\abdel\Documents\preprint\PREPRINT_V2_1_BHD_ACTIVE_INFERENCE.md",
-        r"C:\Users\abdel\Documents\preprint\PREPRINT_V2_2_BHD_ACTIVE_INFERENCE.md",
-    ]
 
 
 def fetch(urls):
@@ -114,13 +108,15 @@ def main():
             normalize_newlines(strip_gutenberg(fetch(urls))))
     # BHD manuscripts: line structure (tables, headers) is part of the
     # domain and stays; only line endings are normalized.
-    try:
+    if BHD_FILES:
         texts["bhd"] = normalize_newlines(
             "\n\n".join(open(p, encoding="utf-8").read() for p in BHD_FILES))
-    except FileNotFoundError:
-        print("NOTE: no manuscripts found — the 'bhd' (Manuscripts) stream "
-              "is skipped.\nPut your own novel .txt/.md documents in "
-              "./manuscripts/ to reproduce that protocol.")
+    else:
+        print("NOTE: ./manuscripts/ is empty -- the 'bhd' (Manuscripts) "
+              "stream is skipped.\nThe paper's manuscripts are unpublished "
+              "drafts and are not redistributed; drop your own novel\n"
+              ".txt/.md documents there to run that protocol on a "
+              "contamination-free domain of your own.")
 
     meta = {}
     ids_by_domain = {}

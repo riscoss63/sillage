@@ -2,8 +2,9 @@
 
 This file is for the *research* scripts. If you only want to use the system,
 `pip install -e .` and `sillage read yourfile.md` is the whole story
-(see [README.md](README.md)); `python test_sillage.py` checks that the tool
-works end to end in about six minutes.
+(see [README.md](README.md)); `python test_unit.py` checks the mechanisms in
+five seconds and `python test_sillage.py` checks the tool end to end in about
+twenty minutes.
 
 Everything runs on CPU with fixed seeds. Total: roughly 2 h for the corpora
 and frozen-LM passes, then 3–6 h for the experiments (most of them can be run
@@ -44,7 +45,7 @@ python memory/memories.py                    # kNN-LM, capped kNN, nulls,
                                              # hidden-state keys (negative)
 python memory/ngram_memory.py 0.0 1.0        # n-gram memory + exact dictionary
 python eval/rag_baseline.py                  # RAG-style retrieve & rescore
-python memory/sillage_factorial.py       # amplitudes x gates x key scales
+python memory/sillage_factorial.py           # amplitudes x gates x key scales
 python memory/multiseed.py bhd               # 5-seed replication
 python memory/exp_500k.py tolstoy && python memory/exp_500k.py bible
 python memory/exp_500k_bigD.py               # capacity sweep
@@ -116,3 +117,12 @@ stream (hyperparameters tuned there, then frozen), test = remaining 80 %;
 95 % block-bootstrap confidence intervals over 512-token blocks; headline
 comparisons use *paired* bootstraps on identical positions; multi-seed studies
 re-tune per seed and report mean ± SEM.
+
+The shipped tool follows the same protocol when it meets a model these papers
+did not tune: a rolling window of what it has just read is its development
+split, the same grids are searched on it (`BETAS`, `LAMS`, `THRESH_Q` in
+`sillage/core.py`, taken from `memory/memories.py`), and the winner governs
+the next read -- never the read it was fitted on. For GPT-2 and Qwen3 it keeps
+the settings tuned here instead, because those were fitted on 36k-500k-token
+streams and a window read by a cold memory measurably loses to them (the
+comparison is in the README, under what did not work).

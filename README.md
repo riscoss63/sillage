@@ -69,6 +69,70 @@ Reading is the slow part (one frozen forward pass per token, on CPU): about
 `--model gpt2` — which is 4x faster but English-only. `index` and `ask` need
 no model at all and are instant.
 
+### Which model can it wrap? Any of them
+
+```bash
+sillage read notes.md --model qwen                          # shortcut
+sillage read notes.md --model HuggingFaceTB/SmolLM2-135M    # any hub id
+sillage read notes.md --model ./my-finetuned-llama          # any local folder
+```
+
+Nothing here is model-specific: the memory only ever sees next-token logits,
+one hidden state and the observed token, so **any causal language model
+works** — GPT-2, Qwen, Llama, Mistral, Pythia, SmolLM, your own fine-tune.
+Verified across three architectures (GPT-2, Qwen3, GPT-NeoX). Four things to
+know before pointing it at a new one:
+
+- **The readout tunes itself on an unfamiliar model.** How strongly the
+  memory speaks (`beta`, `lambda`) and when it stays quiet (the abstention
+  threshold) were tuned per model in the papers. For any model they did not
+  tune, the tool does that tuning itself: one position in three joins a
+  rolling window, the published grids are searched on it at the end of each
+  read, and the winner governs the next one — so nothing is ever scored with
+  settings fitted on itself. For `qwen` and `gpt2` the published settings are
+  kept instead, and that is a measured decision, not deference: refitting
+  them on your own cold memory *loses* (see below). `--calibrate` forces
+  fitting anyway, `--no-calibrate` forbids it, `read --recalibrate` starts
+  over.
+- The **semantic tier stays off** for an unknown model (`--semantic` to force
+  it). Paper 2 is explicit: raw hidden states need whitening except where
+  their geometry is already well conditioned, and that has only been verified
+  on Qwen3.
+- A memory is written in **one model's token space**, so give each model its
+  own `--state` directory. After that you can drop `--model`: the state
+  remembers which model it belongs to, and refuses to be opened by another.
+- **Cost follows the model**: reading time follows its size, and the adapter
+  is `vocab x 16` floats (3.2 MB at GPT-2's vocabulary, 9.7 MB at Qwen3's).
+  A 7B model on a CPU is possible but slow; this was designed for the 0.1–1B
+  class.
+
+What calibration actually does, measured on a model the papers never touched
+(Pythia 70M, two documents, second one scored out of sample):
+
+```console
+$ sillage read doc_a.txt --model EleutherAI/pythia-70m
+read doc_a.txt: 5025 tokens in 1.0 min | PPL 2.02 -> 1.92 (adapter) -> 1.79 (+memory)
+fitted the readout on 1675 observations from what was just read (the papers' grids):
+  n-gram tier : beta 40, lambda 0.85, abstain below q75
+  +0.2461 nats on that window. It governs the NEXT read, never this one,
+  so no perplexity printed here was tuned on itself.
+```
+
+On the next document that fitted readout gives **1.38** where the GPT-2
+defaults give 1.42 — worth having when nobody has tuned your model.
+
+It also tracks the memory as it fills, because each fit sees a warmer memory
+than the last. Reading one paper three times (GPT-2, `--calibrate`), where
+the readout fitted at the end of a pass is the one that governs the next:
+
+| pass | perplexity of this pass | what its window then fitted |
+|---|---|---|
+| 1 | 56.0 | `beta 20, lambda 0.1, abstain below q75` |
+| 2 | 7.5 | `beta 40, lambda 0.85, abstain below q50` |
+| 3 | 1.5 | `beta 40, lambda 0.85, abstain below q25` |
+
+(Frozen GPT-2 alone stays at 68.8 throughout.)
+
 Prefer no install? `pip install -r requirements.txt` and then
 `python -m sillage read notes.md` does exactly the same thing — that also
 works if the `sillage` command lands outside your PATH.
@@ -79,7 +143,8 @@ works if the `sillage` command lands outside your PATH.
 ```python
 from sillage import Sillage
 
-s = Sillage(model="gpt2")          # or "qwen" (Qwen3-0.6B), the default
+s = Sillage(model="gpt2")          # any causal LM; omit it and the state
+                                   # says which model it belongs to
 s.read("notes.md")                 # read, memorize, index -- then save
 s.ask("what did the report say?")  # exact passages, nothing generated
 print(s.complete("The report said"))
@@ -104,10 +169,11 @@ if you want to wire it into your own generation loop.
 | `sillage demo FILE` | two sessions on one document, start to finish |
 | `sillage status` / `forget --all` | inspect / wipe |
 
-Flags: `--model qwen\|gpt2`, `--state DIR` (or `$SILLAGE_STATE`),
+Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
 `--no-fastweights`, `--no-semantic`, `--half-life N` (forgetting, in tokens),
-`-n`, `--temp`, `-k`. Globs are expanded by the tool itself, so
-`sillage read docs/*.md` works on Windows too.
+`--no-calibrate` / `read --recalibrate`, `-n`, `--temp`, `-k`. Globs are
+expanded by the tool itself, so `sillage read docs/*.md` works on Windows
+too.
 </details>
 
 ---
@@ -168,16 +234,18 @@ the text in front of it, on a fixed byte budget, forever.
 
 ### The four papers are the four mechanisms — all of them are in the tool
 
-| paper | mechanism in `sillage/` | on by default | turn it off |
+| paper | mechanism in `sillage/` | on by default | switch |
 |---|---|---|---|
 | 1 · Sillage | `M_G`, 4.2 MB Hebbian *n*-gram tier, amplitude writes, surprise gate | yes | — |
-| 2 · Router | `M_S`, 12.6 MB semantic tier, **score-level** mixing with abstention | qwen only (gpt2 needs whitening) | `--no-semantic` |
+| 2 · Router | `M_S`, 12.6 MB semantic tier, **score-level** mixing with abstention | `--model qwen` only (other models need whitening) | `--semantic` / `--no-semantic` |
 | 3 · Hierarchy | cold store of exact 4-grams, consolidated by surprise **mass** at save time | yes | — |
 | 4 · Fast weights | `A`, rank-16 delta-rule readout adapter, uniform step | yes | `--no-fastweights` |
 | 1 & 3 · long horizons | leaky forgetting (half-life in tokens) | no — needed past ~0.5 writes/parameter | `--half-life 100000` |
+| all four · protocol | readout **calibration**: the papers' grids fitted on a rolling window of what you just read, governing the next read | only for a model the papers did not tune | `--calibrate` / `--no-calibrate`, `read --recalibrate` |
 
-`sillage status` tells you where you stand on that last line, because the
-capacity law is the honest limit of the whole approach.
+`sillage status` shows both of the last two lines: which readout is in force
+right now, and how close the matrix is to saturation — the capacity law being
+the honest limit of the whole approach.
 
 ## The four preprints
 
@@ -206,6 +274,25 @@ This is the part most repositories leave out.
   endings inflated every method by **+1.35 phantom nats**; a one-position
   misalignment made the RAG baseline score at chance. Both were caught by
   controls, not by luck.
+- **Self-calibration loses to a proper tuning, where one exists.** Fitting the
+  readout on your own stream sounds strictly better than using someone else's
+  constants. It is not: the window is read by a memory that is *colder* than
+  the one those settings will govern, so the fit comes out systematically too
+  timid. Measured on GPT-2, fitting on one technical paper and scoring on the
+  next (gain over the frozen model, in nats):
+
+  | readout fitted on | gain on the next paper |
+  |---|---|
+  | the whole window | +0.098 |
+  | its recent half | +0.103 |
+  | its recent quarter | +0.109 |
+  | **the papers' published settings** | **+0.120** |
+  | an oracle fitted on that paper itself | +0.125 |
+
+  Recency helps, and never enough. Hence the rule the tool follows: calibrate
+  a model nobody has tuned, and keep the published constants for the two that
+  were tuned properly — on 36k–500k-token streams, not on a few thousand cold
+  ones.
 
 Hence the three controls we now consider mandatory for streaming-memory work —
 `python eval/diagnostic.py` runs them: a **shuffled-retrieval null** (replace
@@ -219,11 +306,11 @@ retrieved values with random tokens; any surviving gain is an artifact), a
 Every number in every paper regenerates from these scripts with fixed seeds,
 on CPU. See **[REPRODUCE.md](REPRODUCE.md)** for the full pipeline; results
 are committed as JSON in [`results/`](results/) (including per-seed values).
-`python test_unit.py` checks the four mechanisms themselves in five seconds
-(numpy only: retrieval, the square-root rule, forgetting, the delta rule,
-consolidation, the state round-trip); `python test_sillage.py` runs 11
-end-to-end tests of the tool (each command in its own process, invented facts
-the base model cannot know).
+`python test_unit.py` checks the mechanisms themselves in five seconds
+(numpy only, no model: retrieval, the square-root rule, forgetting, the delta
+rule, consolidation, the state round-trip, the readout tuner, the multi-model
+paths); `python test_sillage.py` runs 13 end-to-end tests of the tool (each
+command in its own process, invented facts the base model cannot know).
 
 <details>
 <summary><b>Repository layout</b></summary>
@@ -231,7 +318,10 @@ the base model cannot know).
 ```
 sillage/         the tool: core.py (the four mechanisms), runtime.py,
                  index.py (grounded retrieval), cli.py
-test_sillage.py  end-to-end tests
+pyproject.toml   packaging: pip install -e . gives you the `sillage` command
+test_unit.py     the mechanisms, in five seconds, numpy only
+test_sillage.py  the tool, end to end, in its own processes
+.github/         CI: the unit tests and a LaTeX check on every push
 papers/          the four preprints (LaTeX + figures)
 results/         every number in every paper (JSON)
 pipeline/        corpora and frozen-LM passes          \
@@ -252,7 +342,10 @@ anywhere and resolves `data/`, `dumps/`, `results/` identically.
 <details>
 <summary><b>Caveats worth knowing before you try it</b></summary>
 
-- Tested on small frozen models (GPT-2 124M, Qwen3-0.6B) and CPU-scale streams.
+- The papers' numbers were measured on two frozen models (GPT-2 124M,
+  Qwen3-0.6B) at CPU scale. The tool accepts any causal LM and calibrates
+  its readout for it, but nothing here has been measured above 1B parameters,
+  and the semantic tier has only been validated on Qwen3.
 - The memory captures **surface repetition**; paraphrase recall is what the
   semantic tier partially addresses, and it remains the open frontier.
 - A fixed matrix saturates at long horizons (~0.5 writes per parameter);

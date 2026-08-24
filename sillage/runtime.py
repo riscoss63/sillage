@@ -18,7 +18,7 @@ import time
 
 import numpy as np
 
-from .core import CAP, MODELS, SillageMemory
+from .core import CAP, SillageMemory
 from .index import Index, read_text
 
 WINDOW, STRIDE = 1024, 512
@@ -37,11 +37,18 @@ def default_state():
 
 
 class Sillage:
-    def __init__(self, model="qwen", state=None, semantic=None,
-                 fastweights=None, half_life=None, quiet=False):
+    """A frozen model, its memory, and the index of what it has read.
+
+    Everything the CLI does goes through this object, so the Python API and
+    the command line cannot drift apart.
+    """
+
+    def __init__(self, model=None, state=None, semantic=None,
+                 fastweights=None, half_life=None, calibrate=None,
+                 quiet=False):
         self.state_dir = default_state() if state is None else state
         self.mem = SillageMemory(self.state_dir, model, semantic,
-                                 fastweights, half_life)
+                                 fastweights, half_life, calibrate)
         self.index = Index(None if self.state_dir is None else
                            os.path.join(self.state_dir, "index.pkl"))
         self.quiet = quiet
@@ -50,15 +57,24 @@ class Sillage:
 
     # ------------------------------------------------------------- model ----
     def load_model(self):
+        """Load the frozen model once, lazily: `ask` never needs it."""
         if self._model is None:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
-            name = MODELS[self.mem.which][0]
+            name = self.mem.hub
             torch.set_num_threads(os.cpu_count() or 4)
             self._say(f"loading {name} (frozen) ...")
-            self._tok = AutoTokenizer.from_pretrained(name)
-            self._model = AutoModelForCausalLM.from_pretrained(
-                name, dtype=torch.float32)
+            try:
+                self._tok = AutoTokenizer.from_pretrained(name)
+                self._model = AutoModelForCausalLM.from_pretrained(
+                    name, dtype=torch.float32)
+            except Exception as exc:
+                raise SystemExit(
+                    f"could not load {name} as a causal language model "
+                    f"({type(exc).__name__}: {exc}).\nSillage needs a "
+                    f"next-token predictor (GPT-2, Qwen, Llama, Mistral, "
+                    f"Pythia, SmolLM ...), not an embedding or encoder "
+                    f"model, and the weights must be reachable.")
             self._model.eval()
         return self._tok, self._model
 
@@ -106,6 +122,7 @@ class Sillage:
                 out = model(x[a:a + w].unsqueeze(0),
                             output_hidden_states=need_h)
                 logits = out.logits[0].float().numpy()
+                mem.set_vocab(logits.shape[-1])
                 hs = (out.hidden_states[-1][0].float().numpy() if need_h
                       else None)
                 lo = 0 if a == 0 else WINDOW - STRIDE
@@ -136,6 +153,10 @@ class Sillage:
                         qS = mem.sem_key(hs[i])
                         uS, sS = mem.scores(mem.MS, qS)
                         mem.res_S.append(float(sS.max()))
+                    if mem.collecting():
+                        # dev window: record what each tier would have said,
+                        # to fit the readout to THIS model and THESE documents
+                        mem.collect(np.exp(lp_f), truth, sG, sS)
                     pc = mem.cold_lookup(truth)
                     p = mem.mix_true(np.exp(lp_f), sG, truth, sS, pc,
                                      thrG, thrS)
@@ -155,7 +176,8 @@ class Sillage:
                 a += STRIDE
         mem.res_G = mem.res_G[-5000:]
         mem.res_S = mem.res_S[-5000:]
-        rec = {"file": name, "tokens": int(cnt),
+        calibration = mem.maybe_calibrate()
+        rec = {"file": name, "tokens": int(cnt), "calibration": calibration,
                "date": time.strftime("%Y-%m-%d %H:%M"),
                "minutes": round((time.time() - t0) / 60, 1),
                "ppl_frozen": round(float(np.exp(nll_b / cnt)), 2),
@@ -188,6 +210,7 @@ class Sillage:
                             output_hidden_states=need_h)
                 past = out.past_key_values
                 lb = out.logits[0, -1].float().numpy()
+                mem.set_vocab(lb.shape[-1])
                 h = (out.hidden_states[-1][0, -1].float().numpy()
                      if need_h else None)
                 la, _ = mem.adapt(lb, h)
@@ -226,23 +249,30 @@ class Sillage:
 
     # ------------------------------------------------------------ report ----
     def status(self):
+        """Everything `sillage status` prints, as a dictionary."""
         mem = self.mem
         disk = 0
         for f in ("state.npz", "cold.pkl", "index.pkl", "log.json"):
             p = os.path.join(self.state_dir, f)
             if os.path.exists(p):
                 disk += os.path.getsize(p)
-        return {"model": MODELS[mem.which][0], "state_dir": self.state_dir,
+        return {"model": mem.hub, "state_dir": self.state_dir,
                 "tokens": mem.tokens,
                 "documents": len({f["file"] for f in mem.log["files"]}),
                 "cold_grams": len(mem.cold), "passages": len(
                     self.index.passages),
                 "semantic": mem.semantic, "fastweights": mem.fastweights,
                 "half_life": mem.half_life,
+                "calibrated": mem.calibrated,
+                "calibrating": mem.calibrate_on,
+                "readout": {"ngram": (mem.beta_G, mem.lam_G, mem.thr_qG),
+                            "semantic": (mem.beta_S, mem.lam_S, mem.thr_qS)},
+                "calib_seen": 0 if not mem.cal else len(mem.cal["p"]),
                 "writes_per_parameter": mem.writes_per_parameter(),
                 "sizes": mem.sizes(), "disk": disk,
                 "files": mem.log["files"]}
 
     def save(self):
+        """Consolidate the memory and write both state and index to disk."""
         self.mem.save()
         self.index.save()

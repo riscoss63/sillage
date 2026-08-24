@@ -1,14 +1,16 @@
 """Grounded retrieval over everything the assistant has read.
 
-Two layers answer questions here, and the difference matters:
+Two layers answer questions in this tool, and the difference matters:
 
-    ask   lexical retrieval (TF-IDF) over the paragraphs of your documents.
-          Instant, exact, always says which file and section a passage came
-          from. Nothing is generated, so there is no hallucination surface.
-          This is the layer you should trust.
-    say   continuation by the frozen LM plus the Sillage memory (see
-          `sillage.runtime`). Useful to watch the memory work; never a
-          source of truth at 0.1-0.6B parameters.
+    sillage ask       lexical retrieval (TF-IDF) over the paragraphs of your
+                      documents -- this module. Instant, exact, always says
+                      which file and section a passage came from. Nothing is
+                      generated, so there is no hallucination surface: this
+                      is the layer you should trust.
+    sillage complete  continuation by the frozen model plus the memory (see
+                      `sillage.runtime`), also reachable as /say inside
+                      `sillage chat`. Useful to watch the memory work; never
+                      a source of truth at 0.1-0.6B parameters.
 
 Text extraction handles .txt, .md and .tex (LaTeX is stripped to readable
 prose, keeping section structure, so `sillage read paper.tex` does the right
@@ -188,8 +190,10 @@ class Index:
             self.vecs.append({w: x / norm for w, x in v.items()})
 
     def search(self, query, k=3, numeric_only=False):
+        """Best k passages for a query, as (score, passage) pairs."""
         q = Counter(tokens(query))
-        qv = {w: (1 + math.log(c)) * self.idf.get(w, 0.0) for w, c in q.items()}
+        qv = {w: (1 + math.log(c)) * self.idf.get(w, 0.0)
+              for w, c in q.items()}
         norm = math.sqrt(sum(x * x for x in qv.values())) or 1.0
         qv = {w: x / norm for w, x in qv.items()}
         scored = []
@@ -204,10 +208,12 @@ class Index:
         return [(s, self.passages[i]) for s, i in scored[:k]]
 
     def sources(self):
+        """How many passages came from each document."""
         c = Counter(p["source"] for p in self.passages)
         return c
 
     def save(self):
+        """Persist the index next to the memory it belongs to."""
         if not self.path:
             return
         os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)

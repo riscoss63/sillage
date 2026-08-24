@@ -101,16 +101,27 @@ def main():
         assert z["A"].shape == (50257, 16) and np.abs(z["A"]).sum() > 0
         assert int(z["g_cnt"]) > 500
         m_abs_one_pass = float(np.abs(z["M"]).sum())   # same doc, no decay
+        calibrated = bool(z["calibrated"])
+        fitted = (float(z["beta_G"]), float(z["lam_G"]), float(z["thr_qG"]))
     passed.append(f"T1 first read ok (PPL {b1:.2f} -> {f1:.2f} adapter "
                   f"-> {m1:.2f} memory); M_G, A, cold store and index saved")
+
+    # T1b -- gpt2 is a model the papers tuned: keep their settings, do not
+    # refit them on a cold window (measured: refitting loses to them)
+    assert "calibrated the readout" not in out, out
+    assert not calibrated, "gpt2 should not be recalibrated by default"
+    assert (fitted[0], fitted[1]) == (40.0, 0.3), fitted
+    passed.append(f"T1b published readout kept ok (beta {fitted[0]:g}, "
+                  f"lambda {fitted[1]:g}, no cold refit)")
 
     # T2 -- persistence across sessions
     out = run("status")
     n = int(re.search(r"read so far\s*:\s*(\d+)", out).group(1))
     assert n > 500, out
     assert "fast weights" in out and "cold store" in out
+    assert "as published for this model" in out, out
     passed.append(f"T2 persistence ok ({n} tokens remembered across "
-                  f"processes)")
+                  f"processes, with its readout)")
 
     # T3 -- re-reading the same document: memory must slash perplexity
     out = run("read", doc_a)
@@ -178,11 +189,24 @@ def main():
     passed.append(f"T10 Python API ok (read + ask + status, "
                   f"PPL {got['ppl']})")
 
-    # T11 -- forget wipes; completion still runs on the frozen model alone
+    # T11 -- asked for it, the readout is fitted and frozen into the state
+    cal = os.path.join(HERE, "test_state_calib")
+    shutil.rmtree(cal, ignore_errors=True)
+    out = run("read", doc_a, "--calibrate", state=cal)
+    assert "calibrated the readout" in out, out
+    with np.load(os.path.join(cal, "state.npz")) as zc:
+        assert bool(zc["calibrated"])
+        got = (float(zc["beta_G"]), float(zc["lam_G"]))
+    assert os.path.exists(os.path.join(cal, "calib.pkl")), "window not kept"
+    shutil.rmtree(cal, ignore_errors=True)
+    passed.append(f"T11 opt-in calibration ok (fitted beta {got[0]:g}, "
+                  f"lambda {got[1]:g}; rolling window persisted)")
+
+    # T12 -- forget wipes; completion still runs on the frozen model alone
     run("forget", "--all")
     assert not os.path.exists(os.path.join(STATE, "state.npz"))
     run("complete", "The Zylkorb protocol requires", "-n", "8")
-    passed.append("T11 forget + base-only completion ok")
+    passed.append("T12 forget + base-only completion ok")
 
     print("\n".join(passed))
     print(f"\nALL {len(passed)} TESTS PASSED")

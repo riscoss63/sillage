@@ -14,6 +14,24 @@ survives restarts. Reading is CPU-only: about 2 minutes per 10k tokens with
 --model gpt2, about 8 with Qwen3-0.6B (the default, and the one that handles
 languages other than English). `index` and `ask` are instant and need no
 model at all.
+
+--model takes any causal language model -- the two shortcuts (qwen, gpt2)
+carry the settings tuned in the papers, and anything else on the Hugging
+Face hub or on disk works with the defaults:
+
+    sillage read notes.md --model HuggingFaceTB/SmolLM2-135M
+    sillage read notes.md --model ./my-finetuned-llama
+
+A memory is written in one model's token space, so each model needs its own
+--state directory; after that, `sillage status` and the rest pick the right
+model back up on their own.
+
+Meet a model the papers did not tune and the readout CALIBRATES itself on a
+rolling window of what you read (published grids, refitted at the end of each
+read, governing the next one). For qwen and gpt2 the published settings are
+kept instead: a window read by a cold memory measurably loses to them.
+--calibrate forces fitting, --no-calibrate forbids it, `read --recalibrate`
+starts over.
 """
 
 import argparse
@@ -23,7 +41,7 @@ import shutil
 import sys
 
 from . import __version__
-from .core import ETA, MODELS, R_FEAT
+from .core import CALIB_MIN, ETA, R_FEAT
 from .index import show
 from .runtime import Sillage, default_state
 
@@ -55,21 +73,54 @@ def find_papers():
 
 
 def make(a, **over):
+    """Build the assistant from the parsed flags (one place, every command)."""
     kw = {"model": a.model, "state": a.state, "semantic": a.semantic,
           "fastweights": False if a.no_fastweights else None,
-          "half_life": a.half_life}
+          "half_life": a.half_life,
+          "calibrate": getattr(a, "calibrate", None)}
     kw.update(over)
     return Sillage(**kw)
+
+
+def fmt_readout(params):
+    """Render one tier's readout settings the way `status` shows them."""
+    beta, lam, q = params
+    thr = "always on" if q is None else f"abstain below q{int(q * 100)}"
+    return f"beta {beta:g}, lambda {lam:g}, {thr}"
+
+
+def show_calibration(rep):
+    """What the window decided, and what that number does and does not mean."""
+    if not rep:
+        return
+    verb = "refitted" if rep.get("refit") else "fitted"
+    print(f"{verb} the readout on {rep['n']} observations from what was just "
+          f"read (the papers' grids):")
+    for tier, key in (("n-gram tier ", "ngram"),
+                      ("semantic tier", "semantic")):
+        if key in rep:
+            r = rep[key]
+            print(f"  {tier}: "
+                  + fmt_readout((r["beta"], r["lam"], r["thr_q"])))
+    gain = rep["nll_before"] - rep["nll_after"]
+    print(f"  {gain:+.4f} nats on that window. It governs the NEXT read, "
+          f"never this one,")
+    print(f"  so no perplexity printed here was tuned on itself.")
 
 
 # ------------------------------------------------------------- commands ----
 
 def cmd_read(a):
+    """read: stream documents through the model and every mechanism."""
     paths = expand(a.files)
     missing = [p for p in paths if not os.path.exists(p)]
     if missing:
         sys.exit("no such file: " + ", ".join(missing))
     s = make(a)
+    if getattr(a, "recalibrate", False):
+        s.mem.recalibrate()
+        print("readout calibration reset -- it will be fitted again on the "
+              "next few thousand tokens.")
     for path in paths:
         r = s.read(path)[0]
         line = (f"read {r['file']}: {r['tokens']} tokens in "
@@ -78,12 +129,14 @@ def cmd_read(a):
             line += f" -> {r['ppl_fastweights']} (adapter)"
         line += f" -> {r['ppl_with_memory']} (+memory)"
         print(line, flush=True)
+        show_calibration(r.get("calibration"))
     print(f"memory consolidated and saved ({s.mem.tokens} tokens lifetime, "
           f"{len(s.mem.cold)} cold grams, {len(s.index.passages)} passages "
           f"indexed).")
 
 
 def cmd_index(a):
+    """index: make documents searchable without running the model."""
     paths = expand(a.files)
     s = make(a)
     total = 0
@@ -99,6 +152,7 @@ def cmd_index(a):
 
 
 def cmd_ask(a):
+    """ask: exact passages from what has been read, with their source."""
     s = make(a)
     if not s.index.passages:
         sys.exit("nothing has been read yet: sillage read <file> "
@@ -107,12 +161,14 @@ def cmd_ask(a):
 
 
 def cmd_complete(a):
+    """complete: continue a prompt with the memory and the adapter."""
     s = make(a)
     prompt = " ".join(a.prompt)
     print(prompt + s.complete(prompt, n=a.n, temp=a.temp))
 
 
 def cmd_status(a):
+    """status: what the assistant knows, tier by tier."""
     s = make(a)
     st = s.status()
     print(f"sillage {__version__} - {st['model']} (frozen)")
@@ -136,7 +192,20 @@ def cmd_status(a):
     hl = (f"half-life {int(st['half_life'])} tokens" if st["half_life"]
           else "off")
     print(f"  forgetting         : {hl}")
-    print(f"  state on disk      : {st['disk']/1e6:.1f} MB  ({st['state_dir']})")
+    if st["calibrated"]:
+        origin = "fitted on what you read"
+    elif st["calibrating"]:
+        need = max(0, CALIB_MIN - st["calib_seen"])
+        origin = f"defaults, fitting in {need} more observations"
+    else:
+        origin = "as published for this model"
+    print(f"  readout            : {fmt_readout(st['readout']['ngram'])}")
+    if st["semantic"]:
+        print(f"  readout, semantic  : "
+              f"{fmt_readout(st['readout']['semantic'])}")
+    print(f"                       ({origin})")
+    print(f"  state on disk      : {st['disk']/1e6:.1f} MB  "
+          f"({st['state_dir']})")
     if st["writes_per_parameter"] > 0.4 and not st["half_life"]:
         print("  note: past ~0.5 writes/parameter the matrix saturates; "
               "add --half-life 100000 to keep learning.")
@@ -148,6 +217,7 @@ def cmd_status(a):
 
 
 def cmd_forget(a):
+    """forget: wipe the state, or drop one document from the index."""
     state = a.state or default_state()
     if a.all:
         shutil.rmtree(state, ignore_errors=True)
@@ -172,6 +242,7 @@ def cmd_forget(a):
 
 
 def cmd_papers(a):
+    """papers: index the four preprints that ship with the repository."""
     tex = find_papers()
     if not tex:
         sys.exit("papers/ not found -- run this from the repository, or "
@@ -179,7 +250,7 @@ def cmd_papers(a):
     a.files = tex
     if a.with_memory:
         print("reading the four preprints into the memory "
-              f"({a.model}) -- a few minutes ...")
+              f"({make(a).mem.hub}) -- a few minutes ...")
         cmd_read(a)
     else:
         cmd_index(a)
@@ -187,6 +258,7 @@ def cmd_papers(a):
 
 
 def cmd_chat(a):
+    """chat: ask and generate in one interactive session."""
     s = make(a)
     print(f"sillage {__version__} - {len(s.index.passages)} passages, "
           f"{s.mem.tokens} tokens in memory.")
@@ -270,9 +342,13 @@ def cmd_demo(a):
 # ----------------------------------------------------------------- parser ---
 
 def build_parser():
+    """The whole command line: shared flags, then one parser per command."""
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--model", default="qwen", choices=list(MODELS),
-                        help="frozen model to augment (default: qwen)")
+    common.add_argument("--model", default=None, metavar="NAME",
+                        help="frozen model to augment: a shortcut (qwen, "
+                             "gpt2), any causal LM on the Hugging Face hub, "
+                             "or a local path. Defaults to whatever the "
+                             "state was built with, else qwen.")
     common.add_argument("--state", default=None,
                         help="state directory (default: ./.sillage)")
     common.add_argument("--semantic", dest="semantic", action="store_true",
@@ -284,6 +360,13 @@ def build_parser():
     common.add_argument("--half-life", type=float, default=None,
                         metavar="N", help="forgetting half-life in tokens "
                                           "(off by default; try 100000)")
+    common.add_argument("--calibrate", dest="calibrate",
+                        action="store_true", default=None,
+                        help="fit the readout on what you read (the default "
+                             "for any model the papers did not tune)")
+    common.add_argument("--no-calibrate", dest="calibrate",
+                        action="store_false",
+                        help="keep the readout settings as they are")
 
     gen = argparse.ArgumentParser(add_help=False)
     gen.add_argument("-n", type=int, default=40,
@@ -305,6 +388,8 @@ def build_parser():
     p = sub.add_parser("read", parents=[common],
                        help="read documents: memorize and index them")
     p.add_argument("files", nargs="+")
+    p.add_argument("--recalibrate", action="store_true",
+                   help="fit the readout again, on what you read next")
     p.set_defaults(fn=cmd_read)
 
     p = sub.add_parser("index", parents=[common],
@@ -353,6 +438,7 @@ def build_parser():
 
 
 def main(argv=None):
+    """Entry point of the `sillage` command."""
     a = build_parser().parse_args(argv)
     a.fn(a)
 
