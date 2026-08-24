@@ -1,12 +1,20 @@
-# regenerable artifacts (see README — every dump rebuilds deterministically)
+# regenerable artifacts (see REPRODUCE.md — every dump rebuilds deterministically)
 dumps/
 data/
 __pycache__/
 *.pyc
 .cache/
 
-# runtime state of the two assistants (rebuildable)
+# packaging
+*.egg-info/
+build/
+dist/
+
+# what the assistant remembers (yours, and rebuildable by reading again)
+.sillage/
+.sillage-demo/
 memory_state/
 papers_state/
 test_state/
+test_state_*/
 test_docs/

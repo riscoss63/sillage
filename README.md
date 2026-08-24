@@ -1,40 +1,114 @@
 # Sillage
 
-**Your language model forgets everything. Sillage gives it a 4 MB memory.**
+**Your language model forgets everything. Sillage gives it a memory — and a
+way to keep learning — in a fixed handful of megabytes, with no gradients and
+no index that grows.**
 
 > *sillage* (n., French) — the trace left behind by something that has passed:
 > a ship's wake, a scent in a room. What a model keeps of what it read.
 
+[![tests](https://github.com/riscoss63/sillage/actions/workflows/tests.yml/badge.svg)](https://github.com/riscoss63/sillage/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](requirements.txt)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![CPU only](https://img.shields.io/badge/hardware-CPU%20only-green.svg)](requirements.txt)
 [![Papers: 4](https://img.shields.io/badge/preprints-4-orange.svg)](papers/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22079016.svg)](https://doi.org/10.5281/zenodo.22079016)
 
-A frozen LM reads your document, remembers it, and predicts better next
-time — with **no gradients, no fine-tuning, no growing index**. One Hebbian
-matrix, written as the model reads, plus a rank-16 adapter on the readout.
-Everything here runs on a laptop CPU.
+A frozen LM reads your documents, remembers them, and predicts better next
+time — **no gradients, no fine-tuning, no growing index**. One Hebbian matrix
+written as the model reads, a semantic tier routed by confidence, a cold store
+that consolidates by surprise, and a rank-16 adapter on the readout. Four
+mechanisms, four papers, **one command-line tool**. Everything runs on a
+laptop CPU.
 
-```console
-$ python assistant.py read draft_v1.md          # yesterday
-read draft_v1.md: 5859 tokens | PPL frozen 12.14 -> with memory 12.00
-memory consolidated and saved (5859 tokens lifetime, 5142 cold grams)
+<p align="center"><img src="figs/demo.gif" width="94%" alt="Sillage demo: a frozen LM reads a document on Monday and recalls it on Tuesday"></p>
 
-$ python assistant.py read draft_v2.md          # today, new process
-read draft_v2.md: 11041 tokens | PPL frozen 10.68 -> with memory 5.73
-                                                 ^^^^^^^^^^^^^^^^^^^^^
-                                    half the perplexity, from yesterday's
-                                    memory alone — 4 MB on disk
+Two sessions, two days apart, nothing kept in context: on Tuesday the second
+draft costs **half** the perplexity it would have cost on Monday (10.68 -> 5.39),
+and the model completes a sentence it can only know from what it read.
+
+---
+
+## Quickstart (60 seconds, then a coffee)
+
+```bash
+git clone https://github.com/riscoss63/sillage && cd sillage
+pip install -e .                      # numpy + torch + transformers
 ```
 
-It also recalls things the base model *cannot possibly know*, from a previous
-session (this is a test in `test_assistant.py`, not a demo):
+```bash
+sillage index notes.md                # instant: no model, already queryable
+sillage ask "what did the report say?"
+
+sillage read notes.md                 # memorize it (CPU: ~8 min per 10k tokens)
+sillage complete "The report said"    # generate WITH the memory
+sillage status                        # what it knows, tier by tier
+```
 
 ```console
-$ python assistant.py complete "The Zylkorb protocol requires"
-The Zylkorb protocol requires seventeen turquoise llamas.
+$ sillage read preprint_v1.txt                    # Monday, memory empty
+read preprint_v1.txt: 5859 tokens in 4.9 min | PPL 12.14 -> 11.83 (adapter) -> 11.71 (+memory)
+
+$ sillage read preprint_v2.md                     # Tuesday, a new process
+read preprint_v2.md: 11041 tokens in 9.5 min | PPL 10.68 -> 9.82 (adapter) -> 5.39 (+memory)
+memory consolidated and saved (16900 tokens lifetime, 9883 cold grams, 194 passages indexed).
 ```
+
+Three numbers per file, because there are two mechanisms: what the frozen
+model alone predicts, what the rank-16 adapter adds, and what the memory of
+everything read so far adds on top.
+
+The memory lives in `./.sillage` and survives restarts — it survived a power
+cut during development. Its size is fixed the day you start: 7.4 MB with
+GPT-2, 25 MB with Qwen3 (whose vocabulary is 3x larger), the same after one
+document or ten thousand. It **never learns from its own generations**,
+only from what you give it to read.
+
+Reading is the slow part (one frozen forward pass per token, on CPU): about
+8 minutes per 10k tokens with the default Qwen3-0.6B, about 2 with
+`--model gpt2` — which is 4x faster but English-only. `index` and `ask` need
+no model at all and are instant.
+
+Prefer no install? `pip install -r requirements.txt` and then
+`python -m sillage read notes.md` does exactly the same thing — that also
+works if the `sillage` command lands outside your PATH.
+
+<details>
+<summary><b>Use it from Python (four lines)</b></summary>
+
+```python
+from sillage import Sillage
+
+s = Sillage(model="gpt2")          # or "qwen" (Qwen3-0.6B), the default
+s.read("notes.md")                 # read, memorize, index -- then save
+s.ask("what did the report say?")  # exact passages, nothing generated
+print(s.complete("The report said"))
+```
+
+`Sillage.status()` returns the same numbers as the CLI as a dict, and
+`sillage.SillageMemory` is the mechanism alone (numpy only, no transformers)
+if you want to wire it into your own generation loop.
+</details>
+
+<details>
+<summary><b>Every option</b></summary>
+
+| command | what it does |
+|---|---|
+| `sillage read FILE...` | read + memorize + index (all four mechanisms) |
+| `sillage index FILE...` | index only — instant, no model needed |
+| `sillage ask "..."` | grounded excerpts with their source and section |
+| `sillage complete "..."` | generate with the memory and the adapter |
+| `sillage chat` | both, interactively (`/say`, `/read`, `/status`) |
+| `sillage papers` | index the four preprints shipped here, then ask them |
+| `sillage demo FILE` | two sessions on one document, start to finish |
+| `sillage status` / `forget --all` | inspect / wipe |
+
+Flags: `--model qwen\|gpt2`, `--state DIR` (or `$SILLAGE_STATE`),
+`--no-fastweights`, `--no-semantic`, `--half-life N` (forgetting, in tokens),
+`-n`, `--temp`, `-k`. Globs are expanded by the tool itself, so
+`sillage read docs/*.md` works on Windows too.
+</details>
 
 ---
 
@@ -74,47 +148,6 @@ the text in front of it, on a fixed byte budget, forever.
 
 ---
 
-## Two tools
-
-### `assistant.py` — reads your documents, remembers across sessions
-
-```bash
-pip install -r requirements.txt
-python assistant.py read notes.md      # read + memorize (Qwen3-0.6B by default)
-python assistant.py status             # what it knows, and since when
-python assistant.py complete "..."     # generate WITH the memory
-python assistant.py forget --all
-```
-
-State lives in `memory_state/` (a few MB) and survives restarts — it survived
-a power cut during development. It never learns from its own generations, only
-from what you give it to read. `python test_assistant.py` runs 7 end-to-end
-tests (each session a separate process, invented facts the base model cannot
-know); all pass.
-
-### `papers_assistant.py` — the four preprints, queryable offline
-
-```bash
-python papers_assistant.py build                    # index the papers (instant)
-python papers_assistant.py ask "does rank 16 suffice?"
-python papers_assistant.py chat                     # interactive
-```
-
-```console
-[1] FastWeights · Rank 16 is enough   (relevance 0.187)
-    At r = 16 the adapter is 3.2 MB on GPT-2 and 9.7 MB on Qwen3 - the same
-    budget class as the memory it complements, and 16x smaller than the
-    r = 256 adapter with which we began.
-```
-
-`ask` only ever returns **real passages with their paper and section** —
-nothing is generated, so there is no hallucination surface. `say` is the
-opposite (a 0.1–0.6B model writing prose with the papers in memory): useful
-for watching the memory work, never as a source of truth. The tool says so
-itself.
-
----
-
 ## How it works, in four ideas
 
 <p align="center"><img src="figs/fig0_architecture.png" width="82%" alt="architecture"></p>
@@ -133,9 +166,22 @@ itself.
    the readout (3.2 MB, no error transported through any layer) wins exactly
    where memory is weakest, and their gains add up (89–98 % additive).
 
+### The four papers are the four mechanisms — all of them are in the tool
+
+| paper | mechanism in `sillage/` | on by default | turn it off |
+|---|---|---|---|
+| 1 · Sillage | `M_G`, 4.2 MB Hebbian *n*-gram tier, amplitude writes, surprise gate | yes | — |
+| 2 · Router | `M_S`, 12.6 MB semantic tier, **score-level** mixing with abstention | qwen only (gpt2 needs whitening) | `--no-semantic` |
+| 3 · Hierarchy | cold store of exact 4-grams, consolidated by surprise **mass** at save time | yes | — |
+| 4 · Fast weights | `A`, rank-16 delta-rule readout adapter, uniform step | yes | `--no-fastweights` |
+| 1 & 3 · long horizons | leaky forgetting (half-life in tokens) | no — needed past ~0.5 writes/parameter | `--half-life 100000` |
+
+`sillage status` tells you where you stand on that last line, because the
+capacity law is the honest limit of the whole approach.
+
 ## The four preprints
 
-All four are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/).
+All four are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
 
 | # | title | the finding |
 |---|---|---|
@@ -173,24 +219,34 @@ retrieved values with random tokens; any surviving gain is an artifact), a
 Every number in every paper regenerates from these scripts with fixed seeds,
 on CPU. See **[REPRODUCE.md](REPRODUCE.md)** for the full pipeline; results
 are committed as JSON in [`results/`](results/) (including per-seed values).
+`python test_unit.py` checks the four mechanisms themselves in five seconds
+(numpy only: retrieval, the square-root rule, forgetting, the delta rule,
+consolidation, the state round-trip); `python test_sillage.py` runs 11
+end-to-end tests of the tool (each command in its own process, invented facts
+the base model cannot know).
 
 <details>
 <summary><b>Repository layout</b></summary>
 
 ```
-assistant.py  papers_assistant.py  demo.py  test_assistant.py   the tools
-pipeline/     corpora and frozen-LM passes
-memory/       the memory systems (papers 1-3)
-fastweights/  the readout adapter (paper 4)
-eval/         evaluations, controls, diagnostics
-figures/      figure generation
-papers/       the four preprints (LaTeX + figures)
-results/      every number in every paper (JSON)
-data/ dumps/  regenerable artifacts (gitignored, ~2 GB)
+sillage/         the tool: core.py (the four mechanisms), runtime.py,
+                 index.py (grounded retrieval), cli.py
+test_sillage.py  end-to-end tests
+papers/          the four preprints (LaTeX + figures)
+results/         every number in every paper (JSON)
+pipeline/        corpora and frozen-LM passes          \
+memory/          the memory systems (papers 1-3)        |  paper
+fastweights/     the readout adapter (paper 4)          |  reproduction
+eval/            evaluations, controls, diagnostics     |
+figures/         figure generation                     /
+data/ dumps/     regenerable artifacts (gitignored, ~2 GB)
 ```
 
-Any script runs from anywhere: a small bootstrap header finds the repo root,
-fixes `sys.path` and `chdir`s, so relative paths always resolve.
+Version 1.0 merged the two former scripts into one tool: `assistant.py` →
+`sillage read` / `complete`, `papers_assistant.py` → `sillage papers` / `ask`,
+`demo.py` → `sillage demo`. Old `memory_state/` directories are still read.
+The research scripts keep their own bootstrap header, so any of them runs from
+anywhere and resolves `data/`, `dumps/`, `results/` identically.
 </details>
 
 <details>
@@ -200,7 +256,11 @@ fixes `sys.path` and `chdir`s, so relative paths always resolve.
 - The memory captures **surface repetition**; paraphrase recall is what the
   semantic tier partially addresses, and it remains the open frontier.
 - A fixed matrix saturates at long horizons (~0.5 writes per parameter);
-  forgetting (×2.3) and capacity (×3.4) are the measured remedies.
+  forgetting (×2.3, `--half-life`) and capacity (×3.4) are the measured
+  remedies.
+- `sillage forget <file>` removes a document from the index, not from the
+  matrices: Hebbian traces are superposed, so only `--all` or forgetting
+  removes those. The tool says so rather than pretending otherwise.
 - The papers' *Manuscripts* stream (unpublished drafts) is not redistributed —
   drop your own documents in `manuscripts/` to run that protocol.
 </details>

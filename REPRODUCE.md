@@ -1,5 +1,10 @@
 # Reproducing every number in the four papers
 
+This file is for the *research* scripts. If you only want to use the system,
+`pip install -e .` and `sillage read yourfile.md` is the whole story
+(see [README.md](README.md)); `python test_sillage.py` checks that the tool
+works end to end in about six minutes.
+
 Everything runs on CPU with fixed seeds. Total: roughly 2 h for the corpora
 and frozen-LM passes, then 3–6 h for the experiments (most of them can be run
 selectively — each block below is independent once the dumps exist).
