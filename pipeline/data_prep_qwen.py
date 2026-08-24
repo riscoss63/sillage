@@ -2,7 +2,7 @@
 (same cleaned texts as data_prep.py). Outputs data/q_<domain>_ids.npy."""
 
 
-# --- repo bootstrap (added by reorganize.py) ---
+# --- repo bootstrap: run this script from anywhere ---
 import os as _os
 import sys as _sys
 _d = _os.path.dirname(_os.path.abspath(__file__))

@@ -9,6 +9,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](requirements.txt)
 [![CPU only](https://img.shields.io/badge/hardware-CPU%20only-green.svg)](requirements.txt)
 [![Papers: 4](https://img.shields.io/badge/preprints-4-orange.svg)](papers/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22079016.svg)](https://doi.org/10.5281/zenodo.22079016)
 
 A frozen LM reads your document, remembers it, and predicts better next
 time — with **no gradients, no fine-tuning, no growing index**. One Hebbian
@@ -134,14 +135,14 @@ itself.
 
 ## The four preprints
 
-All in [`papers/`](papers/), with figures and [submission notes](papers/SUBMISSION.md).
+All four are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/).
 
 | # | title | the finding |
 |---|---|---|
-| 1 | [Surprise-Gated Amplitude Memory](papers/sillage/sillage.tex) | a fixed 4.2 MB Hebbian cache beats an unbounded kNN-LM on novel repetitive text |
-| 2 | [Route the Scores, Not the Keys](papers/router/router.tex) | gradient-free semantic keys work — but only if you mix at the score level, never in the key |
-| 3 | [One Signal, Three Tiers](papers/hierarchy/hierarchy.tex) | consolidating by *surprise mass* keeps 94 % of a cold store's value with 10 % of its entries |
-| 4 | [Memory Remembers, Fast Weights Adapt](papers/fastweights/fastweights.tex) | two gradient-free mechanisms, opposite regimes, near-additive gains |
+| 1 | **[Sillage](https://doi.org/10.5281/zenodo.22079016)** · [source](papers/sillage/sillage.tex) | a fixed 4.2 MB Hebbian cache beats an unbounded kNN-LM on novel repetitive text |
+| 2 | **[Route the Scores, Not the Keys](https://doi.org/10.5281/zenodo.22079444)** · [source](papers/router/router.tex) | gradient-free semantic keys work — but only if you mix at the score level, never in the key |
+| 3 | **[One Signal, Three Tiers](https://doi.org/10.5281/zenodo.22079471)** · [source](papers/hierarchy/hierarchy.tex) | consolidating by *surprise mass* keeps 94 % of a cold store's value with 10 % of its entries |
+| 4 | **[Memory Remembers, Fast Weights Adapt](https://doi.org/10.5281/zenodo.22079481)** · [source](papers/fastweights/fastweights.tex) | two gradient-free mechanisms, opposite regimes, near-additive gains |
 
 ## What did *not* work (and how we know)
 
@@ -212,7 +213,8 @@ fixes `sys.path` and `chdir`s, so relative paths always resolve.
             for Frozen Language Models},
   author = {Sghairi, Abderrahmane},
   year   = {2026},
-  note   = {Preprint. arXiv identifier to be added.}
+  doi    = {10.5281/zenodo.22079016},
+  url    = {https://doi.org/10.5281/zenodo.22079016}
 }
 ```
 

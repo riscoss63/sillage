@@ -5,7 +5,7 @@ number, the pass is fine and hierarchy's tuner is at fault; otherwise the
 pass differs."""
 
 
-# --- repo bootstrap (added by reorganize.py) ---
+# --- repo bootstrap: run this script from anywhere ---
 import os as _os
 import sys as _sys
 _d = _os.path.dirname(_os.path.abspath(__file__))

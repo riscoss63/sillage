@@ -13,7 +13,7 @@ Checks on the aba stream (first 20k positions, k=32, tau=0.5, lam=0.2):
 """
 
 
-# --- repo bootstrap (added by reorganize.py) ---
+# --- repo bootstrap: run this script from anywhere ---
 import os as _os
 import sys as _sys
 _d = _os.path.dirname(_os.path.abspath(__file__))

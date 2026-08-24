@@ -4,7 +4,7 @@ and a base LM that assigns p = 0.01 to every true token. If kNN and BHD do
 not both improve NLL substantially here, the pipeline is broken."""
 
 
-# --- repo bootstrap (added by reorganize.py) ---
+# --- repo bootstrap: run this script from anywhere ---
 import os as _os
 import sys as _sys
 _d = _os.path.dirname(_os.path.abspath(__file__))

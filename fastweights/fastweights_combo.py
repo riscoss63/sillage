@@ -21,7 +21,7 @@ Output: results/fwcombo_<domain>.json
 """
 
 
-# --- repo bootstrap (added by reorganize.py) ---
+# --- repo bootstrap: run this script from anywhere ---
 import os as _os
 import sys as _sys
 _d = _os.path.dirname(_os.path.abspath(__file__))
