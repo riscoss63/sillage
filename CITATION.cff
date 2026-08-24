@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use Sillage, please cite the paper below."
+title: "Sillage: gradient-free test-time memory for frozen language models"
+type: software
+authors:
+  - family-names: Sghairi
+    given-names: Abderrahmane
+    email: sghairipro63@gmail.com
+year: 2026
+preferred-citation:
+  type: article
+  title: "Sillage: Surprise-Gated Amplitude Memory for Frozen Language Models"
+  authors:
+    - family-names: Sghairi
+      given-names: Abderrahmane
+  year: 2026
+  notes: "Preprint. arXiv identifier to be added upon publication."

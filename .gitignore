@@ -1,0 +1,12 @@
+# regenerable artifacts (see README — every dump rebuilds deterministically)
+dumps/
+data/
+__pycache__/
+*.pyc
+.cache/
+
+# runtime state of the two assistants (rebuildable)
+memory_state/
+papers_state/
+test_state/
+test_docs/

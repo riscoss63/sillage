@@ -1,0 +1,12 @@
+{
+  "domain": "alice",
+  "positions": 38975,
+  "minutes": 6.8,
+  "base_nll_test_same_positions": 2.6332077980041504,
+  "rag_pure_nll_test": 2.634857416152954,
+  "rag_interp": {
+    "lam": 0.5,
+    "lam_nll_dev": 2.8906326293945312,
+    "nll_test": 2.6256470680236816
+  }
+}

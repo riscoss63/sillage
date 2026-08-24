@@ -1,0 +1,148 @@
+{
+  "model": "qwen",
+  "domain": "bhd",
+  "items": 2000,
+  "all": {
+    "base": {
+      "acc": 0.1965,
+      "n": 2000,
+      "wilson95": [
+        0.1797,
+        0.2145
+      ]
+    },
+    "knn": {
+      "acc": 0.199,
+      "n": 2000,
+      "wilson95": [
+        0.1821,
+        0.2171
+      ]
+    },
+    "sillage": {
+      "acc": 0.24,
+      "n": 2000,
+      "wilson95": [
+        0.2218,
+        0.2592
+      ]
+    }
+  },
+  "recurring_ge5": {
+    "base": {
+      "acc": 0.222,
+      "n": 1216,
+      "wilson95": [
+        0.1996,
+        0.2463
+      ]
+    },
+    "knn": {
+      "acc": 0.2245,
+      "n": 1216,
+      "wilson95": [
+        0.2019,
+        0.2488
+      ]
+    },
+    "sillage": {
+      "acc": 0.2599,
+      "n": 1216,
+      "wilson95": [
+        0.236,
+        0.2852
+      ]
+    }
+  },
+  "mcnemar_sillage_vs_base": {
+    "sillage_only": 97,
+    "base_only": 10
+  },
+  "config": {
+    "sillage": [
+      6,
+      0.2,
+      0.75
+    ],
+    "knn": [
+      32,
+      0.5,
+      0.1,
+      null
+    ]
+  },
+  "examples": [
+    {
+      "context_tail": " acting on the world. Hyperdimensional Computing (HDC) [Kanerva,\n2009] offers a",
+      "truth": " framework",
+      "base": " computational",
+      "sillage": " framework"
+    },
+    {
+      "context_tail": "dimensional Computing (HDC) [Kanerva,\n2009] offers a framework for cognitive computing that stores",
+      "truth": " information",
+      "base": " and",
+      "sillage": " information"
+    },
+    {
+      "context_tail": "tion in\nhigh-dimensional vectors supporting one-shot learning, compositional\nreasoning, and catastrophic-forgetting-free",
+      "truth": " memory",
+      "base": " learning",
+      "sillage": " memory"
+    },
+    {
+      "context_tail": "h-dimensional vectors supporting one-shot learning, compositional\nreasoning, and catastrophic-forgetting-free memory via",
+      "truth": " super",
+      "base": " a",
+      "sillage": " super"
+    },
+    {
+      "context_tail": "ly plausible local learning rules that require no global\nerror signal.\n\nDespite their complementarity, no prior work has",
+      "truth": " formally",
+      "base": " directly",
+      "sillage": " formally"
+    },
+    {
+      "context_tail": "ble local learning rules that require no global\nerror signal.\n\nDespite their complementarity, no prior work has formally",
+      "truth": " unified",
+      "base": " derived",
+      "sillage": " unified"
+    },
+    {
+      "context_tail": "\nerror signal.\n\nDespite their complementarity, no prior work has formally unified these three\nparadigms under a single",
+      "truth": " mathematical",
+      "base": " geometric",
+      "sillage": " mathematical"
+    },
+    {
+      "context_tail": " unified these three\nparadigms under a single mathematical framework. The principal obstacle is\nthe mismatch between the",
+      "truth": " probabil",
+      "base": " F",
+      "sillage": " probabil"
+    },
+    {
+      "context_tail": " three\nparadigms under a single mathematical framework. The principal obstacle is\nthe mismatch between the probabilistic",
+      "truth": " geometry",
+      "base": " nature",
+      "sillage": " geometry"
+    },
+    {
+      "context_tail": " a \"mathematical\nheresy.\"\n\nThis paper resolves this heresy. Our contributions are:\n\n  C1. We",
+      "truth": " define",
+      "base": " introduce",
+      "sillage": " define"
+    },
+    {
+      "context_tail": "  C2. We derive an asymmetric residual operator R(V_Q \u2192 V_P) that exploits\n      vector norm as a",
+      "truth": " proxy",
+      "base": " metric",
+      "sillage": " proxy"
+    },
+    {
+      "context_tail": "30, 0.40, 0.50} that\n      the HDC prediction error is a robust",
+      "truth": " proxy",
+      "base": " function",
+      "sillage": " proxy"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "model": "gpt2",
+  "domain": "tolstoy",
+  "items": 2000,
+  "all": {
+    "base": {
+      "acc": 0.15,
+      "n": 2000,
+      "wilson95": [
+        0.135,
+        0.1663
+      ]
+    },
+    "knn": {
+      "acc": 0.1515,
+      "n": 2000,
+      "wilson95": [
+        0.1365,
+        0.1679
+      ]
+    },
+    "sillage": {
+      "acc": 0.1495,
+      "n": 2000,
+      "wilson95": [
+        0.1345,
+        0.1658
+      ]
+    }
+  },
+  "recurring_ge5": {
+    "base": {
+      "acc": 0.1594,
+      "n": 1826,
+      "wilson95": [
+        0.1433,
+        0.1769
+      ]
+    },
+    "knn": {
+      "acc": 0.161,
+      "n": 1826,
+      "wilson95": [
+        0.1449,
+        0.1786
+      ]
+    },
+    "sillage": {
+      "acc": 0.1594,
+      "n": 1826,
+      "wilson95": [
+        0.1433,
+        0.1769
+      ]
+    }
+  },
+  "mcnemar_sillage_vs_base": {
+    "sillage_only": 0,
+    "base_only": 1
+  },
+  "config": {
+    "sillage": [
+      5,
+      0.02,
+      0.75
+    ],
+    "knn": [
+      32,
+      0.5,
+      0.05,
+      null
+    ]
+  },
+  "examples": []
+}

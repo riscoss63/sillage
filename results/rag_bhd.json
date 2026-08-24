@@ -1,0 +1,12 @@
+{
+  "domain": "bhd",
+  "positions": 34668,
+  "minutes": 5.0,
+  "base_nll_test_same_positions": 3.4400794506073,
+  "rag_pure_nll_test": 3.421884775161743,
+  "rag_interp": {
+    "lam": 0.7,
+    "lam_nll_dev": 3.2325663566589355,
+    "nll_test": 3.3970882892608643
+  }
+}

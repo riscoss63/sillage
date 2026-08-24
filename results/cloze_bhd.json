@@ -1,0 +1,148 @@
+{
+  "model": "gpt2",
+  "domain": "bhd",
+  "items": 2000,
+  "all": {
+    "base": {
+      "acc": 0.113,
+      "n": 2000,
+      "wilson95": [
+        0.0999,
+        0.1276
+      ]
+    },
+    "knn": {
+      "acc": 0.1125,
+      "n": 2000,
+      "wilson95": [
+        0.0994,
+        0.1271
+      ]
+    },
+    "sillage": {
+      "acc": 0.2365,
+      "n": 2000,
+      "wilson95": [
+        0.2184,
+        0.2556
+      ]
+    }
+  },
+  "recurring_ge5": {
+    "base": {
+      "acc": 0.1322,
+      "n": 1210,
+      "wilson95": [
+        0.1143,
+        0.1525
+      ]
+    },
+    "knn": {
+      "acc": 0.1322,
+      "n": 1210,
+      "wilson95": [
+        0.1143,
+        0.1525
+      ]
+    },
+    "sillage": {
+      "acc": 0.2372,
+      "n": 1210,
+      "wilson95": [
+        0.2141,
+        0.262
+      ]
+    }
+  },
+  "mcnemar_sillage_vs_base": {
+    "sillage_only": 261,
+    "base_only": 14
+  },
+  "config": {
+    "sillage": [
+      4,
+      0.3,
+      0.75
+    ],
+    "knn": [
+      32,
+      0.5,
+      0.1,
+      0.25
+    ]
+  },
+  "examples": [
+    {
+      "context_tail": " the probability simplex. This isometry resolves the \"heresy\" of\nsubstituting KL divergence with cosine",
+      "truth": " distance",
+      "base": ".",
+      "sillage": " distance"
+    },
+    {
+      "context_tail": ". This isometry resolves the \"heresy\" of\nsubstituting KL divergence with cosine distance in HDC",
+      "truth": " spaces",
+      "base": ".",
+      "sillage": " spaces"
+    },
+    {
+      "context_tail": "]). Finally, we prove via Lyapunov analysis (Appendix E)\nthat an STDP-modulated agent",
+      "truth": " using",
+      "base": " can",
+      "sillage": " using"
+    },
+    {
+      "context_tail": "itions are compared against\nno-transition random baselines to separate representation from policy.\nOur results suggest a",
+      "truth": " tract",
+      "base": " new",
+      "sillage": " tract"
+    },
+    {
+      "context_tail": " Active Inference,\nSTDP, Bhattacharyya Distance, Neuromorphic Computing, AGI, Continual",
+      "truth": " Learning",
+      "base": "\n",
+      "sillage": " Learning"
+    },
+    {
+      "context_tail": "==================================================\n\nThe dominant paradigm in artificial intelligence \u2014 transformer-based",
+      "truth": " large",
+      "base": " learning",
+      "sillage": " large"
+    },
+    {
+      "context_tail": "digm in artificial intelligence \u2014 transformer-based large\nlanguage models trained by stochastic gradient descent \u2014 faces",
+      "truth": " three",
+      "base": "\n",
+      "sillage": " three"
+    },
+    {
+      "context_tail": " intelligence \u2014 transformer-based large\nlanguage models trained by stochastic gradient descent \u2014 faces three\nfundamental",
+      "truth": " limitations",
+      "base": " challenges",
+      "sillage": " limitations"
+    },
+    {
+      "context_tail": "r-based large\nlanguage models trained by stochastic gradient descent \u2014 faces three\nfundamental limitations for achieving",
+      "truth": " general",
+      "base": " a",
+      "sillage": " general"
+    },
+    {
+      "context_tail": "s trained by stochastic gradient descent \u2014 faces three\nfundamental limitations for achieving general intelligence: (i) a",
+      "truth": " fixed",
+      "base": " large",
+      "sillage": " fixed"
+    },
+    {
+      "context_tail": ") a fixed\ncontext window bounded by the quadratic complexity of attention, (ii) no\nmechanism for",
+      "truth": " continuous",
+      "base": " the",
+      "sillage": " continuous"
+    },
+    {
+      "context_tail": " quadratic complexity of attention, (ii) no\nmechanism for continuous learning after deployment, and (iii)",
+      "truth": " prediction",
+      "base": " a",
+      "sillage": " prediction"
+    }
+  ]
+}

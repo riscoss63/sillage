@@ -1,0 +1,62 @@
+{
+  "domain": "relativity",
+  "n": 39999,
+  "base_nll_test": 2.870258331298828,
+  "memory_bytes": 4194304,
+  "fw_r256_uniform": {
+    "nll_dev": 2.894711494445801,
+    "dnll_test": 0.07517123222351074,
+    "adapter_bytes": 51463168
+  },
+  "fw_r64_uniform": {
+    "nll_dev": 2.8947620391845703,
+    "dnll_test": 0.07532620429992676,
+    "adapter_bytes": 12865792
+  },
+  "fw_r256_gated": {
+    "nll_dev": 2.935692310333252,
+    "dnll_test": -6.67572021484375e-06,
+    "adapter_bytes": 51463168
+  },
+  "fw_winner": "fw_r256_uniform",
+  "memory_only": {
+    "dnll_test": 0.016835927963256836,
+    "params": {
+      "beta_idx": 6,
+      "lam": 0.02,
+      "thr_q": 0.75
+    }
+  },
+  "fw_plus_memory": {
+    "dnll_test": 0.08749032020568848,
+    "params": {
+      "beta_idx": 6,
+      "lam": 0.02,
+      "thr_q": 0.75
+    }
+  },
+  "paired_fw_vs_base": {
+    "mean": 0.07517090439796448,
+    "ci95": [
+      0.0652247879654169,
+      0.08568717408925294
+    ],
+    "p_better": 1.0
+  },
+  "paired_combo_vs_memory": {
+    "mean": 0.07065415382385254,
+    "ci95": [
+      0.06134057594463229,
+      0.08044241648167372
+    ],
+    "p_better": 1.0
+  },
+  "paired_combo_vs_fw": {
+    "mean": 0.012319011613726616,
+    "ci95": [
+      0.008944584475830197,
+      0.016595248598605394
+    ],
+    "p_better": 1.0
+  }
+}
