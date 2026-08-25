@@ -45,25 +45,33 @@ class Sillage:
 
     def __init__(self, model=None, state=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
-                 quiet=False):
+                 device=None, quiet=False):
         self.state_dir = default_state() if state is None else state
         self.mem = SillageMemory(self.state_dir, model, semantic,
                                  fastweights, half_life, calibrate)
         self.index = Index(None if self.state_dir is None else
                            os.path.join(self.state_dir, "index.pkl"))
         self.quiet = quiet
+        self.device = device        # None -> cuda when there is one
         self._tok = None
         self._model = None
 
     # ------------------------------------------------------------- model ----
     def load_model(self):
         """Load the frozen model once, lazily: `ask` never needs it."""
+        if self._model is not None:
+            if self.device is None:      # a model handed to us from outside
+                self.device = str(next(self._model.parameters()).device)
+            return self._tok, self._model
         if self._model is None:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
             name = self.mem.hub
+            if self.device is None:
+                self.device = ("cuda" if torch.cuda.is_available()
+                               else "cpu")
             torch.set_num_threads(os.cpu_count() or 4)
-            self._say(f"loading {name} (frozen) ...")
+            self._say(f"loading {name} (frozen, {self.device}) ...")
             try:
                 self._tok = AutoTokenizer.from_pretrained(name)
                 self._model = AutoModelForCausalLM.from_pretrained(
@@ -75,6 +83,9 @@ class Sillage:
                     f"next-token predictor (GPT-2, Qwen, Llama, Mistral, "
                     f"Pythia, SmolLM ...), not an embedding or encoder "
                     f"model, and the weights must be reachable.")
+            # the mechanisms are numpy on the CPU either way; the device only
+            # decides where the frozen forward passes happen
+            self._model.to(self.device)
             self._model.eval()
         return self._tok, self._model
 
@@ -113,7 +124,7 @@ class Sillage:
         need_h = mem.semantic or mem.fastweights
         nll_b = nll_f = nll_m = 0.0
         cnt = 0
-        x = torch.tensor(ids)
+        x = torch.tensor(ids, device=self.device)
         a = 0
         t0 = time.time()
         with torch.no_grad():
@@ -121,10 +132,10 @@ class Sillage:
                 w = min(WINDOW, len(ids) - a)
                 out = model(x[a:a + w].unsqueeze(0),
                             output_hidden_states=need_h)
-                logits = out.logits[0].float().numpy()
+                logits = out.logits[0].float().cpu().numpy()
                 mem.set_vocab(logits.shape[-1])
-                hs = (out.hidden_states[-1][0].float().numpy() if need_h
-                      else None)
+                hs = (out.hidden_states[-1][0].float().cpu().numpy()
+                      if need_h else None)
                 lo = 0 if a == 0 else WINDOW - STRIDE
                 for i in range(lo, w):
                     j = a + i
@@ -202,16 +213,16 @@ class Sillage:
         need_h = mem.semantic or mem.fastweights
         rng = np.random.default_rng(seed)
         past = None
-        inp = torch.tensor(ids).unsqueeze(0)
+        inp = torch.tensor(ids, device=self.device).unsqueeze(0)
         out_ids = []
         with torch.no_grad():
             for _ in range(n):
                 out = model(inp, past_key_values=past, use_cache=True,
                             output_hidden_states=need_h)
                 past = out.past_key_values
-                lb = out.logits[0, -1].float().numpy()
+                lb = out.logits[0, -1].float().cpu().numpy()
                 mem.set_vocab(lb.shape[-1])
-                h = (out.hidden_states[-1][0, -1].float().numpy()
+                h = (out.hidden_states[-1][0, -1].float().cpu().numpy()
                      if need_h else None)
                 la, _ = mem.adapt(lb, h)
                 p_base = np.exp(la - la.max())
@@ -231,7 +242,7 @@ class Sillage:
                 else:
                     nxt = int(np.argmax(p))
                 out_ids.append(nxt)
-                inp = torch.tensor([[nxt]])
+                inp = torch.tensor([[nxt]], device=self.device)
                 if nxt == getattr(tok, "eos_token_id", -1):
                     break
         return tok.decode(out_ids)

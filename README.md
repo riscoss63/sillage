@@ -104,7 +104,9 @@ know before pointing it at a new one:
 - **Cost follows the model**: reading time follows its size, and the adapter
   is `vocab x 16` floats (3.2 MB at GPT-2's vocabulary, 9.7 MB at Qwen3's).
   A 7B model on a CPU is possible but slow; this was designed for the 0.1–1B
-  class.
+  class. With `--device cuda` the frozen forward passes move to the GPU while
+  the memory stays on the CPU, which is where the mechanisms belong: they are
+  rank-1 updates, not matrix multiplications.
 
 What calibration actually does, measured on a model the papers never touched
 (Pythia 70M, two documents, second one scored out of sample):
@@ -174,10 +176,11 @@ if you want to wire it into your own generation loop.
 | `sillage status` / `forget --all` | inspect / wipe |
 
 Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
-`--no-fastweights`, `--no-semantic`, `--half-life N` (forgetting, in tokens),
-`--no-calibrate` / `read --recalibrate`, `-n`, `--temp`, `-k`. Globs are
-expanded by the tool itself, so `sillage read docs/*.md` works on Windows
-too.
+`--device cpu|cuda|mps` (a GPU is used for the frozen forward passes when
+there is one; the mechanisms stay numpy on the CPU), `--no-fastweights`,
+`--no-semantic`, `--half-life N` (forgetting, in tokens), `--no-calibrate` /
+`read --recalibrate`, `-n`, `--temp`, `-k`. Globs are expanded by the tool
+itself, so `sillage read docs/*.md` works on Windows too.
 </details>
 
 ---

@@ -77,7 +77,8 @@ def make(a, **over):
     kw = {"model": a.model, "state": a.state, "semantic": a.semantic,
           "fastweights": False if a.no_fastweights else None,
           "half_life": a.half_life,
-          "calibrate": getattr(a, "calibrate", None)}
+          "calibrate": getattr(a, "calibrate", None),
+          "device": a.device}
     kw.update(over)
     return Sillage(**kw)
 
@@ -360,6 +361,9 @@ def build_parser():
     common.add_argument("--half-life", type=float, default=None,
                         metavar="N", help="forgetting half-life in tokens "
                                           "(off by default; try 100000)")
+    common.add_argument("--device", default=None, metavar="DEV",
+                        help="where the frozen forward passes run: cpu, "
+                             "cuda, mps (default: cuda when there is one)")
     common.add_argument("--calibrate", dest="calibrate",
                         action="store_true", default=None,
                         help="fit the readout on what you read (the default "
