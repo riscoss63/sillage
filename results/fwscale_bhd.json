@@ -1,0 +1,58 @@
+{
+  "model": "gpt2",
+  "domain": "bhd",
+  "n": 35692,
+  "ranks": [
+    16
+  ],
+  "eta": 0.1,
+  "base_nll_test": 3.440093517303467,
+  "memory_bytes": 4194304,
+  "fw_r16": {
+    "nll_dev": 3.2617931365966797,
+    "dnll_test": 0.2121882438659668,
+    "adapter_bytes": 3216448,
+    "segments": [
+      0.19866791367530823
+    ]
+  },
+  "fw_winner_rank": 16,
+  "memory_only": {
+    "dnll_test": 0.4723942279815674,
+    "params": {
+      "beta_idx": 4,
+      "lam": 0.3,
+      "thr_q": 0.75
+    },
+    "segments": [
+      0.4095235764980316
+    ]
+  },
+  "fw_plus_memory": {
+    "dnll_test": 0.6174921989440918,
+    "params": {
+      "beta_idx": 4,
+      "lam": 0.3,
+      "thr_q": 0.75
+    },
+    "segments": [
+      0.5492837429046631
+    ]
+  },
+  "paired_fw_vs_base": {
+    "mean": 0.21218818426132202,
+    "ci95": [
+      0.18829303085803986,
+      0.24126313365995883
+    ],
+    "p_better": 1.0
+  },
+  "paired_combo_vs_memory": {
+    "mean": 0.14509809017181396,
+    "ci95": [
+      0.12755297385156156,
+      0.16488973945379257
+    ],
+    "p_better": 1.0
+  }
+}

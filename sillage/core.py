@@ -480,24 +480,32 @@ class SillageMemory:
     def collect(self, p_base_true, truth, sG, sS=None):
         """One dev observation: what each tier scored, before it was used.
 
-        Costs one log-sum-exp per beta in the grid, on the first few thousand
-        tokens only. After that the readout is frozen and this never runs
-        again -- which is why calibration is a one-off minute, not a tax.
+        Costs one log-sum-exp per beta in the grid, at one position in
+        three, for as long as calibration stays on: the window ROLLS (see
+        `collecting`), so a state that keeps calibrating keeps paying this
+        small tax in exchange for a readout that tracks the memory as it
+        warms. If the semantic tier is switched on or off mid-window, the
+        window restarts: half-filled semantic lists would otherwise
+        misalign with "p" as the window rolls, and a readout must anyway be
+        fitted on observations made under the mode it will govern.
         """
+        sem = sS is not None
+        if self.cal is not None and self.cal.get("sem") != sem:
+            self.cal = None            # tier mode changed: fresh window
         if self.cal is None:
-            self.cal = {"p": [], "gt": [], "gm": [], "gl": [],
+            self.cal = {"sem": sem, "p": [], "gt": [], "gm": [], "gl": [],
                         "st": [], "sm": [], "sl": []}
         c = self.cal
         c["p"].append(float(p_base_true))
         c["gt"].append(float(sG[truth]))
         c["gm"].append(float(sG.max()))
         c["gl"].append(lse_grid(sG))
-        if sS is not None:
+        if sem:
             c["st"].append(float(sS[truth]))
             c["sm"].append(float(sS.max()))
             c["sl"].append(lse_grid(sS))
         if len(c["p"]) > CALIB_MAX:          # keep the most recent window
-            for key in c:
+            for key in ("p", "gt", "gm", "gl", "st", "sm", "sl"):
                 if c[key]:
                     del c[key][0]
 

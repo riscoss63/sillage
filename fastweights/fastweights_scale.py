@@ -2,7 +2,10 @@
 
 Same prequential protocol as fastweights_combo.py (score before update), with
   * selectable base model (gpt2 | qwen)
-  * selectable adapter ranks (default: the winning r=16 uniform rule)
+  * selectable adapter ranks (default: r=16, the rank the shipped tool
+    deploys and paper 4's sizing claim; note the dev winner among larger
+    ranks varies by run -- see fw_winner_rank in the output JSON, and note
+    adapter_bytes: ranks above 16 leave the byte-parity regime of the memory)
   * per-50k-token segment curves for FW, memory and their combination, so
     long-horizon STABILITY is visible, not just the aggregate
 

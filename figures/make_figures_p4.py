@@ -54,10 +54,22 @@ def save(fig, name):
 
 
 def fw_key(d):
-    for k in ("fw_r256_uniform", "fw_eta0.1_uniform", "fw_r64", "fw_r16"):
-        if k in d:
-            return k
+    """The dev-selected fast-weights variant, as the run itself recorded it
+    (fw_winner / fw_winner_rank) -- never a hard-coded priority list, which
+    would silently show a non-winner after a re-run."""
+    if "fw_winner" in d:
+        return d["fw_winner"]
+    if "fw_winner_rank" in d:
+        return f"fw_r{d['fw_winner_rank']}"
     raise KeyError(d.keys())
+
+
+def fw_mb(d):
+    """Adapter size of the plotted fast-weights variant, in MB. Older runs
+    (fwcombo_bhd_run1) store it once at top level as fw_adapter_bytes."""
+    entry = d[fw_key(d)]
+    b = entry.get("adapter_bytes", d.get("fw_adapter_bytes"))
+    return b / 1e6
 
 
 # ---------------------------------------------------------------- figure 1 --
@@ -71,9 +83,13 @@ FW_DOM = [("GPT-2" + NL + "Einstein", "fwcombo_relativity.json"),
 
 def trio_panel(ax, rows, ylim, title, legend=False, fs=6.8):
     w = 0.26
+    ticklabels = []
     for gi, (label, fn) in enumerate(rows):
         d = load(fn)
-        trio = [("memory", d["memory_only"]["dnll_test"], AQUA),
+        # the memory is always 4.2 MB; the plotted adapter is whatever rank
+        # dev selected, so its byte budget varies -- say so on the axis
+        ticklabels.append(label + NL + f"(FW {fw_mb(d):.0f} MB)")
+        trio = [("memory (4.2 MB)", d["memory_only"]["dnll_test"], AQUA),
                 ("fast weights", d[fw_key(d)]["dnll_test"], ORANGE),
                 ("both", d["fw_plus_memory"]["dnll_test"], BLUE)]
         for si, (nm, v, c) in enumerate(trio):
@@ -83,7 +99,7 @@ def trio_panel(ax, rows, ylim, title, legend=False, fs=6.8):
             ax.text(xp, v + ylim * 0.02, f"{v:.3f}", ha="center",
                     fontsize=fs, color=INK)
     ax.set_xticks(range(len(rows)))
-    ax.set_xticklabels([r[0] for r in rows], fontsize=7.8)
+    ax.set_xticklabels(ticklabels, fontsize=7.2)
     ax.set_ylim(0, ylim)
     ax.set_ylabel("test ΔNLL (nats)")
     ax.set_title(title, fontsize=8.6)
@@ -93,7 +109,7 @@ def trio_panel(ax, rows, ylim, title, legend=False, fs=6.8):
 
 fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0),
                          gridspec_kw={"width_ratios": [1, 1.75]})
-trio_panel(axes[0], MEM_DOM, 0.80,
+trio_panel(axes[0], MEM_DOM, 0.95,
            "novel, highly repetitive: memory leads", legend=True, fs=7.2)
 axes[0].legend(frameon=False, fontsize=7.4, loc="upper right", ncol=1)
 trio_panel(axes[1], FW_DOM, 0.108, "low repetition: the ordering flips")
@@ -149,7 +165,11 @@ ax.set_xlim(13, 330)
 ax.set_ylim(0, 0.10)
 ax.set_xlabel("adapter rank r")
 ax.set_ylabel("test ΔNLL (nats)")
-ax.set_title("rank 16 is enough", fontsize=8.6)
+# NOTE: this is a test-side rank sweep; the dev split, given the choice,
+# selects r=256 (GPT-2) / r=64 (Qwen3) by small margins. The claim the panel
+# supports is flatness -- r=16 keeps 93-96% at the memory's byte budget --
+# not that dev picks 16.
+ax.set_title("gain is nearly flat in rank (r=16: 93–96%)", fontsize=8.6)
 ax.yaxis.grid(True, color=GRID, lw=0.7, zorder=0)
 ax.spines[["top", "right"]].set_visible(False)
 

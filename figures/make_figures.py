@@ -63,6 +63,7 @@ mem = load("memories_bhd.json")
 fin = load("bhd_v2_final_bhd.json")
 rag = load("rag_bhd.json")
 
+rag_v = rag["base_nll_test_same_positions"] - rag["rag_interp"]["nll_test"]
 rows = [
     ("Sillage (amp values, system gate)", v3["amp_system_n4"], BLUE),
     ("Exact 4-gram dictionary", fin["ngram_dict"], GRAY),
@@ -71,17 +72,16 @@ rows = [
     ("kNN-LM (byte-matched, 4.2 MB)", fin["knn_cap_matched"], GRAY),
     ("Unigram cache (null)", mem["cache_unigram"], GRAY),
     ("Sillage uniform writes (ablation)", fin["bhd_v2_unif"], BLUE_L),
+    # RAG has no bootstrap CI in its JSON; sorted WITH the others so a
+    # different value cannot silently land out of order
+    ("RAG-lite (retrieve + rescore)",
+     {"dnll_test": rag_v, "dnll_ci95": None}, GRAY),
 ]
 rows.sort(key=lambda r: r[1]["dnll_test"])
 labels = [r[0] for r in rows]
 vals = [r[1]["dnll_test"] for r in rows]
 cis = [r[1]["dnll_ci95"] for r in rows]
 cols = [r[2] for r in rows]
-rag_v = rag["base_nll_test_same_positions"] - rag["rag_interp"]["nll_test"]
-labels.insert(0, "RAG-lite (retrieve + rescore)")
-vals.insert(0, rag_v)
-cis.insert(0, None)
-cols.insert(0, GRAY)
 
 fig, ax = plt.subplots(figsize=(6.4, 3.1))
 y = range(len(labels))
@@ -134,6 +134,22 @@ axes[0].set_ylabel("ΔNLL vs frozen LM (nats / segment)")
 save(fig, "fig2_scaling")
 
 # ---------------------------------------------------------------- figure 3 --
+# The figure compares variants against the count/model-gate control, so the
+# whiskers on the v3 variants are the PAIRED block-bootstrap CIs vs that
+# control (recentred on the bar: dnll_control + paired ci95 -- much tighter
+# than the marginal CIs, and the correct estimator for this comparison).
+# The control itself and the v2 no-gating ablation, which have no paired
+# delta in their JSONs, keep marginal CIs (drawn dashed to say so).
+ctrl = v3["count_model_n4"]["dnll_test"]
+
+
+def fig3_ci(r):
+    pv = r.get("paired_vs_control")
+    if pv:
+        return [ctrl + pv["ci95"][0], ctrl + pv["ci95"][1]], "-"
+    return r["dnll_ci95"], (0, (3, 2))
+
+
 rows3 = [
     ("uniform writes\n(no gating)", fin["bhd_v2_unif"], BLUE_L),
     ("counts,\nmodel gate", v3["count_model_n4"], BLUE_L),
@@ -144,9 +160,10 @@ rows3 = [
 fig, ax = plt.subplots(figsize=(4.6, 2.6))
 xs = range(len(rows3))
 for i, (name, r, c) in enumerate(rows3):
+    ci, ls = fig3_ci(r)
     ax.bar(i, r["dnll_test"], width=0.6, color=c, zorder=3)
-    ax.plot([i, i], r["dnll_ci95"], color=INK, lw=1.0, zorder=4)
-    ax.text(i, r["dnll_ci95"][1] + 0.022, f"+{r['dnll_test']:.3f}",
+    ax.plot([i, i], ci, color=INK, lw=1.0, ls=ls, zorder=4)
+    ax.text(i, ci[1] + 0.022, f"+{r['dnll_test']:.3f}",
             ha="center", fontsize=8, color=INK)
 ax.set_xticks(list(xs))
 ax.set_xticklabels([r[0] for r in rows3], fontsize=7.6)

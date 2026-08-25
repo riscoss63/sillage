@@ -1,0 +1,12 @@
+{
+  "domain": "bhd",
+  "comparison": "bhd_v3 (amp, system gate, n=4, 4.2 MB) vs unbounded kNN-LM, tuned configs, test positions",
+  "paired_dnll_mean": 0.1977870613336563,
+  "ci95": [
+    0.09097237773239612,
+    0.3249781318008899
+  ],
+  "p_bhd_v3_better": 1.0,
+  "n_test": 28554,
+  "bootstrap_reps": 2000
+}

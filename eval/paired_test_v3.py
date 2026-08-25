@@ -1,5 +1,8 @@
 """Paired block-bootstrap: BHD v3 (amp+system, n=4, 4.2 MB fixed) vs
-UNBOUNDED kNN-LM (55 MB) on the bhd domain, each at its tuned config."""
+UNBOUNDED kNN-LM (55 MB) on the bhd domain, each at its tuned config.
+
+Output: results/paired_bhd_v3_vs_knn.json (the headline P = 1.000 of paper 1
+and the README -- committed like every other number, not just printed)."""
 
 
 # --- repo bootstrap: run this script from anywhere ---
@@ -15,6 +18,9 @@ for _sub in ("", "pipeline", "memory", "fastweights", "eval", "figures"):
         _sys.path.insert(0, _p)
 _os.chdir(_d)
 # --- end bootstrap ---
+
+import json
+import os
 
 import numpy as np
 
@@ -51,3 +57,16 @@ print(f"paired dNLL (knn_unbounded - bhd_v3) on test: {d.mean():+.4f} "
       f"{np.quantile(means, 0.975):+.4f}]  (positive = BHD v3 better)")
 print(f"P(bhd_v3 better than unbounded kNN) = "
       f"{(np.array(means) > 0).mean():.3f}")
+
+os.makedirs("results", exist_ok=True)
+with open("results/paired_bhd_v3_vs_knn.json", "w") as f:
+    json.dump({
+        "domain": "bhd",
+        "comparison": "bhd_v3 (amp, system gate, n=4, 4.2 MB) "
+                      "vs unbounded kNN-LM, tuned configs, test positions",
+        "paired_dnll_mean": float(d.mean()),
+        "ci95": [float(np.quantile(means, 0.025)),
+                 float(np.quantile(means, 0.975))],
+        "p_bhd_v3_better": float((np.array(means) > 0).mean()),
+        "n_test": int(len(d)), "bootstrap_reps": len(means),
+    }, f, indent=2)

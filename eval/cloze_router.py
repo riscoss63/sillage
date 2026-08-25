@@ -44,18 +44,35 @@ WORD = re.compile(r"^ [^\W\d_]{5,}$", re.UNICODE)
 
 def parse_cfg(s):
     m = re.match(r"\('sm', (\d+)\)", s)
-    return ("sm", int(m.group(1))) if m else ("quad", -1)
+    if not m:
+        # A ('quad', -1) readout would need the full sum of squared scores,
+        # which this script does not store -- and silently indexing
+        # BETAS[-1] would score a softmax nobody tuned. Refuse loudly.
+        sys.exit(f"cloze_router only supports softmax readouts, got {s!r}: "
+                 f"the router JSON was tuned with the quadratic readout, "
+                 f"which this evaluation does not implement.")
+    return ("sm", int(m.group(1)))
 
 
 def read_params(prefix, domain):
-    j = json.load(open(f"results/sillage_router_{prefix}{domain}_multi.json"))
+    """Interpolation parameters from the domain's reference router run.
+
+    For Qwen the published run is the no-whiten one (_nw); prefer it, and
+    return the whiten flag so the pass below matches the protocol the
+    parameters were tuned under instead of silently mixing the two."""
+    base = f"results/sillage_router_{prefix}{domain}_multi"
+    order = ([base + "_nw.json", base + ".json"] if prefix
+             else [base + ".json", base + "_nw.json"])
+    path = next((p for p in order if _os.path.exists(p)), order[0])
+    j = json.load(open(path))
     g = j["g_only"]
     r = j["router"]
     return {"G": {"cfg": parse_cfg(g["cfg"]), "lam": g["lam"],
                   "thr": g["thr"]},
             "S": {"cfg": parse_cfg(r.get("cfg", r.get("cfg_S"))),
                   "lam": r.get("lam", r.get("lam_S")),
-                  "thr": r.get("thr", r.get("thr_S"))}}
+                  "thr": r.get("thr", r.get("thr_S"))},
+            "whiten": j.get("whiten", not path.endswith("_nw.json"))}
 
 
 def main():
@@ -156,11 +173,14 @@ def main():
             X = np.array(H[:j], dtype=np.float32)
             X /= np.linalg.norm(X, axis=1, keepdims=True) + 1e-8
             mu = X.mean(0)
-            C = X - mu
-            cov = (C.T @ C) / len(C)
-            w, U = np.linalg.eigh(cov)
-            W_zca = (U @ np.diag(1.0 / np.sqrt(w + EPS_EIG)) @ U.T
-                     ).astype(np.float32)
+            if params["whiten"]:
+                C = X - mu
+                cov = (C.T @ C) / len(C)
+                w, U = np.linalg.eigh(cov)
+                W_zca = (U @ np.diag(1.0 / np.sqrt(w + EPS_EIG)) @ U.T
+                         ).astype(np.float32)
+            else:            # center-normalize only, as the _nw run did
+                W_zca = np.eye(H.shape[1], dtype=np.float32)
         qS, uS = None, None
         if W_zca is not None:
             h = np.array(H[j], dtype=np.float32)
@@ -193,7 +213,12 @@ def main():
         tq = params[b]["thr"]
         arr = np.array(smax_cal[b])
         arr = arr[arr > 0] if b == "S" else arr
-        thr[b] = -np.inf if tq is None else float(np.quantile(arr, tq))
+        if tq is None:
+            thr[b] = -np.inf
+        elif not len(arr):       # no usable calibration signal: stay silent
+            thr[b] = np.inf
+        else:
+            thr[b] = float(np.quantile(arr, tq))
 
     # ---- predictions --------------------------------------------------------
     correct = {"base": [], "gonly": [], "router": []}

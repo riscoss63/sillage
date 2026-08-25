@@ -1,7 +1,8 @@
 """BHD v2 key design: hybrid semantic + n-gram compositional key.
 
-Motivation (measured on the bhd domain): centered-cosine between GPT-2
-hidden states has a heavy overlap tail (random-pair p95 = 0.93), so a linear
+Motivation (measured on the bhd domain, archived in
+results/semantic_diag_bhd.json): centered-cosine between GPT-2 hidden states
+has a heavy overlap tail (random-pair p95 = 0.94), so a linear
 Hebbian readout over semantic keys alone drowns in interference — while 35%
 of positions repeat a previous 4-gram verbatim, a signal that is exactly
 addressable with a near-orthogonal VSA n-gram key.

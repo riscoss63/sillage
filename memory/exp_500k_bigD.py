@@ -20,6 +20,7 @@ _os.chdir(_d)
 # --- end bootstrap ---
 
 import json
+import os
 import time
 
 import numpy as np
@@ -28,6 +29,8 @@ import exp_500k as E
 
 E.D_G = 16384
 DOMAIN = "bible"
+HV_SEED = 7001              # same hypervector seed as the D_G = 4096 run,
+                            # so V is identical and only capacity changes
 
 ids = np.load(f"data/{DOMAIN}_ids.npy")
 LP = np.load(f"dumps/{DOMAIN}_lp.npy")
@@ -41,18 +44,20 @@ base_nll = float(-lp_e[test_e].mean())
 
 t0 = time.time()
 s_true, smax, lse, sumsq = E.bhd_500k_pass(ids, vals, LP, epos, value="amp",
-                                           decay=False)
+                                           decay=False, hv_seed=HV_SEED)
 grid = [("sm", i) for i in range(len(E.BETAS))] + [("quad", -1)]
 best = E.tune(lambda c: (E.p_true_of(c, s_true, lse, sumsq), smax),
               grid, lp_e, dev_e, test_e)
 p = best.pop("p")
 gain = base_nll - best["nll_test"]
 ci, segs = E.ci_and_segments(p, lp_e, epos, test_e, n)
-out = {"domain": DOMAIN, "D_G": 16384, "bytes": 16384 * 256 * 4,
+out = {"domain": DOMAIN, "D_G": E.D_G, "bytes": E.D_G * E.D_V * 4,
+       "hv_seed": HV_SEED, "n_eval": int(len(epos)),
        "base_nll_test": base_nll, **best, "dnll_test": float(gain),
        "dnll_ci95": ci, "segments_dnll": segs,
        "minutes": round((time.time() - t0) / 60, 1)}
-with open("results/exp500k_bible_D16384.json", "w") as f:
+os.makedirs("results", exist_ok=True)
+with open(f"results/exp500k_{DOMAIN}_D{E.D_G}.json", "w") as f:
     json.dump(out, f, indent=2)
 print(f"bible D_G=16384: dNLL {gain:+.4f} CI {ci} cfg={best['cfg']} "
       f"lam={best['lam']} thr={best['thresh_q']} "

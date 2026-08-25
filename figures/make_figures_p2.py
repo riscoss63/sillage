@@ -112,6 +112,9 @@ ax.set_title("band matches grade into a precision kernel", fontsize=8.6)
 save(fig, "p2fig1_diagnostics")
 
 # ---------------------------------------------------------------- figure 2 --
+# The rows mix three protocols (5-seed means with per-seed re-tuning,
+# single-seed runs, and no-whiten preprocessing on Qwen): each label SAYS
+# which, so the axis never presents them as one homogeneous study.
 configs = [
     ("GPT-2 · Manuscripts", "multiseed_router_bhd.json", "ms"),
     ("GPT-2 · Tolstoy 100k", "multiseed_router_tolstoy.json", "ms"),
@@ -128,13 +131,16 @@ for i, (name, fn, kind) in enumerate(configs):
         g, r = j["g_only"]["mean"], j["router"]["mean"]
     else:
         g, r = j["g_only"]["dnll_test"], j["router"]["dnll_test"]
+    tag = "5 seeds" if kind == "ms" else "1 seed"
+    if fn.endswith("_nw.json") or j.get("whiten") is False:
+        tag += ", no whiten"
     y = len(configs) - 1 - i
     ax.plot([g, r], [y, y], color="#c3c2b7", lw=2.0, zorder=2)
     ax.plot([g], [y], "o", color=GRAY, ms=6, zorder=3)
     ax.plot([r], [y], "o", color=BLUE, ms=7, zorder=4)
     ax.annotate(f"{r:+.3f}", (r, y), xytext=(6, -3),
                 textcoords="offset points", fontsize=7.4, color=BLUE)
-    labels.append(name)
+    labels.append(f"{name}\n({tag})")
 ax.set_yticks(range(len(configs)))
 ax.set_yticklabels(list(reversed(labels)), fontsize=8)
 ax.set_xscale("symlog", linthresh=0.02)

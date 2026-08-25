@@ -58,6 +58,7 @@ python eval/paired_test_v3.py                # headline paired test
 
 ```bash
 python eval/semantic_diag.py gpt2 alice          # geometry + LSH diagnostics
+python eval/semantic_diag.py gpt2 bhd            # paper 1's p95 = 0.94 datum
 python memory/sillage_semantic.py tune gpt2 alice   # key-level hybrid (fails)
 python memory/sillage_router.py gpt2 bhd 999999999 multi
 python memory/multiseed_router.py gpt2 bhd

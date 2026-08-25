@@ -11,7 +11,10 @@ Checks per file:
   * \\cite{key} without a matching \\bibitem{key}
   * \\ref{label} without a matching \\label{label}
   * \\includegraphics files that do not exist on disk
-  * unescaped % and & outside math/tables (reported as warnings)
+
+Comments are stripped first (an unescaped % ends the line), so a stray $ or
+brace inside a comment cannot fail the counts; \\{ and \\} literals are
+recognized as escaped on both sides.
 
     python papers/check_tex.py
 """
@@ -46,19 +49,49 @@ proof qed square blacksquare colon prime approxeq neq geq leq ll gg
 """.split())
 
 
+def strip_comments(src):
+    """Drop % comments, line by line. A % preceded by an even number of
+    backslashes starts a comment; a literal \\% stays. Line structure is
+    preserved so reported line numbers stay exact."""
+    out = []
+    for line in src.split(chr(10)):
+        i = 0
+        while True:
+            k = line.find("%", i)
+            if k < 0:
+                out.append(line)
+                break
+            if not _escaped(line, k):
+                out.append(line[:k])
+                break
+            i = k + 1
+    return chr(10).join(out)
+
+
+def _escaped(s, i):
+    """True when the character at index i sits behind an ODD number of
+    backslashes (i.e. it is escaped)."""
+    nb = 0
+    j = i - 1
+    while j >= 0 and s[j] == BS:
+        nb += 1
+        j -= 1
+    return nb % 2 == 1
+
+
 def check(path):
-    src = io.open(path, encoding="utf-8").read()
+    src = strip_comments(io.open(path, encoding="utf-8").read())
     name = os.path.basename(path)
     errors, warnings = [], []
 
-    # braces
+    # braces -- \{ and \} literals are escaped on BOTH sides
     depth, line = 0, 1
-    for ch in src:
+    for i, ch in enumerate(src):
         if ch == chr(10):
             line += 1
-        elif ch == "{" and not_escaped(src, ch):
+        elif ch == "{" and not _escaped(src, i):
             depth += 1
-        elif ch == "}":
+        elif ch == "}" and not _escaped(src, i):
             depth -= 1
             if depth < 0:
                 errors.append(f"unbalanced closing brace near line {line}")
@@ -81,11 +114,11 @@ def check(path):
     opens = len(re.findall(disp_open, src))
     closes = len(re.findall(disp_close, src))
     if opens != closes:
-        for m in re.finditer(disp_open, src):
-            ln = src[:m.start()].count(chr(10)) + 1
-            ctx = src[max(0, m.start() - 25):m.start() + 8].replace(chr(10), " ")
-            errors.append(f"display-math '{BS}[' at line {ln} "
-                          f"(opens {opens}, closes {closes}) ...{ctx}")
+        lines = [str(src[:m.start()].count(chr(10)) + 1)
+                 for m in re.finditer(disp_open, src)]
+        errors.append(f"display math unbalanced: {opens} '{BS}[' vs "
+                      f"{closes} '{BS}]' ('{BS}[' at line(s) "
+                      f"{', '.join(lines) or 'none'})")
 
     # inline math
     dollars = len(re.findall(r"(?<!" + re.escape(BS) + r")\$", src))
@@ -123,10 +156,6 @@ def check(path):
             errors.append(f"missing figure: {g}")
 
     return name, errors, warnings, len(keys), len(cited)
-
-
-def not_escaped(src, ch):
-    return True
 
 
 def main():

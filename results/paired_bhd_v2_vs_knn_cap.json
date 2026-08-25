@@ -1,0 +1,24 @@
+{
+  "domain": "bhd",
+  "comparison": "bhd_v2 (n-gram tier) vs byte-matched capped kNN-LM, configs read from results/bhd_v2_final_bhd.json",
+  "configs": {
+    "bhd_v2": {
+      "cfg": "(3,)",
+      "lam": 0.05,
+      "thresh_q": null
+    },
+    "knn_cap": {
+      "cfg": "(32, 0.5)",
+      "lam": 0.1,
+      "thresh_q": 0.25
+    }
+  },
+  "paired_dnll_mean": 0.02942785620689392,
+  "ci95": [
+    -0.003526297362986952,
+    0.07097621336579323
+  ],
+  "p_bhd_v2_better": 0.9565,
+  "n_test": 28554,
+  "bootstrap_reps": 2000
+}

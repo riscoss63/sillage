@@ -10,7 +10,9 @@ No memory method gets anything the others do not: they all consume exactly
 these dumps.
 
 Outputs per domain: dumps/<d>_h.npy (N-1 x 768 fp16), dumps/<d>_lp.npy,
-plus base perplexity in dumps/base_report.json.
+plus base perplexity in dumps/base_report.json. NOTE: base_report's PPL is
+over the WHOLE stream (dev+test); the papers' tables report base_ppl_test
+(the last 80% only) -- do not mix the two numbers.
 """
 
 

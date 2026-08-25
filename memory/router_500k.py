@@ -152,8 +152,10 @@ def main():
     segs = {}
     for name, p in (("g_only", r["p_gonly"]), ("router", r["p_router"])):
         d = (-lp_e) - (-np.log(np.maximum(p, 1e-30)))
-        segs[name] = [float(d[(epos >= s0) & (epos < s0 + SEG)].mean())
-                      for s0 in range(0, n, SEG)]
+        segs[name] = []
+        for s0 in range(0, n, SEG):
+            m = (epos >= s0) & (epos < s0 + SEG)
+            segs[name].append(float(d[m].mean()) if m.any() else None)
     out = {"domain": domain, "decay": decay, "base_nll_test": base_nll,
            "g_only": {"dnll_test": float(g_test), **r["G"],
                       "segments": segs["g_only"]},

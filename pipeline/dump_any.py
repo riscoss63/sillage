@@ -11,6 +11,8 @@ Outputs (prefix "" for gpt2, "q_" for qwen):
   dumps/<prefix><domain>_lp.npy   (N-1,) fp32   log p(true next token)
   dumps/<prefix><domain>_topi.npy (N-1, 128) int32
   dumps/<prefix><domain>_topl.npy (N-1, 128) fp16
+base_report.json's PPL is over the WHOLE stream (dev+test); the papers'
+tables report base_ppl_test (last 80% only) -- do not mix the two.
 """
 
 

@@ -171,7 +171,7 @@ router $+$ decay & $\mathbf{+0.0191}$ \;($\Delta$ $+0.0118$) & $\mathbf{+0.0198}
 
 \section{Limitations}
 
-Two frozen LMs and CPU-scale streams; perplexity plus one downstream task; the 46\%-gap-closed figure is computed against kNN-LM's gain over the matching range and stride of \cite{sillage}; multi- vs single-resolution selection is stream-dependent (reported both ways, selectable on dev); the semantic block's whitening is fitted on an early prefix and frozen (drift under strong topic shift is untested); hyperparameters are tuned on each stream's dev prefix as in the companion protocol.
+Two frozen LMs and CPU-scale streams; perplexity plus one downstream task; the 46\%-gap-closed figure is computed against kNN-LM's gain over the matching range and stride of \cite{sillage}; the corpora inherit \cite{sillage}'s per-tokenizer 40k-token cap, so on the Gutenberg classics GPT-2 and Qwen3 read slightly different spans of the same text (cross-model comparisons there compare different content; \textsc{Manuscripts} is content-identical); multi- vs single-resolution selection is stream-dependent (reported both ways, selectable on dev); the semantic block's whitening is fitted on an early prefix and frozen (drift under strong topic shift is untested); hyperparameters are tuned on each stream's dev prefix as in the companion protocol.
 
 \section{Conclusion}
 

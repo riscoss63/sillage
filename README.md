@@ -201,13 +201,22 @@ every system tuned identically on a held-out prefix, 95 % bootstrap CIs):
 | \+ RAG-style retrieve & rescore | 29.9 | −4 % | corpus + index |
 | \+ kNN-LM, **unbounded** store | 23.6 | −24 % | 55 MB, grows forever |
 | \+ **this memory** (fixed) | **19.2** | **−38 %** | **4.2 MB, constant** |
-| \+ memory **and** fast weights | **16.6** | **−47 %** | 7.4 MB, constant |
+| \+ memory **and** fast weights | **16.8** | **−46 %** | 7.4 MB, constant |
+
+(The last row is the rank-16 adapter the tool actually ships,
+[measured](results/fwscale_bhd.json); paper 4's +0.633-nat headline, PPL
+16.6, uses the dev-selected rank-256 adapter — 51 MB of adapter for the
+last 0.2 nats.)
 
 The fixed 4.2 MB memory beats the unbounded datastore it was designed to
-approximate — paired bootstrap **P = 1.000**, replicated over 5 random seeds
-and on a second model (Qwen3-0.6B). And the gains show up in behaviour, not
-just likelihood: recall of recurring technical terms after one reading pass
-goes from **11.3 % to 23.7 %** (McNemar 261:14).
+approximate — paired bootstrap **P = 1.000**
+([committed](results/paired_bhd_v3_vs_knn.json)), replicated over 5 random
+seeds. On a second model (Qwen3-0.6B) it **statistically matches** that
+unbounded store at one-sixteenth the memory (paired CI [−0.08, +0.06] nats —
+parity, not a win; the internal orderings all replicate). And the gains show
+up in behaviour, not just likelihood: recall of recurring technical terms
+(word types already seen ≥ 2 times) after one reading pass goes from
+**11.3 % to 23.7 %** (McNemar 261:14).
 
 <p align="center"><img src="figs/fig1_main.png" width="88%" alt="Main results"></p>
 
@@ -267,7 +276,7 @@ All four are archived on Zenodo with permanent DOIs; the LaTeX sources and figur
 |---|---|---|
 | 1 | **[Sillage](https://doi.org/10.5281/zenodo.22079016)** · [source](papers/sillage/sillage.tex) | a fixed 4.2 MB Hebbian cache beats an unbounded kNN-LM on novel repetitive text |
 | 2 | **[Route the Scores, Not the Keys](https://doi.org/10.5281/zenodo.22079444)** · [source](papers/router/router.tex) | gradient-free semantic keys work — but only if you mix at the score level, never in the key |
-| 3 | **[One Signal, Three Tiers](https://doi.org/10.5281/zenodo.22079471)** · [source](papers/hierarchy/hierarchy.tex) | consolidating by *surprise mass* keeps 94 % of a cold store's value with 10 % of its entries |
+| 3 | **[One Signal, Three Tiers](https://doi.org/10.5281/zenodo.22079471)** · [source](papers/hierarchy/hierarchy.tex) | consolidating by *surprise mass* keeps 92–94 % of a cold store's value with 10 % of its entries (500k streams) |
 | 4 | **[Memory Remembers, Fast Weights Adapt](https://doi.org/10.5281/zenodo.22079481)** · [source](papers/fastweights/fastweights.tex) | two gradient-free mechanisms, opposite regimes, near-additive gains |
 
 ## What did *not* work (and how we know)
@@ -275,9 +284,10 @@ All four are archived on Zenodo with permanent DOIs; the LaTeX sources and figur
 This is the part most repositories leave out.
 
 - **Hidden states make terrible Hebbian keys.** Their similarity geometry is
-  too entangled (95th-percentile cosine 0.93 between random pairs); the best
-  semantic-only configuration reached 8 % of the *n*-gram key's gain and was
-  harmful off-domain.
+  too entangled (95th-percentile cosine 0.94 between random pairs,
+  [measured](results/semantic_diag_bhd.json)); the best semantic-only
+  configuration reached 8 % of the *n*-gram key's gain and was harmful
+  off-domain.
 - **Surprise gating helps memory and *hurts* fast weights** (−18 % on one
   stream, −100 % on another). The delta rule already carries its own error
   term; gating double-counts it. Gate the mechanisms that cannot see their own
@@ -305,6 +315,13 @@ This is the part most repositories leave out.
   a model nobody has tuned, and keep the published constants for the two that
   were tuned properly — on 36k–500k-token streams, not on a few thousand cold
   ones.
+
+  (Provenance note: this table, the Pythia and three-pass examples above,
+  and the quickstart transcripts are replayable CLI sessions of the shipped
+  tool, reported as transcripts. Every number in the results tables and the
+  four papers is committed as JSON in [`results/`](results/); these
+  illustrative CLI numbers are not, and will vary slightly with your
+  documents.)
 
 Hence the three controls we now consider mandatory for streaming-memory work —
 `python eval/diagnostic.py` runs them: a **shuffled-retrieval null** (replace
@@ -366,6 +383,10 @@ anywhere and resolves `data/`, `dumps/`, `results/` identically.
 - `sillage forget <file>` removes a document from the index, not from the
   matrices: Hebbian traces are superposed, so only `--all` or forgetting
   removes those. The tool says so rather than pretending otherwise.
+- Parts of the state (`cold.pkl`, `index.pkl`, `calib.pkl`) are Python
+  pickles: only open `--state` directories you trust, since unpickling can
+  execute code. The main matrices (`state.npz`) load with
+  `allow_pickle=False`.
 - The papers' *Manuscripts* stream (unpublished drafts) is not redistributed —
   drop your own documents in `manuscripts/` to run that protocol.
 </details>

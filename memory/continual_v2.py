@@ -24,10 +24,8 @@ import os
 import numpy as np
 
 from key_selection import bhd_v2_pass, p_true_of
-from continual import HALF_LIFE, tune_then_segments
+from continual import HALF_LIFE, SEG, tune_then_segments
 from memories import BETAS, CAP, load_domain
-
-SEG = 15_000
 
 
 def main():

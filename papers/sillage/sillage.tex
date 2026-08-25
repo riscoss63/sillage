@@ -258,7 +258,7 @@ Table~\ref{tab:cloze} and Figure~\ref{fig:cloze}: after a single reading pass of
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.62\linewidth]{figs/fig3_mechanisms.pdf}
-\caption{Factorial attribution on \textsc{Manuscripts} (GPT-2): value encoding $\times$ write gate, plus the no-gating ablation. Whiskers: 95\% CIs. Amplitude values are the dominant factor; every effect is positive in all 5 hypervector seeds.}
+\caption{Factorial attribution on \textsc{Manuscripts} (GPT-2): value encoding $\times$ write gate, plus the no-gating ablation. Whiskers: \emph{paired} 95\% block-bootstrap CIs against the count/model-gate control, recentred on each bar (solid) --- the estimator that matches the comparison the figure makes; marginal CIs for the control and the no-gating ablation (dashed). Amplitude values are the dominant factor; every effect is positive in all 5 hypervector seeds.}
 \label{fig:mech}
 \end{figure}
 
@@ -306,7 +306,7 @@ Figure~\ref{fig:scaling} and Table~\ref{tab:scaling} map the long-horizon regime
 
 \section{Limitations}
 
-Two frozen LMs (124M and 0.6B) and CPU-scale streams; perplexity plus one downstream task (no reasoning benchmarks); 500k streams scored at stride 4; classic corpora partially memorized by the base models (\textsc{Manuscripts} is the clean case); the system gate's write-time normalization scales with vocabulary size and was replaced by the model gate at 500k; $n$-gram keys capture surface repetition only --- the measured failure of hidden-state keys (Appendix~\ref{app:negative}) means semantic generalization is currently delegated entirely to the frozen LM; hyperparameters are tuned on the dev prefix of each stream (standard streaming practice; cross-stream transfer of tuned settings is future work).
+Two frozen LMs (124M and 0.6B) and CPU-scale streams; perplexity plus one downstream task (no reasoning benchmarks); 500k streams scored at stride 4; classic corpora partially memorized by the base models (\textsc{Manuscripts} is the clean case); the 40k-token cap is applied per tokenizer, so on the two Gutenberg classics GPT-2 and Qwen3 read different spans of the same text (Qwen3's denser tokenizer covers more; \textsc{Manuscripts} is content-identical for both) --- within-model orderings are unaffected, but cross-model comparisons on those two streams compare slightly different content; the system gate's write-time normalization scales with vocabulary size and was replaced by the model gate at 500k; $n$-gram keys capture surface repetition only --- the measured failure of hidden-state keys (Appendix~\ref{app:negative}) means semantic generalization is currently delegated entirely to the frozen LM; hyperparameters are tuned on the dev prefix of each stream (standard streaming practice; cross-stream transfer of tuned settings is future work).
 
 \section{Conclusion}
 
@@ -316,7 +316,7 @@ A single Hebbian matrix --- keys by sliding vector-symbolic $n$-gram binding, va
 
 \section{Negative result: hidden states are not Hebbian keys}\label{app:negative}
 
-Centered-cosine similarity between GPT-2 final hidden states at random position pairs on \textsc{Manuscripts} has mean $0.29$ but \emph{95th percentile $0.93$}: the overlap tail is fatal to a linear superposition readout, which mixes thousands of near-duplicate keys. Sparse top-$w$ sign projections, dense normalized projections, and hybrid semantic$+$$n$-gram keys were all tuned and evaluated; the best semantic-only configuration reaches $+0.040$ on \textsc{Manuscripts} (vs.\ $+0.486$ for $n$-gram keys) and is \emph{harmful} on \textsc{Einstein} ($-0.002$). Selectivity, not dimensionality, is the binding constraint: kNN survives the same geometry only because hard top-$k$ retrieval is a nonlinearity that outer-product memories do not possess.
+Centered-cosine similarity between GPT-2 final hidden states at random position pairs on \textsc{Manuscripts} has mean $0.32$ but \emph{95th percentile $0.94$} (archived in \texttt{results/semantic\_diag\_bhd.json}): the overlap tail is fatal to a linear superposition readout, which mixes thousands of near-duplicate keys. Sparse top-$w$ sign projections, dense normalized projections, and hybrid semantic$+$$n$-gram keys were all tuned and evaluated; the best semantic-only configuration reaches $+0.040$ on \textsc{Manuscripts} (vs.\ $+0.486$ for $n$-gram keys) and is \emph{harmful} on \textsc{Einstein} ($-0.002$). Selectivity, not dimensionality, is the binding constraint: kNN survives the same geometry only because hard top-$k$ retrieval is a nonlinearity that outer-product memories do not possess.
 
 \section{Downstream task examples}\label{app:examples}
 

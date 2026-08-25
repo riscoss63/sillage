@@ -76,11 +76,16 @@ every system tuned identically on a held-out prefix, 95 % bootstrap CIs):
 | \+ RAG-style retrieve & rescore | 29.9 | −4 % | corpus + index |
 | \+ kNN-LM, **unbounded** store | 23.6 | −24 % | 55 MB, grows forever |
 | \+ **this memory** (fixed) | **19.2** | **−38 %** | **4.2 MB, constant** |
-| \+ memory **and** fast weights | **16.6** | **−47 %** | 7.4 MB, constant |
+| \+ memory **and** fast weights | **16.8** | **−46 %** | 7.4 MB, constant |
+
+(The last row is the rank-16 adapter the tool ships. Paper 4's +0.633-nat
+headline, PPL 16.6, uses a rank-256 adapter — 51 MB for the last 0.2 nats.)
 
 The fixed 4.2 MB memory beats the unbounded datastore it was designed to
-approximate — paired bootstrap **P = 1.000**, replicated over 5 random seeds
-and on a second model (Qwen3-0.6B).
+approximate — paired bootstrap **P = 1.000**, replicated over 5 random
+seeds. On a second model (Qwen3-0.6B) it statistically matches that
+unbounded store at one-sixteenth the memory; every internal ordering
+replicates.
 
 **Where it does not win:** on long, low-repetition narrative text, kNN-LM
 still beats it. This memory captures verbatim recurrence; that is its regime,

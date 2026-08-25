@@ -40,12 +40,17 @@ R = "results"
 OUT = os.path.join("papers", "hierarchy", "figs")
 os.makedirs(OUT, exist_ok=True)
 FRACS = [0.001, 0.005, 0.02, 0.1, 0.3]
-KNN_REF = {"bible": 0.0575, "tolstoy": 0.0475}
 
 
 def load(name):
     with open(os.path.join(R, name)) as f:
         return json.load(f)
+
+
+# unbounded kNN-LM reference lines, read from the 500k results (never
+# hand-copied: a re-run there propagates here)
+KNN_REF = {d: load(f"exp500k_{d}.json")["knn"]["dnll_test"]
+           for d in ("bible", "tolstoy")}
 
 
 def save(fig, name):

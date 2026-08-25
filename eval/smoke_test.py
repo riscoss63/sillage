@@ -1,7 +1,11 @@
 """End-to-end smoke test of memories.py on synthetic data where memory must
 win: a repeated 40-token phrase, hidden states tied to the current token,
 and a base LM that assigns p = 0.01 to every true token. If kNN and BHD do
-not both improve NLL substantially here, the pipeline is broken."""
+not both improve NLL substantially here, the pipeline is broken.
+
+Exits non-zero on FAIL (so it can gate CI), and moves its synthetic output
+to results/smoke_memories_toy.json so the toy numbers never sit next to the
+papers' results under a paper-like name."""
 
 
 # --- repo bootstrap: run this script from anywhere ---
@@ -44,9 +48,16 @@ np.save("dumps/toy_lp.npy", LP)
 from memories import eval_domain
 
 out = eval_domain("toy")
+# eval_domain writes results/memories_<domain>.json; give the synthetic run
+# a name that cannot be mistaken for a paper result
+if os.path.exists("results/memories_toy.json"):
+    os.replace("results/memories_toy.json", "results/smoke_memories_toy.json")
 ok_knn = out["knn"]["dnll_test"] > 1.0
 ok_bhd = max(out["bhd_dense"]["dnll_test"], out["bhd_sparse"]["dnll_test"]) > 0.5
-print("SMOKE:", "PASS" if (ok_knn and ok_bhd) else "FAIL",
+passed = ok_knn and ok_bhd
+print("SMOKE:", "PASS" if passed else "FAIL",
       f"(knn dNLL {out['knn']['dnll_test']:.2f}, "
       f"bhd best dNLL "
       f"{max(out['bhd_dense']['dnll_test'], out['bhd_sparse']['dnll_test']):.2f})")
+if not passed:
+    raise SystemExit(1)

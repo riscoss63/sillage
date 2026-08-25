@@ -1,7 +1,19 @@
-"""Continual stream A -> B -> A (relativity 15k | alice 15k | relativity 15k).
+"""Continual stream A -> B -> A' (relativity 15k | alice 15k | relativity
+15k-30k).
 
-Question: does a memory built on domain A survive the interlude B, and what
-does forgetting (decay) trade for adaptivity?
+Read the construction carefully before interpreting anything: A' (called
+"A2" below) is the CONTINUATION of the Einstein text (tokens 15k-30k), not a
+re-reading of A1. A content-addressed memory therefore cannot "recall" A1
+items on A2 -- what this measures is DOMAIN persistence (does adaptation to
+Einstein's register survive the Alice interlude), which is a much weaker
+property than retention, and the measured effect is near zero. Do not cite
+this as a retention result.
+
+Second caveat: this script predates the Sillage architecture. It runs the
+old hidden-state-key BHD memory at D_K = 8192 (8.4 MB, memories.py
+defaults), so neither the mechanism nor the byte budget matches the 4.2 MB
+n-gram Sillage of the main tables; continual_v2.py is the n-gram-key
+counterpart.
 
 Methods (hyperparameters tuned on segment A1 only, then frozen):
   base            frozen GPT-2
@@ -39,7 +51,17 @@ from memories import (BETAS, BHD_BYTES, CAP, LAMS, THRESH_Q, W_SPARSE,
                       knn_neighbors, knn_p_true, load_domain,
                       unigram_cache_p_true)
 
-SEG = 15_000
+def _aba_segment():
+    """The aba stream's segment length, as data_prep.py actually built it
+    (it shrinks the segment when a corpus comes up short)."""
+    try:
+        return int(json.load(open(os.path.join("data", "meta.json")))
+                   ["aba"]["segment"])
+    except Exception:
+        return 15_000
+
+
+SEG = _aba_segment()
 HALF_LIFE = 8_000
 
 

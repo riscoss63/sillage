@@ -3,8 +3,14 @@
 For each hypervector seed: full pass + greedy tuning (per-seed re-tuning),
 reporting G-only and router test dNLL and the per-seed paired delta.
 
-Usage: python multiseed_router.py <gpt2|qwen> <domain> [cap]
-Output: results/multiseed_router_<prefix><domain>.json
+Pass `nowhiten` for models whose raw hidden-state geometry is already well
+conditioned (Qwen3) so this replication matches the corresponding
+sillage_router run -- and check the `cap`/`whiten`/`b_list` fields recorded
+in the output JSON before putting two runs on the same axis: a truncated
+stream (cap) or a different preprocessing is a different protocol.
+
+Usage: python multiseed_router.py <gpt2|qwen> <domain> [cap] [nowhiten]
+Output: results/multiseed_router_<prefix><domain>[_nw].json
 """
 
 
@@ -37,6 +43,7 @@ SEEDS = [11, 22, 33, 44, 55]
 def main():
     which, domain = sys.argv[1], sys.argv[2]
     cap = int(sys.argv[3]) if len(sys.argv) > 3 else 10 ** 9
+    whiten = "nowhiten" not in sys.argv[4:]
     prefix, vocab, ids, H, LP, vals = load(which, domain, cap)
     n = len(vals)
     dev, test = splits(n)
@@ -44,7 +51,7 @@ def main():
     rows = []
     for seed in SEEDS:
         stats = router_pass(ids, H, LP, vals, vocab, hv_seed=seed,
-                            b_list=tuple(B_LIST_MULTI))
+                            b_list=tuple(B_LIST_MULTI), whiten=whiten)
         r = greedy_tune(stats, LP, dev, test)
         g = base_nll - float(-np.log(
             np.maximum(r["p_gonly"][test], 1e-30)).mean())
@@ -64,6 +71,8 @@ def main():
                 "all_positive": bool((v > 0).all())}
 
     out = {"model": which, "domain": domain, "n": int(n), "seeds": SEEDS,
+           "cap": (None if cap >= 10 ** 9 else int(cap)),
+           "b_list": list(B_LIST_MULTI), "whiten": whiten,
            "base_nll_test": base_nll, "per_seed": rows,
            "g_only": agg("g_only"), "router": agg("router"),
            "paired": agg("paired")}
@@ -72,7 +81,9 @@ def main():
           f"{out['router']['mean']:+.4f}+/-{out['router']['sem']:.4f} | "
           f"paired {out['paired']['mean']:+.4f}+/-{out['paired']['sem']:.4f} "
           f"(all positive: {out['paired']['all_positive']})", flush=True)
-    with open(f"results/multiseed_router_{prefix}{domain}.json", "w") as f:
+    suffix = "" if whiten else "_nw"
+    with open(f"results/multiseed_router_{prefix}{domain}{suffix}.json",
+              "w") as f:
         json.dump(out, f, indent=2)
 
 
