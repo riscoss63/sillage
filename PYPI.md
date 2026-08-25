@@ -12,7 +12,7 @@ better next time. No gradients, no fine-tuning, no vector database. One
 Hebbian matrix written as the model reads, a semantic tier routed by
 confidence, a cold store that consolidates by surprise, and a rank-16 adapter
 on the readout — four mechanisms, four preprints, one command-line tool.
-Everything runs on a laptop CPU.
+Everything runs on a laptop CPU, and on a GPU when there is one.
 
 ![demo](https://raw.githubusercontent.com/riscoss63/sillage/main/figs/demo.gif)
 
@@ -31,6 +31,7 @@ sillage ask "what did the report say?"
 sillage read notes.md                 # memorize it (CPU: ~8 min per 10k tokens)
 sillage complete "The report said"    # generate WITH the memory
 sillage status                        # what it knows, tier by tier
+sillage chat                          # ask and generate in one session
 sillage forget --all
 ```
 
@@ -82,19 +83,33 @@ and on a second model (Qwen3-0.6B).
 still beats it. This memory captures verbatim recurrence; that is its regime,
 and it is measured and published rather than hidden.
 
-## Any causal language model
+## Any causal language model, on CPU or GPU
 
 ```bash
 sillage read notes.md --model qwen                          # shortcut
 sillage read notes.md --model HuggingFaceTB/SmolLM2-135M    # any hub id
 sillage read notes.md --model ./my-finetuned-llama          # any local folder
+sillage read notes.md --device cuda                         # if you have one
 ```
 
-Verified across three architectures (GPT-2, Qwen3, GPT-NeoX). For a model
-nobody has tuned, the readout calibrates itself on a rolling window of what
-you read, following the papers' protocol; for the two the papers did tune,
-their published settings are kept. A memory is written in one model's token
-space, so give each model its own `--state` directory.
+Verified across three architectures (GPT-2, Qwen3, GPT-NeoX). Three things
+worth knowing before pointing it at a new model:
+
+- **The readout tunes itself.** For a model nobody has tuned, it calibrates on
+  a rolling window of what you read, following the papers' protocol: the
+  winner governs the *next* read, never the one it was fitted on. For the two
+  models the papers did tune, their published settings are kept — refitting
+  those on a cold memory measurably loses (+0.109 against +0.120 nats).
+- **A memory lives in one model's token space.** Give each model its own
+  `--state` directory; the state remembers which model it belongs to and
+  refuses to be opened by another.
+- **The GPU only does the frozen forward passes.** `--device cuda` moves the
+  model; the mechanisms stay in numpy on the CPU, where they belong — they are
+  rank-1 updates, not matrix multiplications. Defaults to the GPU when there
+  is one.
+
+Requires Python 3.10+, `numpy`, `torch` and `transformers`. Nothing else, and
+no network at all once the frozen model is cached.
 
 ## The four preprints
 
