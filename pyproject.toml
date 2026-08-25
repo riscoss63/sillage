@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "sillage"
 version = "1.0.0"
 description = "Gradient-free test-time memory and learning for frozen language models"
-readme = "README.md"
+readme = "PYPI.md"          # the GitHub README uses repo-relative links
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Abderrahmane Sghairi", email = "sghairipro63@gmail.com" }]

@@ -7,6 +7,7 @@ no index that grows.**
 > *sillage* (n., French) — the trace left behind by something that has passed:
 > a ship's wake, a scent in a room. What a model keeps of what it read.
 
+[![PyPI](https://img.shields.io/pypi/v/sillage.svg)](https://pypi.org/project/sillage/)
 [![tests](https://github.com/riscoss63/sillage/actions/workflows/tests.yml/badge.svg)](https://github.com/riscoss63/sillage/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
@@ -32,8 +33,7 @@ and the model completes a sentence it can only know from what it read.
 ## Quickstart (60 seconds, then a coffee)
 
 ```bash
-git clone https://github.com/riscoss63/sillage && cd sillage
-pip install -e .                      # numpy + torch + transformers
+pip install sillage                   # numpy + torch + transformers
 ```
 
 ```bash
@@ -133,9 +133,13 @@ the readout fitted at the end of a pass is the one that governs the next:
 
 (Frozen GPT-2 alone stays at 68.8 throughout.)
 
-Prefer no install? `pip install -r requirements.txt` and then
-`python -m sillage read notes.md` does exactly the same thing — that also
-works if the `sillage` command lands outside your PATH.
+If the `sillage` command lands outside your PATH, `python -m sillage ...`
+is identical. For the papers, the reproduction pipeline and the tests, clone
+the repository instead:
+
+```bash
+git clone https://github.com/riscoss63/sillage && cd sillage && pip install -e .
+```
 
 <details>
 <summary><b>Use it from Python (four lines)</b></summary>

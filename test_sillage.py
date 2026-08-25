@@ -108,7 +108,7 @@ def main():
 
     # T1b -- gpt2 is a model the papers tuned: keep their settings, do not
     # refit them on a cold window (measured: refitting loses to them)
-    assert "calibrated the readout" not in out, out
+    assert "the readout on" not in out, out
     assert not calibrated, "gpt2 should not be recalibrated by default"
     assert (fitted[0], fitted[1]) == (40.0, 0.3), fitted
     passed.append(f"T1b published readout kept ok (beta {fitted[0]:g}, "
@@ -193,7 +193,7 @@ def main():
     cal = os.path.join(HERE, "test_state_calib")
     shutil.rmtree(cal, ignore_errors=True)
     out = run("read", doc_a, "--calibrate", state=cal)
-    assert "calibrated the readout" in out, out
+    assert "the readout on" in out and "governs the NEXT read" in out, out
     with np.load(os.path.join(cal, "state.npz")) as zc:
         assert bool(zc["calibrated"])
         got = (float(zc["beta_G"]), float(zc["lam_G"]))
