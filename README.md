@@ -8,6 +8,7 @@ no index that grows.**
 > a ship's wake, a scent in a room. What a model keeps of what it read.
 
 [![PyPI](https://img.shields.io/pypi/v/sillage.svg)](https://pypi.org/project/sillage/)
+[![demo](https://img.shields.io/badge/%F0%9F%A4%97-try%20it%20in%20your%20browser-yellow)](https://huggingface.co/spaces/riscoss/Sillage)
 [![tests](https://github.com/riscoss63/sillage/actions/workflows/tests.yml/badge.svg)](https://github.com/riscoss63/sillage/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
@@ -27,6 +28,10 @@ laptop CPU.
 Two sessions, two days apart, nothing kept in context: on Tuesday the second
 draft costs **half** the perplexity it would have cost on Monday (10.68 -> 5.39),
 and the model completes a sentence it can only know from what it read.
+
+**[Try it in your browser](https://huggingface.co/spaces/riscoss/Sillage)** —
+no install, no account: a memory that has already read one of the papers, and
+a box to feed it your own text.
 
 ---
 

@@ -16,6 +16,9 @@ Everything runs on a laptop CPU, and on a GPU when there is one.
 
 ![demo](https://raw.githubusercontent.com/riscoss63/sillage/main/figs/demo.gif)
 
+**[Try it in your browser first](https://huggingface.co/spaces/riscoss/Sillage)** — no install, no
+account.
+
 ## Install
 
 ```bash
