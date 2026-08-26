@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use Sillage, please cite the paper below."
 title: "Sillage: gradient-free test-time memory for frozen language models"
 type: software
-version: "1.0.2"
+version: "1.1.0"
 license: MIT
 repository-code: "https://github.com/riscoss63/sillage"
 authors:

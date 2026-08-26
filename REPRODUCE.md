@@ -1,4 +1,4 @@
-# Reproducing every number in the four papers
+# Reproducing every number in the five papers
 
 This file is for the *research* scripts. If you only want to use the system,
 `pip install -e .` and `sillage read yourfile.md` is the whole story
@@ -113,7 +113,7 @@ misalignment in a baseline.
 
 ## Statistical conventions
 
-Identical across all four papers: development split = first 20 % of each
+Identical across papers 1–4: development split = first 20 % of each
 stream (hyperparameters tuned there, then frozen), test = remaining 80 %;
 95 % block-bootstrap confidence intervals over 512-token blocks; headline
 comparisons use *paired* bootstraps on identical positions; multi-seed studies
@@ -127,3 +127,10 @@ the next read -- never the read it was fitted on. For GPT-2 and Qwen3 it keeps
 the settings tuned here instead, because those were fitted on 36k-500k-token
 streams and a window read by a cold memory measurably loses to them (the
 comparison is in the README, under what did not work).
+
+Paper 5 (the speculative drafter) has its own pipeline under `spec/`:
+the numpy reference engine and the GPU-resident engine (cross-checked
+token-for-token), the CPU campaigns, `bench_gpu.py` with `--calibrate`,
+and `spec/kaggle/make_kit.py` to assemble the T4 kit. Its numbers are the
+`drafter_*.json` files in `results/`. States are never shipped -- a cold
+store reveals what it read -- and every script says how to rebuild them.

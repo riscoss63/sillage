@@ -45,8 +45,13 @@ class Sillage:
 
     def __init__(self, model=None, state=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
-                 device=None, quiet=False):
+                 device=None, quiet=False, target=None):
         self.state_dir = default_state() if state is None else state
+        self.target_hub = target
+        if target is not None:
+            # paper 5: a state serves any same-tokenizer sibling, but the
+            # adapter is a function of the READING model's hidden geometry
+            fastweights = False
         self.mem = SillageMemory(self.state_dir, model, semantic,
                                  fastweights, half_life, calibrate)
         self.index = Index(None if self.state_dir is None else
@@ -66,7 +71,11 @@ class Sillage:
         if self._model is None:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
-            name = self.mem.hub
+            name = self.target_hub or self.mem.hub
+            if self.target_hub:
+                self._say(f"target {name} reading a state written by "
+                          f"{self.mem.hub} (shared tokenizer required; "
+                          f"adapter off)")
             if self.device is None:
                 self.device = ("cuda" if torch.cuda.is_available()
                                else "cpu")
@@ -200,8 +209,26 @@ class Sillage:
         return rec
 
     # ---------------------------------------------------------- generate ----
-    def complete(self, prompt, n=40, temp=0.0, seed=0):
-        """Continue a prompt with memory and fast weights. Writes nothing."""
+    def complete(self, prompt, n=40, temp=0.0, seed=0, fast=False):
+        """Continue a prompt with memory and fast weights. Writes nothing.
+
+        fast=True verifies drafts from the memory in blocks (paper 5):
+        greedy only, output identical to fast=False by construction --
+        faster exactly where the memory is confident.
+        """
+        if fast:
+            if temp and temp > 0:
+                self._say("--fast is greedy-only (speculative sampling not "
+                          "implemented); falling back to plain decoding.")
+            else:
+                from .drafting import complete_fast
+                text, stats = complete_fast(self, prompt, n=n)
+                acc = stats["accepted"] / max(1, stats["drafted"])
+                self._say(f"  [fast: {stats['tokens']} tokens in "
+                          f"{stats['forwards']} forwards, "
+                          f"{stats['accepted']}/{stats['drafted']} drafts "
+                          f"accepted ({acc:.0%})]")
+                return text
         import torch
         tok, model = self.load_model()
         mem = self.mem

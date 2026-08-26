@@ -3,8 +3,9 @@
 A frozen language model reads your documents and gets better at them, with no
 gradients, no fine-tuning and no growing index: a fixed Hebbian matrix written
 as it reads, a semantic tier routed by confidence, a consolidating cold store,
-and a rank-16 delta-rule adapter on the readout. Four mechanisms, four papers,
-one object:
+and a rank-16 delta-rule adapter on the readout -- and the same state can
+draft for speculative decoding and serve bigger same-tokenizer siblings
+(paper 5). Four mechanisms, five papers, one object:
 
     from sillage import Sillage
     s = Sillage(model="gpt2")          # any causal LM: a shortcut
@@ -20,7 +21,7 @@ not tune, so any frozen model works, not only the two they measured.
 Command line: `sillage read notes.md`, `sillage ask "..."`, `sillage chat`.
 """
 
-__version__ = "1.0.2"
+__version__ = "1.1.0"
 
 from .core import MODELS, SillageMemory
 from .index import Index, strip_latex

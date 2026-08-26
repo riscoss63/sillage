@@ -11,7 +11,7 @@ A frozen language model reads your documents, remembers them, and predicts
 better next time. No gradients, no fine-tuning, no vector database. One
 Hebbian matrix written as the model reads, a semantic tier routed by
 confidence, a cold store that consolidates by surprise, and a rank-16 adapter
-on the readout — four mechanisms, four preprints, one command-line tool.
+on the readout — four mechanisms, five preprints, one command-line tool.
 Everything runs on a laptop CPU, and on a GPU when there is one.
 
 ![demo](https://raw.githubusercontent.com/riscoss63/sillage/main/figs/demo.gif)
@@ -33,6 +33,7 @@ sillage ask "what did the report say?"
 
 sillage read notes.md                 # memorize it (CPU: ~8 min per 10k tokens)
 sillage complete "The report said"    # generate WITH the memory
+sillage complete "The report said" --fast   # same output, speculative (paper 5)
 sillage status                        # what it knows, tier by tier
 sillage chat                          # ask and generate in one session
 sillage forget --all
@@ -119,7 +120,7 @@ worth knowing before pointing it at a new model:
 Requires Python 3.10+, `numpy`, `torch` and `transformers`. Nothing else, and
 no network at all once the frozen model is cached.
 
-## The four preprints
+## The five preprints
 
 | # | title | DOI |
 |---|---|---|
@@ -127,6 +128,7 @@ no network at all once the frozen model is cached.
 | 2 | Route the Scores, Not the Keys | [10.5281/zenodo.22079444](https://doi.org/10.5281/zenodo.22079444) |
 | 3 | One Signal, Three Tiers | [10.5281/zenodo.22079471](https://doi.org/10.5281/zenodo.22079471) |
 | 4 | Memory Remembers, Fast Weights Adapt | [10.5281/zenodo.22079481](https://doi.org/10.5281/zenodo.22079481) |
+| 5 | The Memory Pays for Itself | [10.5281/zenodo.22109220](https://doi.org/10.5281/zenodo.22109220) |
 
 Sources, figures, every number as committed JSON, the reproduction pipeline
 and the three negative results are on GitHub:

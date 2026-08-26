@@ -146,7 +146,19 @@ def main():
     assert "seventeen" in out, f"recall failed: {out}"
     passed.append("T6 invented-fact recall ok ('seventeen turquoise llamas')")
 
-    # T7 -- generation must never modify the memory
+    # T6b -- speculative --fast (paper 5): identical output, drafts verified
+    out_fast = run("complete", "The Zylkorb protocol requires", "-n", "8",
+                   "--fast")
+    plain_line = out.strip().splitlines()[-1]
+    fast_line = out_fast.strip().splitlines()[-1]
+    assert fast_line == plain_line, \
+        f"--fast changed the output:\n  plain: {plain_line}\n" \
+        f"  fast : {fast_line}"
+    assert "drafts accepted" in out_fast, out_fast
+    passed.append("T6b speculative --fast ok (output identical to plain "
+                  "greedy decoding)")
+
+    # T7 -- generation must never modify the memory (plain AND fast paths)
     assert sha(os.path.join(STATE, "state.npz")) == state_hash
     passed.append("T7 no self-learning ok (state unchanged by generation)")
 

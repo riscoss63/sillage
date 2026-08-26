@@ -176,7 +176,7 @@ if you want to wire it into your own generation loop.
 | `sillage ask "..."` | grounded excerpts with their source and section |
 | `sillage complete "..."` | generate with the memory and the adapter |
 | `sillage chat` | both, interactively (`/say`, `/read`, `/status`) |
-| `sillage papers` | index the four preprints shipped here, then ask them |
+| `sillage papers` | index the five preprints shipped here, then ask them |
 | `sillage demo FILE` | two sessions on one document, start to finish |
 | `sillage status` / `forget --all` | inspect / wipe |
 
@@ -184,7 +184,10 @@ Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
 `--device cpu|cuda|mps` (a GPU is used for the frozen forward passes when
 there is one; the mechanisms stay numpy on the CPU), `--no-fastweights`,
 `--no-semantic`, `--half-life N` (forgetting, in tokens), `--no-calibrate` /
-`read --recalibrate`, `-n`, `--temp`, `-k`. Globs are expanded by the tool
+`read --recalibrate`, `-n`, `--temp`, `-k`, and on `complete`/`chat`:
+`--fast` (speculative decoding from the memory -- identical output, greedy
+only) and `--target NAME` (a bigger same-tokenizer sibling reads the state;
+adapter off). Globs are expanded by the tool
 itself, so `sillage read docs/*.md` works on Windows too.
 </details>
 
@@ -229,7 +232,9 @@ text it never read the drafter abstains and costs nothing (x0.97-1.09).
 And the state transfers: the 0.6B reads the documents once, and the 4B --
 which read nothing -- recalls them. Paper 5 measures the whole loop,
 controls and negative results included ([`spec/`](spec/),
-[results](results/)).
+[results](results/)). The tool ships both: `sillage complete "..." --fast`
+(speculative, identical output) and `--target Qwen/Qwen3-1.7B` (a bigger
+same-tokenizer sibling reading this state).
 
 ## Should you use this?
 
@@ -264,7 +269,8 @@ the text in front of it, on a fixed byte budget, forever.
    the readout (3.2 MB, no error transported through any layer) wins exactly
    where memory is weakest, and their gains add up (89–98 % additive).
 
-### The four papers are the four mechanisms — all of them are in the tool
+### Papers 1–4 are the four mechanisms — all of them are in the tool.
+### Paper 5 is what the state does next: recall for the family, and speed
 
 | paper | mechanism in `sillage/` | on by default | switch |
 |---|---|---|---|
@@ -331,7 +337,7 @@ This is the part most repositories leave out.
   (Provenance note: this table, the Pythia and three-pass examples above,
   and the quickstart transcripts are replayable CLI sessions of the shipped
   tool, reported as transcripts. Every number in the results tables and the
-  four papers is committed as JSON in [`results/`](results/); these
+  five papers is committed as JSON in [`results/`](results/); these
   illustrative CLI numbers are not, and will vary slightly with your
   documents.)
 
@@ -363,7 +369,7 @@ pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
 .github/         CI: the unit tests and a LaTeX check on every push
-papers/          the four preprints (LaTeX + figures)
+papers/          the five preprints (LaTeX + figures)
 results/         every number in every paper (JSON)
 pipeline/        corpora and frozen-LM passes          \
 memory/          the memory systems (papers 1-3)        |  paper

@@ -5,7 +5,7 @@
     sillage complete "the report"    generate with memory + fast weights
     sillage chat                     both of the above, interactively
     sillage status                   what it knows, tier by tier
-    sillage papers                   index the four preprints and ask them
+    sillage papers                   index the five preprints and ask them
     sillage demo notes.md            watch the memory work in one sitting
     sillage forget --all
 
@@ -78,7 +78,8 @@ def make(a, **over):
           "fastweights": False if a.no_fastweights else None,
           "half_life": a.half_life,
           "calibrate": getattr(a, "calibrate", None),
-          "device": a.device}
+          "device": a.device,
+          "target": getattr(a, "target", None)}
     kw.update(over)
     return Sillage(**kw)
 
@@ -165,7 +166,8 @@ def cmd_complete(a):
     """complete: continue a prompt with the memory and the adapter."""
     s = make(a)
     prompt = " ".join(a.prompt)
-    print(prompt + s.complete(prompt, n=a.n, temp=a.temp))
+    print(prompt + s.complete(prompt, n=a.n, temp=a.temp,
+                              fast=getattr(a, "fast", False)))
 
 
 def cmd_status(a):
@@ -243,14 +245,14 @@ def cmd_forget(a):
 
 
 def cmd_papers(a):
-    """papers: index the four preprints that ship with the repository."""
+    """papers: index the five preprints that ship with the repository."""
     tex = find_papers()
     if not tex:
         sys.exit("papers/ not found -- run this from the repository, or "
                  "point `sillage index` at your own documents.")
     a.files = tex
     if a.with_memory:
-        print("reading the four preprints into the memory "
+        print("reading the five preprints into the memory "
               f"({make(a).mem.hub}) -- a few minutes ...")
         cmd_read(a)
     else:
@@ -283,7 +285,8 @@ def cmd_chat(a):
             print(f"  excerpts per answer: {k}")
         elif line.startswith("/say "):
             prompt = line[5:]
-            print(prompt + s.complete(prompt, n=a.n, temp=a.temp))
+            print(prompt + s.complete(prompt, n=a.n, temp=a.temp,
+                                      fast=getattr(a, "fast", False)))
         elif line.startswith("/read "):
             path = line[6:].strip()
             if os.path.exists(path):
@@ -377,6 +380,14 @@ def build_parser():
                      help="tokens to generate (default: 40)")
     gen.add_argument("--temp", type=float, default=0.0,
                      help="sampling temperature (0 = greedy)")
+    gen.add_argument("--fast", action="store_true",
+                     help="speculative decoding from the memory (paper 5): "
+                          "identical output, greedy only, faster where the "
+                          "memory is confident")
+    gen.add_argument("--target", default=None, metavar="NAME",
+                     help="generate with a bigger SAME-TOKENIZER sibling "
+                          "reading this state (e.g. Qwen/Qwen3-1.7B on a "
+                          "qwen state); the adapter stays off")
 
     ret = argparse.ArgumentParser(add_help=False)
     ret.add_argument("-k", type=int, default=3,
@@ -428,7 +439,7 @@ def build_parser():
     p.set_defaults(fn=cmd_forget)
 
     p = sub.add_parser("papers", parents=[common],
-                       help="index the four preprints shipped with the repo")
+                       help="index the five preprints shipped with the repo")
     p.add_argument("--with-memory", action="store_true",
                    help="also read them into the memory (slow)")
     p.set_defaults(fn=cmd_papers)

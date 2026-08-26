@@ -1,6 +1,6 @@
 """Fast tests of the mechanisms themselves -- numpy only, no model, ~5 s.
 
-These check the four papers' rules where they can be checked exactly: the
+These check the papers' rules where they can be checked exactly: the
 Hebbian read/write, the square-root (amplitude) encoding, leaky forgetting,
 the delta rule at the readout, consolidation by surprise mass, the state
 round-trip, the multi-model paths, the readout tuner and its rolling window,
