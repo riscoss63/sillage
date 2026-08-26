@@ -1,0 +1,84 @@
+{
+  "config": "C",
+  "device": "cuda",
+  "dtype": "float16",
+  "n": 28,
+  "gamma": 8,
+  "settings": [
+    40.0,
+    0.85,
+    0.5
+  ],
+  "seen": {
+    "plain": {
+      "seconds": 15.258073939001406,
+      "tokens": 280,
+      "forwards": 290,
+      "drafted": 0,
+      "accepted": 0,
+      "rounds": 0,
+      "drafted_cold": 0,
+      "acc_cold": 0,
+      "drafted_mg": 0,
+      "acc_mg": 0,
+      "tok_per_s": 18.35094004127792,
+      "verbatim_prefix_words": [
+        4,
+        0,
+        5,
+        16,
+        2,
+        0,
+        16,
+        1,
+        11,
+        0
+      ]
+    },
+    "spec:sillage": {
+      "seconds": 9.008562395999434,
+      "tokens": 280,
+      "forwards": 173,
+      "drafted": 219,
+      "accepted": 165,
+      "rounds": 135,
+      "drafted_cold": 186,
+      "acc_cold": 140,
+      "drafted_mg": 33,
+      "acc_mg": 25,
+      "tok_per_s": 31.08154083767503,
+      "identical_outputs": 10,
+      "speedup": 1.6937301722833473
+    }
+  },
+  "unseen": {
+    "plain": {
+      "seconds": 7.578795862999868,
+      "tokens": 140,
+      "forwards": 145,
+      "drafted": 0,
+      "accepted": 0,
+      "rounds": 0,
+      "drafted_cold": 0,
+      "acc_cold": 0,
+      "drafted_mg": 0,
+      "acc_mg": 0,
+      "tok_per_s": 18.472591494842646
+    },
+    "spec:sillage": {
+      "seconds": 6.695215466999343,
+      "tokens": 140,
+      "forwards": 133,
+      "drafted": 22,
+      "accepted": 14,
+      "rounds": 128,
+      "drafted_cold": 15,
+      "acc_cold": 8,
+      "drafted_mg": 7,
+      "acc_mg": 6,
+      "tok_per_s": 20.910454740412572,
+      "identical_outputs": 5,
+      "speedup": 1.131971913429177
+    }
+  }
+}

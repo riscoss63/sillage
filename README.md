@@ -13,14 +13,14 @@ no index that grows.**
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![CPU only](https://img.shields.io/badge/hardware-CPU%20only-green.svg)](requirements.txt)
-[![Papers: 4](https://img.shields.io/badge/preprints-4-orange.svg)](papers/)
+[![Papers: 5](https://img.shields.io/badge/preprints-5-orange.svg)](papers/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22079016.svg)](https://doi.org/10.5281/zenodo.22079016)
 
 A frozen LM reads your documents, remembers them, and predicts better next
 time — **no gradients, no fine-tuning, no growing index**. One Hebbian matrix
 written as the model reads, a semantic tier routed by confidence, a cold store
 that consolidates by surprise, and a rank-16 adapter on the readout. Four
-mechanisms, four papers, **one command-line tool**. Everything runs on a
+mechanisms, five papers, **one command-line tool**. Everything runs on a
 laptop CPU.
 
 <p align="center"><img src="figs/demo.gif" width="94%" alt="Sillage demo: a frozen LM reads a document on Monday and recalls it on Tuesday"></p>
@@ -220,6 +220,17 @@ up in behaviour, not just likelihood: recall of recurring technical terms
 
 <p align="center"><img src="figs/fig1_main.png" width="88%" alt="Main results"></p>
 
+The same state also pays in **speed**. Used as a drafter for speculative
+decoding, it accelerates its own model and -- after two minutes of
+read-only calibration -- its bigger tokenizer-siblings, with output
+identical to normal greedy decoding: **x1.63 on Qwen3-0.6B, x1.98 on
+1.7B, x1.86 on 4B** (T4, 70-87 % of drafted tokens accepted), while on
+text it never read the drafter abstains and costs nothing (x0.97-1.09).
+And the state transfers: the 0.6B reads the documents once, and the 4B --
+which read nothing -- recalls them. Paper 5 measures the whole loop,
+controls and negative results included ([`spec/`](spec/),
+[results](results/)).
+
 ## Should you use this?
 
 | your situation | better option |
@@ -268,9 +279,9 @@ the text in front of it, on a fixed byte budget, forever.
 right now, and how close the matrix is to saturation — the capacity law being
 the honest limit of the whole approach.
 
-## The four preprints
+## The five preprints
 
-All four are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
+All five are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
 
 | # | title | the finding |
 |---|---|---|
@@ -278,6 +289,7 @@ All four are archived on Zenodo with permanent DOIs; the LaTeX sources and figur
 | 2 | **[Route the Scores, Not the Keys](https://doi.org/10.5281/zenodo.22079444)** · [source](papers/router/router.tex) | gradient-free semantic keys work — but only if you mix at the score level, never in the key |
 | 3 | **[One Signal, Three Tiers](https://doi.org/10.5281/zenodo.22079471)** · [source](papers/hierarchy/hierarchy.tex) | consolidating by *surprise mass* keeps 92–94 % of a cold store's value with 10 % of its entries (500k streams) |
 | 4 | **[Memory Remembers, Fast Weights Adapt](https://doi.org/10.5281/zenodo.22079481)** · [source](papers/fastweights/fastweights.tex) | two gradient-free mechanisms, opposite regimes, near-additive gains |
+| 5 | **[The Memory Pays for Itself](https://doi.org/10.5281/zenodo.22109220)** · [source](papers/drafter/drafter.tex) | the same state recalls documents across a model family and speculatively accelerates it (x1.6-2.0, output-identical) |
 
 ## What did *not* work (and how we know)
 
@@ -356,6 +368,7 @@ results/         every number in every paper (JSON)
 pipeline/        corpora and frozen-LM passes          \
 memory/          the memory systems (papers 1-3)        |  paper
 fastweights/     the readout adapter (paper 4)          |  reproduction
+spec/            the speculative drafter (paper 5)      |
 eval/            evaluations, controls, diagnostics     |
 figures/         figure generation                     /
 data/ dumps/     regenerable artifacts (gitignored, ~2 GB)

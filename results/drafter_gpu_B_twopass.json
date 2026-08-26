@@ -1,0 +1,79 @@
+{
+  "config": "B",
+  "device": "cuda",
+  "dtype": "float16",
+  "n": 28,
+  "gamma": 8,
+  "seen": {
+    "plain": {
+      "seconds": 14.851683902999866,
+      "tokens": 280,
+      "forwards": 290,
+      "drafted": 0,
+      "accepted": 0,
+      "rounds": 0,
+      "drafted_cold": 0,
+      "acc_cold": 0,
+      "drafted_mg": 0,
+      "acc_mg": 0,
+      "tok_per_s": 18.85308102628304,
+      "verbatim_prefix_words": [
+        2,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    "spec:sillage": {
+      "seconds": 13.478251619000275,
+      "tokens": 280,
+      "forwards": 276,
+      "drafted": 79,
+      "accepted": 24,
+      "rounds": 256,
+      "drafted_cold": 57,
+      "acc_cold": 16,
+      "drafted_mg": 22,
+      "acc_mg": 8,
+      "tok_per_s": 20.774207806395626,
+      "identical_outputs": 10,
+      "speedup": 1.1018998845565002
+    }
+  },
+  "unseen": {
+    "plain": {
+      "seconds": 6.95269765500052,
+      "tokens": 140,
+      "forwards": 145,
+      "drafted": 0,
+      "accepted": 0,
+      "rounds": 0,
+      "drafted_cold": 0,
+      "acc_cold": 0,
+      "drafted_mg": 0,
+      "acc_mg": 0,
+      "tok_per_s": 20.136069040670737
+    },
+    "spec:sillage": {
+      "seconds": 6.785434562000319,
+      "tokens": 140,
+      "forwards": 143,
+      "drafted": 22,
+      "accepted": 0,
+      "rounds": 140,
+      "drafted_cold": 19,
+      "acc_cold": 0,
+      "drafted_mg": 3,
+      "acc_mg": 0,
+      "tok_per_s": 20.632429466496625,
+      "identical_outputs": 5,
+      "speedup": 1.0246503140619623
+    }
+  }
+}

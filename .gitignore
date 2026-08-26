@@ -18,3 +18,9 @@ papers_state/
 test_state/
 test_state_*/
 test_docs/
+
+# LaTeX build artifacts (papers compile locally; Zenodo carries the PDFs)
+papers/*/*.pdf
+papers/*/*.aux
+papers/*/*.log
+papers/*/*.out
