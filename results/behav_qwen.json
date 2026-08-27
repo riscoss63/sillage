@@ -1,0 +1,28 @@
+{
+  "model": "qwen",
+  "facts": 30,
+  "n": 8,
+  "recall_base": 0.0,
+  "para_base": 0.0,
+  "witness_before": {
+    "base": 59.1504805681229,
+    "mem": 59.150478192158594
+  },
+  "recall_v1": 0.9333333333333333,
+  "para_v1": 0.0,
+  "witness_after": {
+    "base": 59.1504805681229,
+    "mem": 60.28445684296352
+  },
+  "recall_after_interf": 0.9333333333333333,
+  "conflict_after_1": {
+    "new": 0.0,
+    "old": 0.0,
+    "neither": 1.0
+  },
+  "conflict_after_2": {
+    "new": 0.1,
+    "old": 0.0,
+    "neither": 0.9
+  }
+}

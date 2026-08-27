@@ -1,0 +1,55 @@
+{
+  "model": "gpt2",
+  "nodecay": [
+    {
+      "full": 1.0,
+      "no_cold": 0.9,
+      "no_matrix": 0.9666666666666667,
+      "base_adapter": 0.0,
+      "interference_tokens": 0,
+      "wpp": 0.0026121139526367188
+    },
+    {
+      "full": 1.0,
+      "no_cold": 0.5666666666666667,
+      "no_matrix": 0.9666666666666667,
+      "base_adapter": 0.0,
+      "interference_tokens": 43366,
+      "wpp": 0.043969154357910156
+    },
+    {
+      "full": 0.9666666666666667,
+      "no_cold": 0.16666666666666666,
+      "no_matrix": 0.9666666666666667,
+      "base_adapter": 0.0,
+      "interference_tokens": 110665,
+      "wpp": 0.10815048217773438
+    }
+  ],
+  "decay": [
+    {
+      "full": 1.0,
+      "no_cold": 0.9,
+      "no_matrix": 0.9666666666666667,
+      "base_adapter": 0.0,
+      "interference_tokens": 0,
+      "wpp": 0.0026121139526367188
+    },
+    {
+      "full": 0.9666666666666667,
+      "no_cold": 0.16666666666666666,
+      "no_matrix": 0.9666666666666667,
+      "base_adapter": 0.0,
+      "interference_tokens": 43366,
+      "wpp": 0.043969154357910156
+    },
+    {
+      "full": 0.9666666666666667,
+      "no_cold": 0.0,
+      "no_matrix": 0.9666666666666667,
+      "base_adapter": 0.0,
+      "interference_tokens": 110665,
+      "wpp": 0.10815048217773438
+    }
+  ]
+}

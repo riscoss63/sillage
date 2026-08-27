@@ -1,0 +1,11 @@
+{
+  "witness_published": {
+    "base": 59.1504805681229,
+    "mem": 61.51655843144795
+  },
+  "witness_calibrated": {
+    "base": 59.1504805681229,
+    "mem": 61.516558431451394
+  },
+  "paraphrase_calibrated": 0.0
+}

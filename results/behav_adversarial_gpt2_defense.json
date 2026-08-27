@@ -1,0 +1,231 @@
+{
+  "control": {
+    "true": 0.5,
+    "distr": 0.5
+  },
+  "sqrt_cold": {
+    "true": 0.5,
+    "distr": 0.5,
+    "neither": 0.0
+  },
+  "sG_mean": {
+    "true": 0.9093882242838541,
+    "distr": 0.07003832194022834
+  },
+  "cold_mean": {
+    "true": 0.25,
+    "distr": 0.75
+  },
+  "rows": [
+    {
+      "e": "Vorlagune",
+      "sG_true": 0.6118201613426208,
+      "sG_distr": 0.7436182498931885,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Krestomil",
+      "sG_true": 0.822985053062439,
+      "sG_distr": 0.28795915842056274,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Zylkorb",
+      "sG_true": 0.9118111729621887,
+      "sG_distr": 0.10137590765953064,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Marmelune",
+      "sG_true": 0.8990077376365662,
+      "sG_distr": 0.060045275837183,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Ilvress",
+      "sG_true": 0.9061442613601685,
+      "sG_distr": 0.052806247025728226,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Quandrix",
+      "sG_true": 0.9111742377281189,
+      "sG_distr": 0.029774392023682594,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Belfoss",
+      "sG_true": 0.9080397486686707,
+      "sG_distr": 0.08763051778078079,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Tarnwick",
+      "sG_true": 0.9494510293006897,
+      "sG_distr": 0.01864653080701828,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Ozmirel",
+      "sG_true": 0.9208758473396301,
+      "sG_distr": 0.02394247241318226,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Drevkant",
+      "sG_true": 0.8814700841903687,
+      "sG_distr": 0.047273796051740646,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Palverin",
+      "sG_true": 0.9436989426612854,
+      "sG_distr": 0.06606194376945496,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Skogfeld",
+      "sG_true": 0.9252862334251404,
+      "sG_distr": 0.01721975766122341,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Yurmalec",
+      "sG_true": 0.8856300115585327,
+      "sG_distr": 0.058068111538887024,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Cindrovel",
+      "sG_true": 0.8868193030357361,
+      "sG_distr": 0.05703805759549141,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Halbrix",
+      "sG_true": 0.9349815845489502,
+      "sG_distr": -0.011329400353133678,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Nertoval",
+      "sG_true": 0.9322080016136169,
+      "sG_distr": -0.015247398056089878,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Wispelgar",
+      "sG_true": 0.9421513080596924,
+      "sG_distr": 0.0395195446908474,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Fromdahl",
+      "sG_true": 0.9342191219329834,
+      "sG_distr": 0.03501475602388382,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Ulvestrem",
+      "sG_true": 0.9514663815498352,
+      "sG_distr": 0.020386507734656334,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Brakkovin",
+      "sG_true": 0.9214655756950378,
+      "sG_distr": 0.07563275843858719,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Selphandor",
+      "sG_true": 0.9321123957633972,
+      "sG_distr": 0.10122144222259521,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Grimwaldt",
+      "sG_true": 0.9538170695304871,
+      "sG_distr": 0.021692601963877678,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Tovarnell",
+      "sG_true": 0.9101022481918335,
+      "sG_distr": 0.03852648288011551,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Exquilon",
+      "sG_true": 0.9292797446250916,
+      "sG_distr": 0.0193497221916914,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Vandermeel",
+      "sG_true": 0.938656747341156,
+      "sG_distr": -0.00411750515922904,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Corvustag",
+      "sG_true": 0.8729125261306763,
+      "sG_distr": 0.0168406143784523,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Blenharrow",
+      "sG_true": 0.9455289840698242,
+      "sG_distr": 0.036635059863328934,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Astrivold",
+      "sG_true": 0.9396906495094299,
+      "sG_distr": 0.010848598554730415,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Merrowine",
+      "sG_true": 0.9511494040489197,
+      "sG_distr": 0.024425288662314415,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    },
+    {
+      "e": "Dulcifern",
+      "sG_true": 0.9276911616325378,
+      "sG_distr": 0.040290165692567825,
+      "cold_true": 0.25,
+      "cold_distr": 0.75
+    }
+  ]
+}

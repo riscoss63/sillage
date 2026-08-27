@@ -5,7 +5,7 @@
     sillage complete "the report"    generate with memory + fast weights
     sillage chat                     both of the above, interactively
     sillage status                   what it knows, tier by tier
-    sillage papers                   index the five preprints and ask them
+    sillage papers                   index the six preprints and ask them
     sillage demo notes.md            watch the memory work in one sitting
     sillage forget --all
 
@@ -61,7 +61,7 @@ def expand(paths):
 
 
 def find_papers():
-    """The four bundled preprints, if the repository is around."""
+    """The six bundled preprints, if the repository is around."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     for root in (os.getcwd(), here):
         d = os.path.join(root, "papers")
@@ -79,7 +79,8 @@ def make(a, **over):
           "half_life": a.half_life,
           "calibrate": getattr(a, "calibrate", None),
           "device": a.device,
-          "target": getattr(a, "target", None)}
+          "target": getattr(a, "target", None),
+          "cold_mass": getattr(a, "cold_mass", None)}
     kw.update(over)
     return Sillage(**kw)
 
@@ -195,6 +196,8 @@ def cmd_status(a):
     hl = (f"half-life {int(st['half_life'])} tokens" if st["half_life"]
           else "off")
     print(f"  forgetting         : {hl}")
+    print(f"  cold weighting     : "
+          f"{'surprise mass (paper 6)' if st.get('cold_mass') else 'counts'}")
     if st["calibrated"]:
         origin = "fitted on what you read"
     elif st["calibrating"]:
@@ -245,14 +248,14 @@ def cmd_forget(a):
 
 
 def cmd_papers(a):
-    """papers: index the five preprints that ship with the repository."""
+    """papers: index the six preprints that ship with the repository."""
     tex = find_papers()
     if not tex:
         sys.exit("papers/ not found -- run this from the repository, or "
                  "point `sillage index` at your own documents.")
     a.files = tex
     if a.with_memory:
-        print("reading the five preprints into the memory "
+        print("reading the six preprints into the memory "
               f"({make(a).mem.hub}) -- a few minutes ...")
         cmd_read(a)
     else:
@@ -364,6 +367,12 @@ def build_parser():
     common.add_argument("--half-life", type=float, default=None,
                         metavar="N", help="forgetting half-life in tokens "
                                           "(off by default; try 100000)")
+    common.add_argument("--cold-mass", dest="cold_mass",
+                        action="store_true", default=None,
+                        help="weight the cold store's successors by "
+                             "surprise mass instead of raw counts (paper "
+                             "6's adversarial fix; off by default -- "
+                             "counts reproduce the papers' numbers)")
     common.add_argument("--device", default=None, metavar="DEV",
                         help="where the frozen forward passes run: cpu, "
                              "cuda, mps (default: cuda when there is one)")
@@ -439,7 +448,7 @@ def build_parser():
     p.set_defaults(fn=cmd_forget)
 
     p = sub.add_parser("papers", parents=[common],
-                       help="index the five preprints shipped with the repo")
+                       help="index the six preprints shipped with the repo")
     p.add_argument("--with-memory", action="store_true",
                    help="also read them into the memory (slow)")
     p.set_defaults(fn=cmd_papers)

@@ -13,14 +13,14 @@ no index that grows.**
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![CPU only](https://img.shields.io/badge/hardware-CPU%20only-green.svg)](requirements.txt)
-[![Papers: 5](https://img.shields.io/badge/preprints-5-orange.svg)](papers/)
+[![Papers: 6](https://img.shields.io/badge/preprints-6-orange.svg)](papers/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22079016.svg)](https://doi.org/10.5281/zenodo.22079016)
 
 A frozen LM reads your documents, remembers them, and predicts better next
 time — **no gradients, no fine-tuning, no growing index**. One Hebbian matrix
 written as the model reads, a semantic tier routed by confidence, a cold store
 that consolidates by surprise, and a rank-16 adapter on the readout. Four
-mechanisms, five papers, **one command-line tool**. Everything runs on a
+mechanisms, six papers, **one command-line tool**. Everything runs on a
 laptop CPU.
 
 <p align="center"><img src="figs/demo.gif" width="94%" alt="Sillage demo: a frozen LM reads a document on Monday and recalls it on Tuesday"></p>
@@ -184,10 +184,12 @@ Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
 `--device cpu|cuda|mps` (a GPU is used for the frozen forward passes when
 there is one; the mechanisms stay numpy on the CPU), `--no-fastweights`,
 `--no-semantic`, `--half-life N` (forgetting, in tokens), `--no-calibrate` /
-`read --recalibrate`, `-n`, `--temp`, `-k`, and on `complete`/`chat`:
-`--fast` (speculative decoding from the memory -- identical output, greedy
-only) and `--target NAME` (a bigger same-tokenizer sibling reads the state;
-adapter off). Globs are expanded by the tool
+`read --recalibrate`, `--cold-mass` (weight the cold store's successors by
+surprise mass -- paper 6's adversarial fix; counts stay the default and
+reproduce the papers' numbers), `-n`, `--temp`, `-k`, and on
+`complete`/`chat`: `--fast` (speculative decoding from the memory --
+identical output, greedy only) and `--target NAME` (a bigger
+same-tokenizer sibling reads the state; adapter off). Globs are expanded by the tool
 itself, so `sillage read docs/*.md` works on Windows too.
 </details>
 
@@ -235,6 +237,16 @@ controls and negative results included ([`spec/`](spec/),
 [results](results/)). The tool ships both: `sillage complete "..." --fast`
 (speculative, identical output) and `--target Qwen/Qwen3-1.7B` (a bigger
 same-tokenizer sibling reading this state).
+
+And the behavior is mapped, law by law (paper 6): recall converts through
+the readout's TRUST in the memory (a 20% conflict-resolution plateau
+jumps to 100% on the same state when the mixing weight rises); the
+Hebbian matrix is working memory while the consolidated cold store is
+the durable one (97% fact recall after 110k tokens of interference, with
+or without forgetting); and **the system durably remembers what it has
+seen twice** -- the cold store's admission threshold, become a
+behavioral law. Adversarial bulk attacks self-neutralize through the
+surprise gate; the residual channel motivates `--cold-mass` below.
 
 ## Should you use this?
 
@@ -285,9 +297,9 @@ the text in front of it, on a fixed byte budget, forever.
 right now, and how close the matrix is to saturation — the capacity law being
 the honest limit of the whole approach.
 
-## The five preprints
+## The six preprints
 
-All five are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
+All six are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
 
 | # | title | the finding |
 |---|---|---|
@@ -296,6 +308,7 @@ All five are archived on Zenodo with permanent DOIs; the LaTeX sources and figur
 | 3 | **[One Signal, Three Tiers](https://doi.org/10.5281/zenodo.22079471)** · [source](papers/hierarchy/hierarchy.tex) | consolidating by *surprise mass* keeps 92–94 % of a cold store's value with 10 % of its entries (500k streams) |
 | 4 | **[Memory Remembers, Fast Weights Adapt](https://doi.org/10.5281/zenodo.22079481)** · [source](papers/fastweights/fastweights.tex) | two gradient-free mechanisms, opposite regimes, near-additive gains |
 | 5 | **[The Memory Pays for Itself](https://doi.org/10.5281/zenodo.22109220)** · [source](papers/drafter/drafter.tex) | the same state recalls documents across a model family and speculatively accelerates it (x1.6-2.0, output-identical) |
+| 6 | **[Stored Is Not Recalled](https://doi.org/10.5281/zenodo.22125859)** · [source](papers/behavior/behavior.tex) | six behavioral laws with mechanisms: trust governs recall, the cold store is the durable memory, and the system remembers what it saw twice |
 
 ## What did *not* work (and how we know)
 
@@ -369,12 +382,13 @@ pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
 .github/         CI: the unit tests and a LaTeX check on every push
-papers/          the five preprints (LaTeX + figures)
+papers/          the six preprints (LaTeX + figures)
 results/         every number in every paper (JSON)
 pipeline/        corpora and frozen-LM passes          \
 memory/          the memory systems (papers 1-3)        |  paper
 fastweights/     the readout adapter (paper 4)          |  reproduction
 spec/            the speculative drafter (paper 5)      |
+behav/           the behavioral suite (paper 6)         |
 eval/            evaluations, controls, diagnostics     |
 figures/         figure generation                     /
 data/ dumps/     regenerable artifacts (gitignored, ~2 GB)

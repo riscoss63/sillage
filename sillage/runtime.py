@@ -45,7 +45,7 @@ class Sillage:
 
     def __init__(self, model=None, state=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
-                 device=None, quiet=False, target=None):
+                 device=None, quiet=False, target=None, cold_mass=None):
         self.state_dir = default_state() if state is None else state
         self.target_hub = target
         if target is not None:
@@ -53,7 +53,8 @@ class Sillage:
             # adapter is a function of the READING model's hidden geometry
             fastweights = False
         self.mem = SillageMemory(self.state_dir, model, semantic,
-                                 fastweights, half_life, calibrate)
+                                 fastweights, half_life, calibrate,
+                                 cold_mass)
         self.index = Index(None if self.state_dir is None else
                            os.path.join(self.state_dir, "index.pkl"))
         self.quiet = quiet
@@ -300,7 +301,7 @@ class Sillage:
                 "cold_grams": len(mem.cold), "passages": len(
                     self.index.passages),
                 "semantic": mem.semantic, "fastweights": mem.fastweights,
-                "half_life": mem.half_life,
+                "half_life": mem.half_life, "cold_mass": mem.cold_mass,
                 "calibrated": mem.calibrated,
                 "calibrating": mem.calibrate_on,
                 "readout": {"ngram": (mem.beta_G, mem.lam_G, mem.thr_qG),

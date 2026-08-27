@@ -1,0 +1,79 @@
+{
+  "model": "gpt2",
+  "steps": 5,
+  "sents_per_step": 1500,
+  "nodecay": [
+    {
+      "interference_tokens": 0,
+      "recall": 1.0,
+      "wpp": 0.0026121139526367188
+    },
+    {
+      "interference_tokens": 22433,
+      "added": 22433,
+      "recall": 1.0,
+      "wpp": 0.024005889892578125
+    },
+    {
+      "interference_tokens": 43366,
+      "added": 20933,
+      "recall": 1.0,
+      "wpp": 0.043969154357910156
+    },
+    {
+      "interference_tokens": 65799,
+      "added": 22433,
+      "recall": 1.0,
+      "wpp": 0.06536293029785156
+    },
+    {
+      "interference_tokens": 88232,
+      "added": 22433,
+      "recall": 0.9666666666666667,
+      "wpp": 0.08675670623779297
+    },
+    {
+      "interference_tokens": 110665,
+      "added": 22433,
+      "recall": 0.9666666666666667,
+      "wpp": 0.10815048217773438
+    }
+  ],
+  "decay": [
+    {
+      "interference_tokens": 0,
+      "recall": 1.0,
+      "wpp": 0.0026121139526367188
+    },
+    {
+      "interference_tokens": 22433,
+      "added": 22433,
+      "recall": 1.0,
+      "wpp": 0.024005889892578125
+    },
+    {
+      "interference_tokens": 43366,
+      "added": 20933,
+      "recall": 0.9666666666666667,
+      "wpp": 0.043969154357910156
+    },
+    {
+      "interference_tokens": 65799,
+      "added": 22433,
+      "recall": 0.9666666666666667,
+      "wpp": 0.06536293029785156
+    },
+    {
+      "interference_tokens": 88232,
+      "added": 22433,
+      "recall": 0.9666666666666667,
+      "wpp": 0.08675670623779297
+    },
+    {
+      "interference_tokens": 110665,
+      "added": 22433,
+      "recall": 0.9666666666666667,
+      "wpp": 0.10815048217773438
+    }
+  ]
+}

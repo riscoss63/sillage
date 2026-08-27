@@ -1,0 +1,39 @@
+{
+  "model": "gpt2",
+  "distractor": "further inspection",
+  "armB": {
+    "before": 1.0,
+    "after": 1.0
+  },
+  "armC": [
+    {
+      "dose": 0,
+      "true": 1.0,
+      "distractor": 0.0,
+      "neither": 0.0
+    },
+    {
+      "dose": 1,
+      "true": 1.0,
+      "distractor": 0.0,
+      "neither": 0.0
+    },
+    {
+      "dose": 3,
+      "true": 0.9333333333333333,
+      "distractor": 0.03333333333333333,
+      "neither": 0.03333333333333332
+    },
+    {
+      "dose": 9,
+      "true": 0.5,
+      "distractor": 0.5,
+      "neither": 0.0
+    }
+  ],
+  "no_cold_at_dose9": {
+    "true": 0.3333333333333333,
+    "distractor": 0.0,
+    "neither": 0.6666666666666667
+  }
+}

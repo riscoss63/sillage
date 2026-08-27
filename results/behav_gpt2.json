@@ -1,0 +1,28 @@
+{
+  "model": "gpt2",
+  "facts": 30,
+  "n": 8,
+  "recall_base": 0.0,
+  "para_base": 0.0,
+  "witness_before": {
+    "base": 114.47260752289944,
+    "mem": 114.47262743348112
+  },
+  "recall_v1": 1.0,
+  "para_v1": 0.0,
+  "witness_after": {
+    "base": 114.47260752289944,
+    "mem": 115.20104665527182
+  },
+  "recall_after_interf": 1.0,
+  "conflict_after_1": {
+    "new": 0.4,
+    "old": 0.0,
+    "neither": 0.6
+  },
+  "conflict_after_2": {
+    "new": 1.0,
+    "old": 0.0,
+    "neither": 0.0
+  }
+}

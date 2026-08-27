@@ -1,0 +1,8 @@
+{
+  "published": 0.2,
+  "calibrated": {
+    "new": 1.0,
+    "old": 0.0
+  },
+  "stable_recall_calibrated": 1.0
+}

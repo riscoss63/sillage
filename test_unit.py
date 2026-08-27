@@ -216,5 +216,42 @@ check("T11 rolling window",
       f"(one position in three, last {kept} kept; off for a model the "
       f"papers tuned)")
 
+# --- 12. cold store: surprise-mass weighting (paper 6's fix, opt-in) -------
+m12 = SillageMemory(None, "gpt2", semantic=False, fastweights=False)
+m12.new_stream()
+for t in [1, 2, 3, 4]:
+    m12.step_key(t)
+# one rare-but-surprising successor (one write, g = 5) against a frequent,
+# unsurprising one (three writes, g = 0.1) at the SAME address
+for tok, g, times in ((50, 5.0, 1), (60, 0.1, 3)):
+    for _ in range(times):
+        q12 = m12._graw / np.sqrt(D_K)
+        u12, _ = m12.scores(m12.M, q12)
+        m12.write_all(q12, u12, None, None, tok, g)
+by_counts = m12.cold_lookup()
+m12.cold_mass = True
+by_mass = m12.cold_lookup()
+# a pre-1.2 slot (two elements) must be migrated in place on next write
+legacy = list(m12.cold.values())[0]
+del legacy[2]
+q12 = m12._graw / np.sqrt(D_K)
+u12, _ = m12.scores(m12.M, q12)
+m12.write_all(q12, u12, None, None, 60, 0.1)
+migrated = list(m12.cold.values())[0]
+tmp12 = tempfile.mkdtemp()
+try:
+    m12.dir = tmp12
+    m12.save()
+    back = SillageMemory(tmp12, "gpt2")
+    check("T12 cold surprise-mass weighting",
+          max(by_counts, key=by_counts.get) == 60
+          and max(by_mass, key=by_mass.get) == 50
+          and len(migrated) == 3 and migrated[2][60] > 0
+          and back.cold_mass is True,
+          f"(counts pick 60 at {by_counts[60]:.2f}, mass picks 50 at "
+          f"{by_mass[50]:.2f}; legacy slot migrated; flag persisted)")
+finally:
+    shutil.rmtree(tmp12, ignore_errors=True)
+
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

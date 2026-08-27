@@ -1,4 +1,4 @@
-# Reproducing every number in the five papers
+# Reproducing every number in the six papers
 
 This file is for the *research* scripts. If you only want to use the system,
 `pip install -e .` and `sillage read yourfile.md` is the whole story
@@ -132,5 +132,13 @@ Paper 5 (the speculative drafter) has its own pipeline under `spec/`:
 the numpy reference engine and the GPU-resident engine (cross-checked
 token-for-token), the CPU campaigns, `bench_gpu.py` with `--calibrate`,
 and `spec/kaggle/make_kit.py` to assemble the T4 kit. Its numbers are the
-`drafter_*.json` files in `results/`. States are never shipped -- a cold
+`drafter_*.json` files in `results/`.
+
+Paper 6 (the behavioral laws) lives under `behav/`: the six-probe suite
+(`behavioral.py`), retention and its four-voice decomposition, the
+two-occurrence rule, the context-equivalence scorer, the adversarial
+arms with their defense probes and the `amp_write` instrumentation --
+plus `behav/JOURNAL.md`, the lab log where every experiment's
+predictions were registered before it ran. Its numbers are the
+`behav_*.json` files in `results/`. States are never shipped -- a cold
 store reveals what it read -- and every script says how to rebuild them.

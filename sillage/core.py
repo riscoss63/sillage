@@ -191,7 +191,8 @@ class SillageMemory:
     """
 
     def __init__(self, state_dir=None, which=None, semantic=None,
-                 fastweights=None, half_life=None, calibrate=None):
+                 fastweights=None, half_life=None, calibrate=None,
+                 cold_mass=None):
         self.dir = state_dir
         if which is None:              # adopt whatever this state belongs to
             saved = peek(state_dir)
@@ -213,6 +214,10 @@ class SillageMemory:
         self.semantic = sem_default if semantic is None else semantic
         self.fastweights = fastweights          # None -> whatever the state
         self.half_life = half_life              #         was built with
+        # cold-store successor weighting: counts (historical, the papers'
+        # numbers) or surprise mass per successor (paper 6's fix -- the one
+        # gate-blind quantity in the system was the attack channel). Opt-in.
+        self.cold_mass = cold_mass
         self._sem_arg = semantic
         self._V = None                  # hypervectors are regenerated from
         self._T = None                  # seeds, never stored (and never
@@ -241,6 +246,8 @@ class SillageMemory:
         if path is None or not os.path.exists(path):
             if self.fastweights is None:
                 self.fastweights = True
+            if self.cold_mass is None:
+                self.cold_mass = False
             self._blank()
             return
         z = np.load(path, allow_pickle=False)
@@ -278,6 +285,8 @@ class SillageMemory:
         if "half_life" in z and self.half_life is None:
             hl = float(z["half_life"])
             self.half_life = hl if hl > 0 else None
+        if "cold_mass" in z and self.cold_mass is None:
+            self.cold_mass = bool(z["cold_mass"])
         if bool(z["calibrated"]) if "calibrated" in z else False:
             # a calibrated readout overrides the shipped defaults: it was
             # fitted on this model, on these documents
@@ -288,6 +297,8 @@ class SillageMemory:
             self.thr_qG = None if qg < 0 else qg
             self.thr_qS = None if qs < 0 else qs
             self.cal_at = int(z["cal_at"]) if "cal_at" in z else self.tokens
+        if self.cold_mass is None:
+            self.cold_mass = False
         cal_path = os.path.join(self.dir, "calib.pkl")
         if self.calibrate_on and os.path.exists(cal_path):
             with open(cal_path, "rb") as f:      # the rolling window
@@ -319,7 +330,8 @@ class SillageMemory:
             tokens=self.tokens, g_sum=self.g_sum, g_cnt=self.g_cnt,
             half_life=(self.half_life or 0.0), model=self.which,
             vocab=self.vocab, fastweights=bool(self.fastweights),
-            semantic=bool(self.semantic), calibrated=bool(self.calibrated),
+            semantic=bool(self.semantic), cold_mass=bool(self.cold_mass),
+            calibrated=bool(self.calibrated),
             beta_G=self.beta_G, lam_G=self.lam_G,
             beta_S=self.beta_S, lam_S=self.lam_S,
             thr_qG=(-1.0 if self.thr_qG is None else self.thr_qG),
@@ -567,10 +579,16 @@ class SillageMemory:
         slot = self.cold.get(gram)
         if slot is None or sum(slot[1].values()) < COLD_MIN_COUNT:
             return None
-        tot = sum(slot[1].values())
+        # serve the distribution from per-successor surprise MASS when the
+        # paper-6 fix is enabled (admission stays on raw counts either way,
+        # so the two-occurrence rule is untouched); counts are the
+        # historical behaviour and reproduce the papers' numbers
+        src = (slot[2] if self.cold_mass and len(slot) > 2 and slot[2]
+               else slot[1])
+        tot = float(sum(src.values()))
         if tok_next is not None:
-            return slot[1].get(int(tok_next), 0) / tot
-        return {t: c / tot for t, c in slot[1].items()}
+            return src.get(int(tok_next), 0) / tot
+        return {t: c / tot for t, c in src.items()}
 
     def adapt(self, logits, h):
         """Fast weights: l' = l + A phi(h). Returns (logits', phi)."""
@@ -653,9 +671,12 @@ class SillageMemory:
             self.amp_write(self.MS, qS, uS, tok_next, g)
         if len(self._hist) >= NGRAM:
             gram = np.array(self._hist[-NGRAM:], dtype=np.int32).tobytes()
-            slot = self.cold.setdefault(gram, [0.0, {}])
+            slot = self.cold.setdefault(gram, [0.0, {}, {}])
+            if len(slot) == 2:         # slot written by a pre-1.2 state:
+                slot.append({t: float(c) for t, c in slot[1].items()})
             slot[0] += g               # surprise mass, for consolidation
             slot[1][int(tok_next)] = slot[1].get(int(tok_next), 0) + 1
+            slot[2][int(tok_next)] = slot[2].get(int(tok_next), 0.0) + g
         self.g_sum += g
         self.g_cnt += 1
         if p_adapted is not None:
