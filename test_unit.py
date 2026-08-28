@@ -303,5 +303,50 @@ check("T13 blocked ingestion writes", same_cold and dM13 < 0.05
       f"({len(mA13.cold)} cold grams exact, M drift {dM13:.1e}, "
       f"counters equal, retrieval argmax preserved)")
 
+# --- 14. paper-8 semantic keys: purity, whitening, persistence -------------
+m14 = SillageMemory(None, "gpt2", semantic=True, fastweights=False,
+                    sem2=5, sem2_whiten=True)
+rng14 = np.random.default_rng(14)
+# one shared dominant template (a prompt frame) + an identity
+# component, like real layer hiddens: the mean strips the frame, the
+# whitening equalises what remains, and the banded key must then
+# separate identities under frame jitter
+T14b = rng14.normal(size=768).astype(np.float32)
+ident = rng14.normal(size=(4, 768)).astype(np.float32)
+for k in range(600):
+    h = (T14b * (3.0 + 0.3 * rng14.standard_normal())
+         + ident[k % 4] * 2.0
+         + rng14.normal(size=768).astype(np.float32) * 0.2)
+    m14.sem2_observe(h.astype(np.float32))
+h_probe = (T14b * 3.0 + ident[1] * 2.0).astype(np.float32)
+q1 = m14.sem2_key(h_probe)
+q2 = m14.sem2_key(h_probe)
+mun_before = m14.mu2_n
+_ = m14.sem2_key(h_probe)
+pure = np.array_equal(q1, q2) and m14.mu2_n == mun_before
+# the SAME identity under frame jitter must key closer than a
+# DIFFERENT identity under the same frame
+za = m14.sem2_key((T14b * 3.4 + ident[1] * 2.0).astype(np.float32))
+zb = m14.sem2_key((T14b * 3.0 + ident[3] * 2.0).astype(np.float32))
+same_id = float(q1 @ za) / (np.linalg.norm(q1) * np.linalg.norm(za))
+diff_id = float(q1 @ zb) / (np.linalg.norm(q1) * np.linalg.norm(zb))
+tmp14 = tempfile.mkdtemp()
+try:
+    m14.dir = tmp14
+    m14.save()
+    back14 = SillageMemory(tmp14, "gpt2")
+    persisted = (back14.sem2_layer == 5 and back14.sem2_whiten is True
+                 and back14.mu2 is not None
+                 and back14.mu2_n == m14.mu2_n
+                 and back14.semantic is True
+                 and np.allclose(back14.mu2, m14.mu2))
+    check("T14 paper-8 semantic keys", pure and persisted
+          and same_id > diff_id + 0.1,
+          f"(pure queries; same identity across templates keys at "
+          f"{same_id:.2f} vs {diff_id:.2f} across identities; layer+"
+          f"whitening persisted)")
+finally:
+    shutil.rmtree(tmp14, ignore_errors=True)
+
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

@@ -1000,3 +1000,105 @@ COUCHE — l'identité vit tôt, la mémoire lisait tard. Le signal gratuit
 compte désormais 5 emplois (porte, consolidation, défense, ancrage,
 filtrage). → RÉDACTION PAPIER 8, puis intégration 1.4.0 (mandat
 utilisateur).
+
+---
+
+## 29/08/2026 — Intégration 1.4.0 : trois verrous du chemin LIVRÉ
+
+Le prototype marchait (B 55-60 %) mais `--sem2` livré donnait B 0-1/10.
+Instrumentation, pas théorie — trois causes distinctes, dans l'ordre :
+
+1. **Statistiques immatures à l'écriture (la vraie cause).** Le
+   prototype calculait mu (et le ZCA) sur UNE PASSE COMPLÈTE avant de
+   construire le tier ; le chemin livré les accumulait en ligne et
+   écrivait chaque clé avec le mu de l'instant → les premières
+   écritures utilisaient un mu quasi vide, la requête le mu final :
+   clés incohérentes. Correctif : **écritures du tier différées et
+   consolidées en fin de document** (« sleep ») avec les statistiques
+   mûres — les mêmes que la requête dérivera. Effet de bord majeur :
+   l'eigendécomposition du blanchiment est payée une fois par flush au
+   lieu d'une fois par token (lecture 4 189 tokens : ~10 min → 71 s).
+   Buffer borné (8 192 ancres, flush intermédiaire) ; null décimé.
+2. **Réglages du readout S.** Ceux du papier 2 (β40/λ0.1) étaient
+   calibrés pour un tier qui lissait la vraisemblance ; le tier v2
+   adresse → constantes mesurées du papier 8 (β10/λ0.85), la
+   calibration gardant la priorité (précédent `--target`).
+3. **Seuil d'abstention** (en cours) : le diagnostic montre que
+   l'adressage LIVRÉ fonctionne (valeur rang 1,1,2,4 sur 5 faits) mais
+   que 3/5 s'abstiennent. **Mon hypothèse « il faut des clés denses
+   sur GPT-2 » est RÉFUTÉE par cette mesure** — le SimHash+ZCA adresse
+   très bien ; c'est le référentiel du seuil qui est mauvais (null
+   échantillonné APRÈS écriture = « à quel point le document ressemble
+   à lui-même », pas « à quel point une requête étrangère ressemble à
+   ce que j'ai lu »). Mesure en cours : scores poolés des prompts de
+   faits vs prompts témoins, pour placer le quantile.
+
+**Verrou 3 REQUALIFIÉ (mesure du seuil) :** le rappel est PLAT à 2/20
+de q70 à q95 et la localité 0/10 partout → **ce n'est pas le seuil non
+plus**. Or l'adressage livré est excellent : valeur top-1 13/20, top-3
+17/20, top-10 19/20 sur les prompts PARAPHRASÉS (contre ~0 pour le
+tier historique). Le verrou est donc le MIXAGE.
+
+**Prédiction chiffrée (écrite avant le run) :** dans un mélange convexe
+à λ=0.85, le token de la mémoire ne gagne l'argmax que s'il porte
+~16 % de la masse de p_sem = softmax(β·s) ; sur V=50 257 tokens cela
+exige β·(s_max − s_typique) > ln V ≈ 10.8. Les scores poolés mesurés
+donnent un écart ≈ 0.2 → **β > 54** ; à β=10 le produit vaut 2, la
+distribution est plate et AUCUN seuil ne peut aider — ce qui explique
+exactement le plateau. Cause racine : β=10/λ=0.85 vient du prototype à
+clés DENSES (scores étalés) ; le tier livré utilise le SimHash (scores
+tassés) — l'échelle de β suit la fonction de clé, comme les β publiés
+de la série varient de 20 à 160 selon le tier. Test : grille β ∈
+{10..160} × λ ∈ {0.5, 0.85} sur 10 faits DEV, rapport sur 10 faits
+TEST + localité 10 témoins (probe_ship_readout.py).
+
+**Verrou 3 CONFIRMÉ puis raffiné (results/ship_readout_gpt2.json) :**
+β=10 → 1/10 dev ; β=20 → 4/10 ; plateau ensuite. Prédiction β>27
+(écart mesuré max 0.500 / q99 0.194 / médiane 0.093) vérifiée. TEST
+B 4/10 = **40 %** (contre 0 % au tier historique), localité 2/10 —
+au-dessus de ma borne 1/10. Les sorties nomment le dernier mécanisme :
+la mémoire pousse le PREMIER SOUS-TOKEN de la valeur à chaque pas
+(« tur tur tur » pour « turquoise »), donc les valeurs multi-tokens
+échouent au scorer et la perturbation dure toute la génération.
+
+**Prédiction (avant le run) :** un mixage en IMPULSION (le tier n'agit
+qu'au premier pas ; le modèle gelé finit le mot, ses pièces étant
+prévisibles une fois la tête sortie — le jumeau génération de
+l'intégrité de mot à l'écriture) fait ≥ le mixage soutenu sur le
+rappel B ET ≤ sur la localité. Variante intermédiaire testée :
+décroissance λ·0.5^pas.
+
+**Verdict impulsion + constantes livrées (grille finale, GPT-2) :**
+
+| seuil | mixage | rappel B (test) | localité |
+|---|---|---|---|
+| q90 | soutenu | 40 % | 2/10 |
+| q90 | **impulsion** | **30 %** | **1/10** |
+| q95 | soutenu | 20 % | 1/10 |
+| q95 | impulsion | 30 % | 1/10 |
+
+Prédiction impulsion : **réfutée sur le rappel brut** (30 < 40),
+**confirmée sur la localité** (1 < 2) — et sous la contrainte déclarée
+(localité ≤ 1/10) c'est elle qui gagne : 30 % contre 20 % au soutenu.
+Formule retenue et livrée : **le tier n-gram continue, le tier
+sémantique rappelle** — une seule impulsion au premier token généré,
+le modèle gelé finit le mot. Constantes 1.4.0 mesurées DANS L'OUTIL
+(grille sur 10 faits dev, rapport sur 10 faits test) : couche par
+`--sem2`, β_S 20, λ_S 0.85, seuil q90 du null in-document.
+**Chemin livré, pipeline complet : paraphrase 3/10 (30 %) contre 0 %
+au tier historique, canonique 10/10.** L'écart avec les 55-60 % du
+papier 8 est une différence de configuration à déclarer : le papier
+mesure des prototypes (clés DENSES sur GPT-2, seuil sur témoins
+externes), l'outil livre le SimHash bandé avec un null in-document —
+même recette, réglages et échelle différents. Bug corrigé au passage :
+un état sem2 forçait `semantic=True` et écrasait `--no-semantic`.
+
+**VALIDATION CROISÉE QWEN (constantes choisies sur GPT-2, aucun réglage
+sur qwen) :** couche 1, sans blanchiment — **paraphrase 8/10 (80 %)
+avec le tier, 0/10 sans (contrôle apparié), canonique 9/10, localité
+0/10**, lecture 4 715 tokens en 2,3 min. Le transfert est meilleur que
+le modèle de calibration (GPT-2 : 30 %, localité 1/10) — cohérent avec
+la séparation d'identité mesurée (qwen +0.71 en couche 1 contre +0.36
+en couche 5 sur GPT-2). L'INTÉGRATION 1.4.0 EST VALIDÉE SUR DEUX
+MODÈLES : la loi 2 du papier 6, mesurée dans l'outil livré, passe de
+0 % à 30-80 % selon le modèle, localité intacte.

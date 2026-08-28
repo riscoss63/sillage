@@ -45,7 +45,8 @@ class Sillage:
 
     def __init__(self, model=None, state=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
-                 device=None, quiet=False, target=None, cold_mass=None):
+                 device=None, quiet=False, target=None, cold_mass=None,
+                 sem2=None, sem2_whiten=None):
         self.state_dir = default_state() if state is None else state
         self.target_hub = target
         if target is not None:
@@ -54,7 +55,7 @@ class Sillage:
             fastweights = False
         self.mem = SillageMemory(self.state_dir, model, semantic,
                                  fastweights, half_life, calibrate,
-                                 cold_mass)
+                                 cold_mass, sem2, sem2_whiten)
         self.index = Index(None if self.state_dir is None else
                            os.path.join(self.state_dir, "index.pkl"))
         self.quiet = quiet
@@ -136,7 +137,12 @@ class Sillage:
         return stats
 
     def read_text(self, text, name="<text>"):
-        """Stream one text through the frozen model and every memory tier."""
+        """Stream one text through the frozen model and every memory tier.
+
+        With the paper-8 semantic keys on (`sem2`), that tier writes at
+        the END of the document rather than token by token, so the
+        perplexity reported for this read does not include it.
+        """
         import torch
         tok, model = self.load_model()
         mem = self.mem
@@ -147,6 +153,43 @@ class Sillage:
         mem.new_stream()
         thrG, thrS = mem.thresholds()
         need_h = mem.semantic or mem.fastweights
+        sem2 = mem.sem2_layer if mem.semantic else None   # paper 8
+        prev_kept, g_prev, anchor_idx = False, 0.0, None
+        nsp = {}                             # token id -> continuation piece?
+        # The tier's writes are BUFFERED and applied in bulk. The key
+        # statistics (the mean, and the whitening when it is on) mature
+        # as the document is read, and a key written against half-formed
+        # statistics does not match the one the query will derive later.
+        # Buffering also pays the whitening's eigendecomposition once
+        # per flush instead of once per token.
+        anchors, sem2_buf, null_buf = [], [], []
+        null_stride = 4
+
+        def flush_sem2():
+            """Write the buffered pairs with the current (mature) keys,
+            then sample the null those queries are thresholded against."""
+            nonlocal anchor_idx
+            for ai, tok_next, gw in sem2_buf:
+                qs = mem.sem2_key(anchors[ai])
+                us = mem.MS.T @ qs        # scores() would also build a
+                mem.amp_write(mem.MS, qs, us, tok_next,   # vocabulary
+                              max(gw, 0.25))              # vector we
+                                                          # never read
+            for k in range(0, len(null_buf), 64):     # batched: one
+                blk = null_buf[k:k + 64]              # BLAS call per 64
+                Q = np.stack([mem.sem2_key(h) for h in blk])
+                U = Q @ mem.MS
+                S = (U / (np.linalg.norm(U, axis=1, keepdims=True)
+                          + 1e-8)) @ mem.V.T
+                mem.res_S.extend(S.max(axis=1).tolist())
+            last = None if anchor_idx is None else anchors[anchor_idx]
+            anchors.clear()
+            sem2_buf.clear()
+            null_buf.clear()
+            if last is not None:
+                anchors.append(last)
+                anchor_idx = 0
+
         nll_b = nll_f = nll_m = 0.0
         cnt = 0
         x = torch.tensor(ids, device=self.device)
@@ -161,6 +204,8 @@ class Sillage:
                 mem.set_vocab(logits.shape[-1])
                 hs = (out.hidden_states[-1][0].float().cpu().numpy()
                       if need_h else None)
+                hs2 = (out.hidden_states[sem2][0].float().cpu().numpy()
+                       if sem2 is not None else None)
                 lo = 0 if a == 0 else WINDOW - STRIDE
                 for i in range(lo, w):
                     j = a + i
@@ -185,7 +230,31 @@ class Sillage:
                     uG, sG = mem.scores(mem.M, qG)
                     mem.res_G.append(float(sG.max()))
                     qS = uS = sS = None
-                    if mem.semantic:
+                    if sem2 is not None:
+                        # paper 8: keys from the early layer, anchored
+                        # on the last surprising token, writes filtered
+                        # for surprise with word-integrity readmission
+                        mem.sem2_observe(hs2[i])
+                        if g_prev >= 2.5:      # this token surprised it
+                            anchors.append(hs2[i].copy())
+                            anchor_idx = len(anchors) - 1
+                            if len(anchors) >= 8192:
+                                flush_sem2()   # bound the buffer
+                        g2 = min(CAP, max(0.0, -lp))
+                        if truth not in nsp:
+                            d2 = tok.decode([truth])
+                            nsp[truth] = (len(d2) > 0
+                                          and not d2[0].isspace())
+                        keep = g2 >= 0.5 or (prev_kept and nsp[truth])
+                        if anchor_idx is not None and keep:
+                            sem2_buf.append((anchor_idx, truth, g2))
+                        elif cnt % null_stride == 0:
+                            null_buf.append(hs2[i].copy())
+                            if len(null_buf) > 4096:
+                                del null_buf[::2]
+                                null_stride *= 2
+                        prev_kept = keep
+                    elif mem.semantic:
                         qS = mem.sem_key(hs[i])
                         uS, sS = mem.scores(mem.MS, qS)
                         mem.res_S.append(float(sS.max()))
@@ -203,6 +272,7 @@ class Sillage:
                     # --- write: gate is the FROZEN model's own surprise ------
                     g = min(CAP, max(0.0, -lp))
                     mem.write_all(qG, uG, qS, uS, truth, g, phi, p_ad)
+                    g_prev = g
                     if cnt % PROGRESS_EVERY == 0:
                         rate = cnt / max(1e-6, time.time() - t0)
                         self._say(f"  ... {cnt}/{n} tokens "
@@ -210,6 +280,8 @@ class Sillage:
                 if a + w >= len(ids):
                     break
                 a += STRIDE
+        if sem2 is not None:
+            flush_sem2()
         mem.res_G = mem.res_G[-5000:]
         mem.res_S = mem.res_S[-5000:]
         calibration = mem.maybe_calibrate()
@@ -256,10 +328,11 @@ class Sillage:
         need_h = mem.semantic or mem.fastweights
         rng = np.random.default_rng(seed)
         past = None
+        pooled = None            # paper 8: one pooled query per prompt
         inp = torch.tensor(ids, device=self.device).unsqueeze(0)
         out_ids = []
         with torch.no_grad():
-            for _ in range(n):
+            for step in range(n):
                 out = model(inp, past_key_values=past, use_cache=True,
                             output_hidden_states=need_h)
                 past = out.past_key_values
@@ -273,7 +346,34 @@ class Sillage:
                 qG = mem.step_key(int(inp[0, -1]))
                 _, sG = mem.scores(mem.M, qG)
                 sS = None
-                if mem.semantic:
+                if mem.sem2_layer is not None and mem.semantic:
+                    if pooled is None:
+                        # paper 8: pool the tier over every prompt
+                        # position (no anchor heuristic survives a bare
+                        # prompt), then suppress the echo -- recall
+                        # never pays for what the window already holds
+                        H2 = (out.hidden_states[mem.sem2_layer][0]
+                              .float().cpu().numpy())
+                        for k in range(0, len(H2), 64):
+                            Q = np.stack([mem.sem2_key(H2[p_])
+                                          for p_ in
+                                          range(k, min(k + 64,
+                                                       len(H2)))])
+                            U = Q @ mem.MS
+                            S = (U / (np.linalg.norm(U, axis=1,
+                                                     keepdims=True)
+                                      + 1e-8)) @ mem.V.T
+                            mx_ = S.max(axis=0)
+                            pooled = (mx_ if pooled is None
+                                      else np.maximum(pooled, mx_))
+                        pooled[list(set(int(t) for t in ids))] = -1e9
+                    # the v2 tier gives ONE impulse: it recalls the
+                    # value's head, and the frozen model finishes the
+                    # word from there. Sustained mixing recalls no more
+                    # (measured) and disturbs unrelated prompts twice as
+                    # often. The n-gram tier continues; this one recalls.
+                    sS = pooled if step == 0 else None
+                elif mem.semantic:
                     _, sS = mem.scores(mem.MS, mem.sem_key(h))
                 p = mem.mix_full(p_base, sG, sS, mem.cold_lookup(),
                                  thrG, thrS)
@@ -316,6 +416,8 @@ class Sillage:
                 "cold_grams": len(mem.cold), "passages": len(
                     self.index.passages),
                 "semantic": mem.semantic, "fastweights": mem.fastweights,
+                "sem2_layer": mem.sem2_layer,
+                "sem2_whiten": mem.sem2_whiten,
                 "half_life": mem.half_life, "cold_mass": mem.cold_mass,
                 "calibrated": mem.calibrated,
                 "calibrating": mem.calibrate_on,

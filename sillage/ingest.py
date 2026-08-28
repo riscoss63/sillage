@@ -83,6 +83,11 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
             "fast read: this model's readout is still calibrating -- "
             "run a normal read first (calibration needs the tier "
             "scores that fast ingestion skips).")
+    if mem.sem2_layer is not None:
+        raise SystemExit(
+            "fast read: the layer-anchored semantic tier (paper 8) is "
+            "not in the blocked path yet -- read normally, or drop "
+            "--sem2 for this read.")
     ids = np.array(tok.encode(text), dtype=np.int64)
     n = len(ids) - 1
     if n < 1:

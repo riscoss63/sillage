@@ -80,7 +80,9 @@ def make(a, **over):
           "calibrate": getattr(a, "calibrate", None),
           "device": a.device,
           "target": getattr(a, "target", None),
-          "cold_mass": getattr(a, "cold_mass", None)}
+          "cold_mass": getattr(a, "cold_mass", None),
+          "sem2": getattr(a, "sem2", None),
+          "sem2_whiten": getattr(a, "sem2_whiten", None)}
     kw.update(over)
     return Sillage(**kw)
 
@@ -199,6 +201,10 @@ def cmd_status(a):
     sem = ("on" if st["semantic"] else
            "off  (raw hidden states would need whitening on this model)")
     print(f"  semantic tier      : {sem}")
+    if st.get("sem2_layer") is not None:
+        wtxt = " + ZCA whitening" if st.get("sem2_whiten") else ""
+        print(f"  semantic keys      : layer {st['sem2_layer']}, "
+              f"surprise-anchored, query pooling (paper 8){wtxt}")
     hl = (f"half-life {int(st['half_life'])} tokens" if st["half_life"]
           else "off")
     print(f"  forgetting         : {hl}")
@@ -373,6 +379,18 @@ def build_parser():
     common.add_argument("--half-life", type=float, default=None,
                         metavar="N", help="forgetting half-life in tokens "
                                           "(off by default; try 100000)")
+    common.add_argument("--sem2", type=int, default=None, metavar="LAYER",
+                        help="early-layer anchored semantic keys (paper "
+                             "8): key the tier on hidden layer LAYER "
+                             "(measured: 1 for qwen, 5 for gpt2), "
+                             "anchor writes on surprising tokens, pool "
+                             "the query over the prompt at generation; "
+                             "the state remembers the choice")
+    common.add_argument("--sem2-whiten", dest="sem2_whiten",
+                        action="store_true", default=None,
+                        help="add ZCA whitening estimated from what you "
+                             "read (paper 8: the model-adaptive piece "
+                             "-- unnecessary on qwen, needed on gpt2)")
     common.add_argument("--cold-mass", dest="cold_mass",
                         action="store_true", default=None,
                         help="weight the cold store's successors by "

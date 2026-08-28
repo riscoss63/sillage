@@ -186,7 +186,11 @@ there is one; the mechanisms stay numpy on the CPU), `--no-fastweights`,
 `--no-semantic`, `--half-life N` (forgetting, in tokens), `--no-calibrate` /
 `read --recalibrate`, `read --fast` (paper 7's blocked write-only
 ingestion: ~40x on long documents, exact cold store, declared amplitude
-tolerances, no perplexity report), `--cold-mass` (weight the cold store's successors by
+tolerances, no perplexity report), `--sem2 LAYER` with optional
+`--sem2-whiten` (paper 8's semantic keys: read the tier from an early
+hidden layer -- 1 for qwen, 5 for gpt2 -- anchor its writes on
+surprising tokens and pool the query over the prompt, which is what
+makes paraphrased recall possible at all), `--cold-mass` (weight the cold store's successors by
 surprise mass -- paper 6's adversarial fix; counts stay the default and
 reproduce the papers' numbers), `-n`, `--temp`, `-k`, and on
 `complete`/`chat`: `--fast` (speculative decoding from the memory --
@@ -249,6 +253,17 @@ or without forgetting); and **the system durably remembers what it has
 seen twice** -- the cold store's admission threshold, become a
 behavioral law. Adversarial bulk attacks self-neutralize through the
 surprise gate; the residual channel motivates `--cold-mass` below.
+
+One of those laws has since been **amended by its own repair** (paper 8):
+paraphrased questions used to recall nothing at all, because the semantic
+tier was keyed on the last hidden layer -- the one place where a
+next-token model has already erased *who* is being discussed (identity
+decays monotonically with depth; GPT-2's final layer is even
+anti-correlated). Key that tier on an early layer instead, anchor its
+writes on surprising tokens and pool the query over the prompt, and
+rephrased recall goes from **0% to 80% on Qwen3-0.6B and 30% on GPT-2**
+in this tool -- paired control, held-out facts, witness locality 0-1/10.
+That is `--sem2 LAYER` below.
 
 ## Should you use this?
 

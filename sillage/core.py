@@ -87,6 +87,17 @@ THRESH_Q = (None, 0.25, 0.5, 0.75)     # None = never abstain
 CALIB_MIN, CALIB_MAX = 600, 4000       # observations needed / kept
 CALIB_EVERY = 3                        # sample one position in three
 DEFAULT_THR_Q = 0.75
+# Paper 8's tier, as measured IN THE TOOL (the paper's own numbers come
+# from prototypes with dense keys; banded keys pack their scores more
+# tightly, so beta must be larger here -- the pooled max sits ~0.5 with
+# a 0.09 median, and a token needs beta*(s_max - s_typical) > ln(vocab)
+# to carry the argmax). Grid on ten development facts, reported on ten
+# held-out ones; calibration still overrides all three.
+SEM2_BETA_S, SEM2_LAM_S = 20.0, 0.85
+SEM2_THR_Q = 0.90                      # abstain below the q90 of the
+                                       # NULL: ordinary positions of
+                                       # the document, sampled before
+                                       # the tier's own writes weigh in
 
 
 def resolve(which, state_dir=None):
@@ -192,7 +203,7 @@ class SillageMemory:
 
     def __init__(self, state_dir=None, which=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
-                 cold_mass=None):
+                 cold_mass=None, sem2=None, sem2_whiten=None):
         self.dir = state_dir
         if which is None:              # adopt whatever this state belongs to
             saved = peek(state_dir)
@@ -212,6 +223,18 @@ class SillageMemory:
         self.cal_at = 0                 # lifetime tokens at the last fit
         self.cal = None                 # dev statistics, until they are used
         self.semantic = sem_default if semantic is None else semantic
+        if sem2 is not None:            # paper 8: v2 keys need the tier on
+            self.semantic = True
+            # the published S-readout was tuned for the old tier's
+            # likelihood smoothing; the v2 tier addresses, and carries
+            # its measured mixing (the --target precedent)
+            self.beta_S, self.lam_S = SEM2_BETA_S, SEM2_LAM_S
+            self.thr_qS = SEM2_THR_Q
+        self._sem2_arg = sem2           # None -> whatever the state says
+        self._sem2_whiten_arg = sem2_whiten
+        self.sem2_layer = sem2
+        self.sem2_whiten = bool(sem2_whiten) if sem2_whiten is not None \
+            else False
         self.fastweights = fastweights          # None -> whatever the state
         self.half_life = half_life              #         was built with
         # cold-store successor weighting: counts (historical, the papers'
@@ -233,6 +256,8 @@ class SillageMemory:
         self.MS = np.zeros((D_S, D_V), dtype=np.float32)
         self.A = np.zeros((self.vocab, R_FEAT), dtype=np.float32)
         self.mu, self.mu_n = None, 0
+        self.mu2, self.mu2_n = None, 0
+        self.cov_S2, self._W2 = None, None
         self.res_G, self.res_S = [], []
         self.tokens = 0
         self.g_sum, self.g_cnt = 0.0, 0
@@ -266,6 +291,22 @@ class SillageMemory:
                   else np.zeros((self.vocab, R_FEAT), np.float32))
         self.mu = z["mu"].astype(np.float32) if "mu" in z else None
         self.mu_n = int(z["mu_n"]) if "mu_n" in z else 0
+        self.mu2 = (z["mu2"].astype(np.float32)
+                    if "mu2" in z and z["mu2"].size > 1 else None)
+        self.mu2_n = int(z["mu2_n"]) if "mu2_n" in z else 0
+        self.cov_S2 = (z["cov_S2"].astype(np.float32)
+                       if "cov_S2" in z and z["cov_S2"].size > 1 else None)
+        self._W2 = None
+        if "sem2_layer" in z and self._sem2_arg is None:
+            v = int(z["sem2_layer"])
+            self.sem2_layer = None if v < 0 else v
+            if v >= 0 and self._sem_arg is not False:
+                self.semantic = True   # --no-semantic still wins
+                if not self.calibrated:
+                    self.beta_S, self.lam_S = SEM2_BETA_S, SEM2_LAM_S
+                    self.thr_qS = SEM2_THR_Q
+        if "sem2_whiten" in z and self._sem2_whiten_arg is None:
+            self.sem2_whiten = bool(z["sem2_whiten"])
         if "res_G" in z:
             self.res_G = list(z["res_G"])
         elif "reservoir" in z:
@@ -331,6 +372,13 @@ class SillageMemory:
             half_life=(self.half_life or 0.0), model=self.which,
             vocab=self.vocab, fastweights=bool(self.fastweights),
             semantic=bool(self.semantic), cold_mass=bool(self.cold_mass),
+            mu2=(self.mu2 if self.mu2 is not None else np.zeros(1)),
+            mu2_n=self.mu2_n,
+            cov_S2=(self.cov_S2 if self.cov_S2 is not None
+                    else np.zeros((1, 1), np.float32)),
+            sem2_layer=(-1 if self.sem2_layer is None
+                        else int(self.sem2_layer)),
+            sem2_whiten=bool(self.sem2_whiten),
             calibrated=bool(self.calibrated),
             beta_G=self.beta_G, lam_G=self.lam_G,
             beta_S=self.beta_S, lam_S=self.lam_S,
@@ -418,15 +466,9 @@ class SillageMemory:
             self._graw *= np.roll(self.T[old], NGRAM)
         return self._graw / np.sqrt(D_K)
 
-    def sem_key(self, h):
-        """Banded SimHash symbols of a centred hidden state (paper 2)."""
-        h = h / (np.linalg.norm(h) + 1e-8)
-        if self.mu is None:
-            self.mu = np.zeros_like(h)
-        self.mu_n += 1
-        self.mu += (h - self.mu) / self.mu_n
-        z = h - self.mu
-        bits = ((z @ self.Wh(len(h))) > 0).reshape(L_BANDS, B_BITS)
+    def _bands(self, z):
+        """Banded SimHash symbols of an already-centred vector."""
+        bits = ((z @ self.Wh(len(z))) > 0).reshape(L_BANDS, B_BITS)
         q = np.empty(D_S, dtype=np.float32)
         scale = 1.0 / np.sqrt(len(B_LIST) * L_BANDS * D_BAND)
         pw2 = 2 ** np.arange(B_BITS)
@@ -442,6 +484,60 @@ class SillageMemory:
                 q[slot * D_BAND:(slot + 1) * D_BAND] = scale * v
                 slot += 1
         return q
+
+    def sem_key(self, h):
+        """Banded SimHash symbols of a centred hidden state (paper 2)."""
+        h = h / (np.linalg.norm(h) + 1e-8)
+        if self.mu is None:
+            self.mu = np.zeros_like(h)
+        self.mu_n += 1
+        self.mu += (h - self.mu) / self.mu_n
+        return self._bands(h - self.mu)
+
+    # ------------------------------------------- paper 8: early-layer keys --
+    def sem2_observe(self, h):
+        """Feed one early-layer hidden into the v2 key statistics: the
+        running mean, and -- when whitening is on -- the covariance the
+        ZCA is estimated from. Called at read time only."""
+        x = h / (np.linalg.norm(h) + 1e-8)
+        if self.mu2 is None:
+            self.mu2 = np.zeros_like(x)
+        if self.sem2_whiten and self.cov_S2 is None:
+            self.cov_S2 = np.zeros((len(x), len(x)), np.float32)
+        self.mu2_n += 1
+        self.mu2 += (x - self.mu2) / self.mu2_n
+        if self.sem2_whiten:
+            self.cov_S2 += np.outer(x, x)
+        self._W2 = None
+
+    def _W2mat(self):
+        """ZCA transform from the accumulated statistics (paper 8:
+        whitening is the model-adaptive component -- unnecessary where
+        the layer's geometry is well conditioned, indispensable where
+        it is not). Shrinkage 0.1; rebuilt lazily."""
+        if self._W2 is not None:
+            return self._W2
+        d = len(self.mu2)
+        C = self.cov_S2 / max(1, self.mu2_n) - np.outer(self.mu2,
+                                                        self.mu2)
+        C = 0.9 * C + 0.1 * np.eye(d, dtype=np.float32) \
+            * max(C.trace(), 1e-6) / d
+        w, V = np.linalg.eigh(C)
+        self._W2 = ((V * (1.0 / np.sqrt(np.maximum(w, 1e-8)))) @ V.T
+                    ).astype(np.float32)
+        return self._W2
+
+    def sem2_key(self, h):
+        """The paper-8 semantic key: an early-layer hidden, centred on
+        the v2 mean, ZCA-whitened when enabled, then banded. Pure --
+        query-safe; statistics only move through sem2_observe."""
+        z = h / (np.linalg.norm(h) + 1e-8)
+        if self.mu2 is not None:
+            z = z - self.mu2
+        if self.sem2_whiten and self.mu2_n >= 256:
+            z = z @ self._W2mat()
+        z = z / (np.linalg.norm(z) + 1e-8)
+        return self._bands(z)
 
     def phi(self, h):
         """Fixed random feature of the hidden state, for the adapter."""
