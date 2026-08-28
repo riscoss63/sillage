@@ -1,0 +1,22 @@
+{
+  "note": "Ingestion throughput on the Kaggle T4 worker (2-core host CPU), Qwen3-0.6B, full stack unless stated. Provenance per entry: the sequential rates come from kernel logs (the runs were cancelled/superseded before an output artifact was saved, so the log line is the record); the blocked rate is the median over 43 questions committed in lme_arm_g.json.",
+  "rates_tok_per_s": {
+    "read_text (full scoring path)": 7.05,
+    "fast_ingest (per-token writes)": 45.0,
+    "fast_ingest_blocked (64-token GEMM)": 305.8
+  },
+  "provenance": {
+    "read_text (full scoring path)": "behav-4b kernel log: state built by 0.6B in 21.1 min for 8,922 tokens (results/behav_4b.json holds the state figures)",
+    "fast_ingest (per-token writes)": "lme-g v4 kernel log: [1/43] 103,766 tok @ 45 tok/s (run stopped; per-token GPU round-trips dominated)",
+    "fast_ingest_blocked (64-token GEMM)": "median tok_per_s over the 43 completed questions of results/lme_arm_g.json (min 302, max 310)"
+  },
+  "desktop_profile_ms_per_token": {
+    "note": "2-core-independent decomposition, desktop CPU, qwen dimensions (vocab 151,936)",
+    "amp_write M_G (4096x256 rank-1)": 4.414,
+    "amp_write M_S (12288x256 rank-1)": 6.962,
+    "sem_key + MS retrieval": 1.736,
+    "step_key + M_G retrieval": 0.236,
+    "sequential total": 13.347,
+    "blocked write math per token": 0.772
+  }
+}

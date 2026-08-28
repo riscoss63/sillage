@@ -265,3 +265,248 @@ localité décomposée, frontière paraphrase.
    sous-ensemble, MemoryAgentBench (test-time learning + selective
    forgetting) — toujours « score compétitif à coût ~nul », jamais SOTA.
 5. Montée Qwen3-4B (Kaggle, kit existant à étendre).
+
+---
+
+## 27/08/2026 — Montée en capacité (Kaggle, Qwen3-4B) — PRÉDICTIONS
+
+Kernel `sillage-behav-4b` (T4, autonome, pip sillage 1.2.0.post1, tout
+synthétique — aucun état ni document embarqué). Deux bras :
+
+- **N (natif)** : Qwen3-4B (fp16) lit lui-même v1 puis v2 x2 ; rappel,
+  paraphrase, témoin (sans écrire), conflits, puis probe de confiance
+  (readout auto-ajusté vs réglages famille 40/0.85/q50).
+- **T (transfert)** : 0.6B (fp32) construit v1+v2x2 ; 0.6B, 1.7B (fp32)
+  et 4B (fp16) servent LE MÊME état — l'axe capacité à stockage
+  constant, publié vs famille.
+
+Référence 0.6B locale : rappel v1 93 %, paraphrase 0 %, conflits
+plateau 20 % (x3/x4 et probe publié), calibré 100 % nouvelle / 100 %
+stables, témoin +1.9 %.
+
+**Prédictions (avant le run) :**
+- P0 (contrôle) : à mémoire vide, rappel = paraphrase = 0 % aux deux
+  capacités — sinon les faits ne sont pas inventés et tout est invalide.
+- P1 : 4B natif, rappel v1 ≥ 80 % sous readout auto-ajusté ; ≥ 93 %
+  sous réglages famille.
+- P2 (cœur, falsifiable) : sur l'état 0.6B servi, à readout PUBLIÉ, la
+  résolution de conflit reste ≤ 20 % aux trois capacités — la capacité
+  n'achète pas la conversion, c'est le readout (loi 1) ; sous réglages
+  famille, nouvelle ≥ 90 % aux trois. **Falsification : 4B publié
+  ≥ 50 %.**
+- P3 : paraphrase ≈ 0 % partout (frontière de surface tokens, pas de
+  capacité — le 4B n'y peut rien).
+- P4 : témoin 4B natif ≤ +3 % (localité tient à l'échelle).
+- P5 : stables servis ≥ 85 % publié aux trois capacités (ne CHUTE pas
+  en montant), ≥ 90 % famille, croissance faible avec la capacité.
+
+**Caps déclarées :** pas de bras interférence à 4B (mécanisme cold
+indépendant du lecteur, budget session sur l'axe conversion) ; l'état
+transfert est SANS interférence donc ≠ état local — comparaisons
+intra-kernel uniquement ; 4B en float16 (16 Go fp32 ne tient pas sur
+T4).
+
+Complément (avant le run) : dans le bras T, sémantique ET adaptateur
+sont coupés aux trois capacités — tous deux sont des fonctions de la
+géométrie cachée du LECTEUR (le papier 5 coupe déjà l'adaptateur sous
+--target ; un hidden 4B n'a pas de sens pour un blanchiment 0.6B).
+L'axe capacité compare donc M_G + cold seuls, à pile identique. Le
+point 0.6B servi diffère en cela du probe local (pile complète) — les
+prédictions P2/P5 portent sur la pile réduite.
+
+---
+
+## 27/08/2026 — LongMemEval, bras E (extractif, local) — PRÉDICTIONS
+
+Banc externe LongMemEval-S (500 questions, ~121k tokens / ~50 sessions
+de chat par question ; `xiaowu0162/longmemeval`). Bras E = la voix
+extractive seule (`Index` lexical, celle de `sillage ask`) : chaque
+session indexée comme un document, la question comme requête — aucun
+modèle, aucun juge LLM. Métriques déterministes :
+- evidence@k : une passage du top-k provient d'une session-preuve
+  (answer_session_ids), k ∈ {1,3,5} ;
+- answer-in-top3 (strict) : la chaîne réponse (normalisée) contenue
+  dans le texte du top-3 ;
+- multi-session : couverture complète vs partielle des sessions-preuves;
+- les 30 questions _abs (pas de preuve) rapportées à part.
+
+**Prédictions (avant le run) :**
+- P-E1 : evidence@3 global ≥ 60 % (recouvrement lexical
+  question↔session-preuve).
+- P-E2 : ordre par type : single-session-user > knowledge-update >
+  multi-session > temporal-reasoning (l'arithmétique de dates est hors
+  de portée lexicale). **Falsification : temporal en tête.**
+- P-E3 : answer-in-top3 NETTEMENT sous evidence@3 (≥ 20 points d'écart)
+  — la marche « présence → formulation », version banc externe de
+  « stored is not recalled ».
+- P-E4 : multi-session — couverture partielle fréquente, complète rare
+  (< 30 %).
+
+Le bras G (génératif, qwen via fast_ingest — validé bit-à-bit ce jour,
+x2.4 déjà sur CPU local) suivra sur sous-échantillon Kaggle.
+
+**VERDICT bras E (500/500 questions, 17 min sur le CPU du bureau, zéro
+GPU, zéro juge — results/lme_arm_e.json) :**
+
+| métrique (470 hors _abs) | valeur |
+|---|---|
+| evidence@1 / @3 / @5 | 85.5 % / **92.6 %** / 94.5 % |
+| answer-in-top3 (strict) | **29.6 %** |
+
+Par type (evidence@3 → answer_top3) : single-session-user 100 → 78.1 ;
+single-session-assistant 100 → 42.9 ; knowledge-update 98.6 → 54.2 ;
+multi-session 92.6 → 10.7 ; temporal 89.8 → 10.2 ;
+single-session-preference 60.0 → 0.
+
+- P-E1 **CONFIRMÉE**, largement (92.6 % ≥ 60 %).
+- P-E2 **CONFIRMÉE** sur la chaîne prédite exacte (100 > 98.6 > 92.6 >
+  89.8) ; hors prédiction : preference dernier (60 %) — requêtes sans
+  recouvrement lexical (la question ne cite pas le contenu).
+- P-E3 **CONFIRMÉE**, au-delà : écart de **63 points** (92.6 → 29.6).
+  La marche « présence → formulation » à l'échelle du banc — stored is
+  not recalled, version externe. Décomposition : là où la réponse est
+  une chaîne de surface (user facts : 78 %), l'extractif la livre ; là
+  où il faut AGRÉGER (multi-session 10.7 %) ou CALCULER (temporal
+  10.2 %), la présence ne suffit jamais.
+- P-E4 **RÉFUTÉE** (négatif honnête) : couverture multi-session
+  complète@5 = 43.8 % (> 30 % prédit) ; partielle 49.6 %, nulle 6.6 %.
+  L'index couvre mieux que prédit — c'est la FORMULATION qui manque,
+  pas la couverture.
+
+Limite de métrique déclarée : answer-in-top3 n'est un proxy valable que
+pour les réponses factuelles courtes (médiane 11 caractères) ; les
+réponses « preference » (phrases descriptives) sont par nature
+hors-proxy → 0 % mécanique, à lire comme non-mesuré, pas comme échec.
+Positionnement : evidence@3 est une métrique de RETRIEVAL, pas
+l'accuracy QA jugée du papier LongMemEval — ne jamais comparer les deux
+colonnes (nommer le régime).
+
+**VERDICT montée 4B (kernel T4, 55 min, results/behav_4b.json) :**
+
+Natif Qwen3-4B (fp16, readout gouvernant 40/0.85/q75) :
+| probe | 0.6B (local) | 4B natif |
+|---|---|---|
+| contrôles à vide | 0 % | 0 % |
+| rappel v1 | 93.3 % | **93.3 %** (identique) |
+| paraphrase | 0 % | 0 % |
+| témoin | +1.9 % | **+0.47 %** |
+| conflit x1 / x2 | 0 / 10 % | 0 / 0 % |
+| conflit, réglages famille | 100 % | **100 %** (ancienne 0 %) |
+
+Transfert (MÊME état 0.6B — 8922 tokens, 735 grams — pile M_G+cold,
+servi par 0.6B / 1.7B / 4B) :
+- readout PUBLIÉ (160/0.2/q75) : conflit nouvelle **10 % / 10 % / 10 %**
+  — PLAT sur ×6.7 de paramètres ; stables 90 / 80 / 90 %.
+- readout FAMILLE (40/0.85/q50) : nouvelle **100 % / 100 % / 100 %** ;
+  stables 100 / 95 / 95 %.
+
+- P0 ✓, P1 ✓ (93.3 ≥ 80), P3 ✓ (paraphrase 0 % partout), P4 ✓ (+0.47 ≤ +3).
+- **P2 CONFIRMÉE EXACTEMENT — le résultat central : la capacité
+  n'achète PAS la conversion.** À confiance égale, 0.6B ≡ 1.7B ≡ 4B,
+  aux deux niveaux de confiance. La falsification (4B publié ≥ 50 %)
+  n'est pas approchée (10 %).
+- P5 partielle : stables publiés 90/80/90 — le point 1.7B (80 %) passe
+  sous la borne ≥ 85 % prédite ; pas de croissance avec la capacité
+  (plat bruité). Négatif honnête consigné.
+- Détail qui affûte la loi 1 : à 4B natif, beta/lam gouvernants = déjà
+  famille (40/0.85) — seul le seuil d'abstention diffère (q75 vs q50),
+  et ce SEUL cran fait 0 % → 100 % sur les conflits. **Le cadran de la
+  confiance, à cette échelle, c'est le seuil d'abstention.**
+- recall_family 66.7 % sur les 30 v1 = cohérence interne : les 10 faits
+  mis à jour répondent la NOUVELLE valeur (l'update fonctionne), les 20
+  stables 100 %.
+
+Timing clé pour le bras G : lecture pleine = 7 tok/s (142 ms/token) sur
+le CPU 2-cœurs → fast_ingest obligatoire ; variante « gate GPU » à
+valider localement (tolérance 1e-6 déclarée) pour viser ~2-4 min/question.
+
+---
+
+## 27/08/2026 — LongMemEval, bras G (génératif, Kaggle) — PRÉDICTIONS
+
+Kernel `sillage-lme-g` : 43 questions de S (40 stratifiées
+proportionnellement par type + 3 _abs, graine 7, tirage déclaré),
+qwen 0.6B, pile = M_G + cold + sémantique, **adaptateur coupé** (tier
+de style, précédent du service en cible), ingestion `fast_ingest`
+gate=torch (tolérance validée localement), réservoirs sur GPU. Trois
+voix par question, greedy n=24, scoring = containment normalisé de la
+réponse (proxy réponses courtes ; preference hors-proxy) :
+  (a) mémoire seule : « Question: … Answer: » sur l'état des ~50
+      sessions (~121k tokens) ;
+  (b) contexte+mémoire : top-3 passages de l'index + question, même
+      état ;
+  (c) contexte seul : même prompt que (b), état vide — le contrôle qui
+      isole la contribution de la mémoire.
+
+**Prédictions (avant le run) :**
+- P-G1 : voix (a) ≤ 10 % global — double mur confiance + formulation à
+  121k tokens d'état ; le négatif PRÉDIT par les lois du papier 6.
+- P-G2 : voix (b) ≈ voix (c) à ±5 points — la redondance en fenêtre est
+  tarifée ~0 par le gate, la mémoire ne nuit pas au régime RAG.
+  **Falsification : (b) < (c) − 10 points (la mémoire NUIT).**
+- P-G3 : (b) et (c) ≥ 4× la voix (a) — la formulation se fait en
+  fenêtre ; l'écart 63 points du bras E, version générative.
+- P-G4 : ingestion ≥ 100 tok/s (contre 7 tok/s mesurés en lecture
+  pleine au kernel 4B) — la revendication outil.
+
+Validation gate=torch (avant le run G, test_fast_ingest.py) : mode
+exact = read_text BIT-À-BIT (23 tableaux, cold, complétions) ; mode
+torch = admissions et comptes cold IDENTIQUES, dérive de masse absolue
+5.7e-04 nats (arrondi sur les g≈0), relative 1.3e-04 sur les slots à
+masse ≥ 0.5, M à 5.5e-06, complétions identiques. Première borne
+relative naïve (1e-4 partout) déclenchée à 3.5e-2 par les slots à
+masse minuscule — métrique corrigée, incident consigné.
+
+**INCIDENT run G v3 (27/08 soir) :** ingestion mesurée à **37 tok/s**
+(54 min/question → ~39 h pour 43 — session tuée à 12 h sans sauvegarde
+de /kaggle/working). Run arrêté à 6/43. Causes (les deux miennes, en
+dessous de la prédiction P-G4 ≥ 100) : (1) DEUX allers-retours GPU par
+token pour les réservoirs d'abstention — latence de synchronisation
+réelle ~3-5 ms pièce, estimée 0.3 ; (2) promotion float64 héritée de la
+clé 4-gram (`_graw` en float64 par défaut numpy) qui double le coût des
+matvecs et écritures CPU. Correctif v4 : réservoirs échantillonnés 1
+token sur 8 en mode torch (le quantile roulant sur 5000 échantillons ne
+change pas d'estimateur sur flux stationnaire — tolérance sur les
+seuils vérifiée localement, borne 10 %) + clés castées float32 en mode
+torch (dérive classe 1e-7/écriture, bornes M inchangées). Mode exact
+intact (bit-à-bit, K=1). Estimation corrigée : ~250-330 tok/s → 6-8
+min/question. Les 6 lignes de v3 sont perdues avec la session (Kaggle
+ne persiste la sortie qu'à la complétion) — anecdote de la ligne 6
+conservée ici : knowledge-update, a=False b=True c=True ev3=True,
+102 674 tokens — première photo des trois voix, cohérente avec
+P-G1/P-G2/P-G3.
+
+**VERDICT bras G (kernel v8, T4, 43/43 questions, 4.5 M tokens ingérés
+en 4.1 h, results/lme_arm_g.json) — 4 prédictions sur 4 :**
+
+| voix (40 hors _abs) | score |
+|---|---|
+| (a) mémoire seule | **5 %** |
+| (b) contexte + mémoire | **25 %** |
+| (c) contexte seul | **25 %** |
+| evidence@3 (écho) | 85 % |
+
+- P-G1 **CONFIRMÉE** (5 % ≤ 10 %) — le négatif prédit par les lois :
+  121k tokens stockés ne se convertissent pas en réponse libre à 0.6B.
+- P-G2 **CONFIRMÉE au-delà** : b ≡ c non seulement en moyenne mais
+  **question par question (accord 40/40, zéro divergence)** — le gate
+  tarife la redondance en fenêtre à zéro exactement ; la mémoire est
+  parfaitement neutre en régime RAG. Falsification jamais approchée.
+- P-G3 **CONFIRMÉE** : 25 % = 5× la voix (a) — la formulation se fait
+  en fenêtre.
+- P-G4 **CONFIRMÉE** : 305.8 tok/s médian (min 302 / max 310 —
+  d'une stabilité remarquable) = **×43 vs la lecture pleine** (7
+  tok/s). `fast_ingest_blocked` validé à l'échelle : 4.5 M tokens.
+- Par type, le gradient de formulation reproduit le bras E :
+  single-session-user 67 % > assistant 40 % > multi-session 20 % ≈
+  knowledge-update 17 % > temporal 10 % > preference 0 %.
+- Voix (a) : 2 réussites, toutes deux temporal-reasoning — à inspecter
+  (chance de prior probable, 2/40 sous le bruit).
+- Les 3 _abs : silence des trois voix (aucun match) ✓.
+
+**AXE 3 BOUCLÉ** : six lois locales (papier 6, publié), montée en
+capacité (loi 1 plate sur ×6.7 — behav_4b.json), banc externe deux voix
+(extraction 92.6 %/écart 63 pts — lme_arm_e ; génération a/b/c 5/25/25 —
+lme_arm_g). L'histoire complète en une phrase : le sillage retrouve
+presque toujours, ne formule presque jamais seul, et ne coûte jamais
+rien quand le contexte est là.

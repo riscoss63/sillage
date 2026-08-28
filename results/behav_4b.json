@@ -1,0 +1,144 @@
+{
+  "predictions": {
+    "registered": "2026-08-27, avant le run (NOTES_AXE3.md)",
+    "P0": "controles: memoire vide -> rappel = paraphrase = 0% aux deux capacites (sinon tout est invalide)",
+    "P1": "4B natif: rappel v1 >= 80% (readout auto-ajuste), >= 93% (reglages famille)",
+    "P2": "transfert, readout PUBLIE: conflit nouvelle <= 20% aux TROIS capacites (la capacite n'achete pas la conversion); reglages famille: nouvelle >= 90% aux trois. FALSIFICATION: 4B publie >= 50%",
+    "P3": "paraphrase ~0% partout (frontiere de surface tokens)",
+    "P4": "temoin 4B natif <= +3%",
+    "P5": "stables servis >= 85% publie aux trois (ne chute pas en montant), >= 90% famille, croissance faible",
+    "caps": "pas d'interference a 4B; etat transfert sans interference (comparaisons intra-kernel); 4B en float16"
+  },
+  "config": {
+    "gpu": "Tesla T4",
+    "torch": "2.10.0+cu128",
+    "sillage": "1.2.0.post1",
+    "dtype": {
+      "0.6B": "float32",
+      "1.7B": "float32",
+      "4B": "float16"
+    },
+    "facts": 30,
+    "n": 8
+  },
+  "native_4b": {
+    "recall_base": 0.0,
+    "para_base": 0.0,
+    "witness_before": {
+      "base": 34.509946283119284,
+      "mem": 34.50994722734884
+    },
+    "recall_v1": 0.9333333333333333,
+    "para_v1": 0.0,
+    "readout_after_v1": {
+      "beta_G": 40.0,
+      "lam_G": 0.85,
+      "thr_qG": 0.75
+    },
+    "witness_after": {
+      "base": 34.509946283119284,
+      "mem": 34.671965753753234
+    },
+    "conflict_after_1": {
+      "new": 0.0,
+      "old": 0.0,
+      "neither": 1.0
+    },
+    "conflict_after_2": {
+      "new": 0.0,
+      "old": 0.0,
+      "neither": 1.0
+    },
+    "readout_fitted": {
+      "beta_G": 40.0,
+      "lam_G": 0.85,
+      "thr_qG": 0.75
+    },
+    "conflict_family": {
+      "new": 1.0,
+      "old": 0.0,
+      "neither": 0.0
+    },
+    "stable_recall_family": 1.0,
+    "recall_family": 0.6666666666666666,
+    "para_family": 0.0
+  },
+  "transfer": {
+    "servers": {
+      "0.6B": {
+        "published": {
+          "readout": {
+            "beta_G": 160.0,
+            "lam_G": 0.2,
+            "thr_qG": 0.75
+          },
+          "conflict": {
+            "new": 0.1,
+            "old": 0.0,
+            "neither": 0.9
+          },
+          "stable": 0.9
+        },
+        "family": {
+          "conflict": {
+            "new": 1.0,
+            "old": 0.0,
+            "neither": 0.0
+          },
+          "stable": 1.0
+        }
+      },
+      "1.7B": {
+        "published": {
+          "readout": {
+            "beta_G": 160.0,
+            "lam_G": 0.2,
+            "thr_qG": 0.75
+          },
+          "conflict": {
+            "new": 0.1,
+            "old": 0.0,
+            "neither": 0.9
+          },
+          "stable": 0.8
+        },
+        "family": {
+          "conflict": {
+            "new": 1.0,
+            "old": 0.0,
+            "neither": 0.0
+          },
+          "stable": 0.95
+        }
+      },
+      "4B": {
+        "published": {
+          "readout": {
+            "beta_G": 160.0,
+            "lam_G": 0.2,
+            "thr_qG": 0.75
+          },
+          "conflict": {
+            "new": 0.1,
+            "old": 0.0,
+            "neither": 0.9
+          },
+          "stable": 0.9
+        },
+        "family": {
+          "conflict": {
+            "new": 1.0,
+            "old": 0.0,
+            "neither": 0.0
+          },
+          "stable": 0.95
+        }
+      }
+    },
+    "state": {
+      "tokens": 8922,
+      "cold_grams": 735
+    },
+    "declared": "serveurs a pile reduite: semantique et adaptateur coupes aux trois capacites (geometrie du lecteur)"
+  }
+}

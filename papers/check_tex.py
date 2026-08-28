@@ -1,4 +1,4 @@
-"""Static checker for the six papers -- catches what would break pdfLaTeX
+"""Static checker for the seven papers -- catches what would break pdfLaTeX
 before you compile them.
 
 Checks per file:
@@ -32,7 +32,8 @@ PAPERS = ["papers/sillage/sillage.tex", "papers/router/router.tex",
           "papers/hierarchy/hierarchy.tex",
           "papers/fastweights/fastweights.tex",
           "papers/drafter/drafter.tex",
-          "papers/behavior/behavior.tex"]
+          "papers/behavior/behavior.tex",
+          "papers/benchmark/benchmark.tex"]
 
 KNOWN = set("""documentclass usepackage newcommand newtheorem definecolor
 title author date maketitle begin end section subsection paragraph item
@@ -172,7 +173,7 @@ def main():
         for w in warnings:
             print("    warning " + w)
         bad += len(errors)
-    print(("all six papers pass" if not bad
+    print(("all seven papers pass" if not bad
            else f"{bad} error(s) to fix before compiling"))
     return 1 if bad else 0
 

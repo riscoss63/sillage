@@ -20,6 +20,9 @@ test_state_*/
 test_docs/
 .behav_state*/
 behav/results/
+longmemeval/data/
+longmemeval/results/
+longmemeval/.state_*/
 
 # LaTeX build artifacts (papers compile locally; Zenodo carries the PDFs)
 papers/*/*.pdf

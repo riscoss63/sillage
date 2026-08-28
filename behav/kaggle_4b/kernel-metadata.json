@@ -1,0 +1,13 @@
+{
+  "id": "abderrahmanesghairi/sillage-behav-4b",
+  "title": "sillage-behav-4b",
+  "code_file": "behav4b_kernel.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}
