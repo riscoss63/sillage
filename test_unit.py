@@ -253,5 +253,55 @@ try:
 finally:
     shutil.rmtree(tmp12, ignore_errors=True)
 
+# --- 13. blocked writes == sequential writes (paper 7's fast ingest) -------
+from sillage.core import NGRAM
+from sillage.ingest import blocked_write
+
+rng13 = np.random.default_rng(13)
+# a stream with real repetition, so cold grams form and collide
+stream = rng13.integers(0, 40, 320)
+stream[100:104] = stream[10:14]          # a repeated 4-gram, far apart
+gates = rng13.uniform(0.0, CAP, 320)
+
+mA13 = SillageMemory(None, "gpt2", semantic=False, fastweights=False)
+mA13.new_stream()
+for j in range(319):
+    q = mA13.step_key(int(stream[j]))
+    u, _ = mA13.scores(mA13.M, q)
+    mA13.write_all(q, u, None, None, int(stream[j + 1]), float(gates[j]))
+
+mB13 = SillageMemory(None, "gpt2", semantic=False, fastweights=False)
+mB13.new_stream()
+j = 0
+while j < 319:
+    blk = range(j, min(j + 64, 319))
+    Qg = np.empty((len(blk), D_K), np.float32)
+    grams, toks, gv = [], [], []
+    for k, jj in enumerate(blk):
+        Qg[k] = np.asarray(mB13.step_key(int(stream[jj])),
+                           dtype=np.float32)
+        grams.append(np.array(mB13._hist[-NGRAM:],
+                              dtype=np.int32).tobytes()
+                     if len(mB13._hist) >= NGRAM else None)
+        toks.append(int(stream[jj + 1]))
+        gv.append(float(gates[jj]))
+    blocked_write(mB13, Qg, None, np.array(toks), np.array(gv), grams)
+    j += 64
+
+same_cold = (mA13.cold.keys() == mB13.cold.keys()
+             and all(mA13.cold[k][1] == mB13.cold[k][1]
+                     and abs(mA13.cold[k][0] - mB13.cold[k][0]) < 1e-9
+                     for k in mA13.cold))
+dM13 = float(np.abs(mA13.M - mB13.M).max())
+# the repeated gram must still retrieve the same continuation
+gram_q = mA13._graw / np.sqrt(D_K)
+topA = int(np.argmax(mA13.scores(mA13.M, gram_q)[1]))
+topB = int(np.argmax(mB13.scores(mB13.M, gram_q)[1]))
+check("T13 blocked ingestion writes", same_cold and dM13 < 0.05
+      and mA13.tokens == mB13.tokens and mA13.g_cnt == mB13.g_cnt
+      and topA == topB,
+      f"({len(mA13.cold)} cold grams exact, M drift {dM13:.1e}, "
+      f"counters equal, retrieval argmax preserved)")
+
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

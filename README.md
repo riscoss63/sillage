@@ -13,14 +13,14 @@ no index that grows.**
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![CPU only](https://img.shields.io/badge/hardware-CPU%20only-green.svg)](requirements.txt)
-[![Papers: 6](https://img.shields.io/badge/preprints-6-orange.svg)](papers/)
+[![Papers: 7](https://img.shields.io/badge/preprints-7-orange.svg)](papers/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22079016.svg)](https://doi.org/10.5281/zenodo.22079016)
 
 A frozen LM reads your documents, remembers them, and predicts better next
 time — **no gradients, no fine-tuning, no growing index**. One Hebbian matrix
 written as the model reads, a semantic tier routed by confidence, a cold store
 that consolidates by surprise, and a rank-16 adapter on the readout. Four
-mechanisms, six papers, **one command-line tool**. Everything runs on a
+mechanisms, seven papers, **one command-line tool**. Everything runs on a
 laptop CPU.
 
 <p align="center"><img src="figs/demo.gif" width="94%" alt="Sillage demo: a frozen LM reads a document on Monday and recalls it on Tuesday"></p>
@@ -184,7 +184,9 @@ Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
 `--device cpu|cuda|mps` (a GPU is used for the frozen forward passes when
 there is one; the mechanisms stay numpy on the CPU), `--no-fastweights`,
 `--no-semantic`, `--half-life N` (forgetting, in tokens), `--no-calibrate` /
-`read --recalibrate`, `--cold-mass` (weight the cold store's successors by
+`read --recalibrate`, `read --fast` (paper 7's blocked write-only
+ingestion: ~40x on long documents, exact cold store, declared amplitude
+tolerances, no perplexity report), `--cold-mass` (weight the cold store's successors by
 surprise mass -- paper 6's adversarial fix; counts stay the default and
 reproduce the papers' numbers), `-n`, `--temp`, `-k`, and on
 `complete`/`chat`: `--fast` (speculative decoding from the memory --
@@ -297,9 +299,9 @@ the text in front of it, on a fixed byte budget, forever.
 right now, and how close the matrix is to saturation — the capacity law being
 the honest limit of the whole approach.
 
-## The six preprints
+## The seven preprints
 
-All six are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
+All seven are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
 
 | # | title | the finding |
 |---|---|---|
@@ -308,7 +310,8 @@ All six are archived on Zenodo with permanent DOIs; the LaTeX sources and figure
 | 3 | **[One Signal, Three Tiers](https://doi.org/10.5281/zenodo.22079471)** · [source](papers/hierarchy/hierarchy.tex) | consolidating by *surprise mass* keeps 92–94 % of a cold store's value with 10 % of its entries (500k streams) |
 | 4 | **[Memory Remembers, Fast Weights Adapt](https://doi.org/10.5281/zenodo.22079481)** · [source](papers/fastweights/fastweights.tex) | two gradient-free mechanisms, opposite regimes, near-additive gains |
 | 5 | **[The Memory Pays for Itself](https://doi.org/10.5281/zenodo.22109220)** · [source](papers/drafter/drafter.tex) | the same state recalls documents across a model family and speculatively accelerates it (x1.6-2.0, output-identical) |
-| 6 | **[Stored Is Not Recalled](https://doi.org/10.5281/zenodo.22125859)** · [source](papers/behavior/behavior.tex) | six behavioral laws with mechanisms: trust governs recall, the cold store is the durable memory, and the system remembers what it saw twice |
+| 6 | **[Stored Is Not Recalled](https://doi.org/10.5281/zenodo.22125859)** · [source](papers/behavior/behavior.tex) | six behavioral laws with mechanisms: trust governs recall, the cold store is the durable memory, and the system remembers what it saw twice -- v2 adds the capacity test (the laws are flat across x6.7 the reader) |
+| 7 | **Found Is Not Formulated** (DOI pending) · [source](papers/benchmark/benchmark.tex) | LongMemEval, judge-free: the index finds the evidence for 92.6% of 500 questions, formulation stays in the window (memory exactly neutral in RAG, 40/40), and blocked ingestion runs x43 |
 
 ## What did *not* work (and how we know)
 
@@ -382,13 +385,14 @@ pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
 .github/         CI: the unit tests and a LaTeX check on every push
-papers/          the six preprints (LaTeX + figures)
+papers/          the seven preprints (LaTeX + figures)
 results/         every number in every paper (JSON)
 pipeline/        corpora and frozen-LM passes          \
 memory/          the memory systems (papers 1-3)        |  paper
 fastweights/     the readout adapter (paper 4)          |  reproduction
 spec/            the speculative drafter (paper 5)      |
-behav/           the behavioral suite (paper 6)         |
+behav/           the behavioral suite (papers 6, 6v2)   |
+longmemeval/     the external benchmark (paper 7)       |
 eval/            evaluations, controls, diagnostics     |
 figures/         figure generation                     /
 data/ dumps/     regenerable artifacts (gitignored, ~2 GB)

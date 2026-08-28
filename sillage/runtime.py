@@ -104,8 +104,18 @@ class Sillage:
             print(msg, flush=True)
 
     # -------------------------------------------------------------- read ----
-    def read(self, *paths, save=True):
-        """Read documents: memorize them and index them for grounded quotes."""
+    def read(self, *paths, save=True, fast=False):
+        """Read documents: memorize them and index them for grounded quotes.
+
+        fast=True is paper 7's blocked ingestion: writes only, ~40x on
+        long documents, no perplexity report; the cold store is exact,
+        amplitude tolerances are declared, and the adapter does not
+        learn during a fast read (it still serves at generation).
+        """
+        if fast and self.mem.fastweights:
+            self._say("fast read: the adapter does not learn during "
+                      "this read (its delta rule is sequential); it "
+                      "still serves at generation time.")
         stats = []
         for path in paths:
             name = os.path.basename(path)
@@ -114,7 +124,12 @@ class Sillage:
                           f"strengthens its traces.")
             text = read_text(path)
             n_pass = self.index.add(text, name)
-            stats.append(self.read_text(text, name))
+            if fast:
+                from .ingest import ingest_text
+                stats.append(ingest_text(self, text, name,
+                                         quiet=self.quiet))
+            else:
+                stats.append(self.read_text(text, name))
             stats[-1]["passages"] = n_pass
         if save:
             self.save()

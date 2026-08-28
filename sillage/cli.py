@@ -5,7 +5,7 @@
     sillage complete "the report"    generate with memory + fast weights
     sillage chat                     both of the above, interactively
     sillage status                   what it knows, tier by tier
-    sillage papers                   index the six preprints and ask them
+    sillage papers                   index the seven preprints and ask them
     sillage demo notes.md            watch the memory work in one sitting
     sillage forget --all
 
@@ -61,7 +61,7 @@ def expand(paths):
 
 
 def find_papers():
-    """The six bundled preprints, if the repository is around."""
+    """The seven bundled preprints, if the repository is around."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     for root in (os.getcwd(), here):
         d = os.path.join(root, "papers")
@@ -125,7 +125,13 @@ def cmd_read(a):
         print("readout calibration reset -- it will be fitted again on the "
               "next few thousand tokens.")
     for path in paths:
-        r = s.read(path)[0]
+        r = s.read(path, fast=getattr(a, "fast", False))[0]
+        if r.get("ppl_frozen") is None:
+            print(f"read {r['file']}: {r['tokens']} tokens in "
+                  f"{r['minutes']:.1f} min | {r['tok_per_s']:.0f} tok/s "
+                  f"(fast ingest -- writes only, no perplexity)",
+                  flush=True)
+            continue
         line = (f"read {r['file']}: {r['tokens']} tokens in "
                 f"{r['minutes']:.1f} min | PPL {r['ppl_frozen']}")
         if s.mem.fastweights:
@@ -248,14 +254,14 @@ def cmd_forget(a):
 
 
 def cmd_papers(a):
-    """papers: index the six preprints that ship with the repository."""
+    """papers: index the seven preprints that ship with the repository."""
     tex = find_papers()
     if not tex:
         sys.exit("papers/ not found -- run this from the repository, or "
                  "point `sillage index` at your own documents.")
     a.files = tex
     if a.with_memory:
-        print("reading the six preprints into the memory "
+        print("reading the seven preprints into the memory "
               f"({make(a).mem.hub}) -- a few minutes ...")
         cmd_read(a)
     else:
@@ -414,6 +420,11 @@ def build_parser():
     p.add_argument("files", nargs="+")
     p.add_argument("--recalibrate", action="store_true",
                    help="fit the readout again, on what you read next")
+    p.add_argument("--fast", action="store_true",
+                   help="blocked write-only ingestion (paper 7): ~40x "
+                        "on long documents; exact cold store, declared "
+                        "amplitude tolerances, no perplexity report; "
+                        "the adapter does not learn during a fast read")
     p.set_defaults(fn=cmd_read)
 
     p = sub.add_parser("index", parents=[common],
@@ -448,7 +459,7 @@ def build_parser():
     p.set_defaults(fn=cmd_forget)
 
     p = sub.add_parser("papers", parents=[common],
-                       help="index the six preprints shipped with the repo")
+                       help="index the seven preprints shipped with the repo")
     p.add_argument("--with-memory", action="store_true",
                    help="also read them into the memory (slow)")
     p.set_defaults(fn=cmd_papers)

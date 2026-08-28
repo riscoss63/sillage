@@ -1,4 +1,4 @@
-# Reproducing every number in the six papers
+# Reproducing every number in the seven papers
 
 This file is for the *research* scripts. If you only want to use the system,
 `pip install -e .` and `sillage read yourfile.md` is the whole story
@@ -140,5 +140,16 @@ two-occurrence rule, the context-equivalence scorer, the adversarial
 arms with their defense probes and the `amp_write` instrumentation --
 plus `behav/JOURNAL.md`, the lab log where every experiment's
 predictions were registered before it ran. Its numbers are the
-`behav_*.json` files in `results/`. States are never shipped -- a cold
+`behav_*.json` files in `results/` (v2 adds `behav/kaggle_4b/`, the capacity
+kernel, and `results/behav_4b.json`). States are never shipped -- a cold
 store reveals what it read -- and every script says how to rebuild them.
+
+Paper 7 (LongMemEval) lives under `longmemeval/`: the extractive arm
+over all 500 questions (`arm_e_extractive.py`, CPU-only), the fast
+ingestion module with its bit-exact and blocked modes and their
+four-state equivalence test (`fast_ingest.py`,
+`test_fast_ingest.py`), and the self-contained arm-G kernel under
+`longmemeval/kaggle/`. The benchmark data itself is downloaded from
+its authors (`xiaowu0162/longmemeval` on the Hugging Face hub) into
+`longmemeval/data/` and is never redistributed here. Its numbers are
+the `lme_*.json` files in `results/`.
