@@ -1,6 +1,6 @@
-# The seven preprints
+# The eight preprints
 
-LaTeX sources and figures for the seven papers this repository implements.
+LaTeX sources and figures for the eight papers this repository implements.
 Each is archived on Zenodo with a permanent DOI; each is self-contained (no
 paper depends on an unpublished companion for its own results).
 
@@ -13,6 +13,7 @@ paper depends on an unpublished companion for its own results).
 | 5 | [`drafter/drafter.tex`](drafter/drafter.tex) | The Memory Pays for Itself | [10.5281/zenodo.22109220](https://doi.org/10.5281/zenodo.22109220) |
 | 6 | [`behavior/behavior.tex`](behavior/behavior.tex) | Stored Is Not Recalled (v2) | [10.5281/zenodo.22125859](https://doi.org/10.5281/zenodo.22125859) |
 | 7 | [`benchmark/benchmark.tex`](benchmark/benchmark.tex) | Found Is Not Formulated | DOI pending |
+| 8 | [`paraphrase/paraphrase.tex`](paraphrase/paraphrase.tex) | The Key Was in the Wrong Layer | DOI pending |
 
 ## Building a PDF
 
@@ -33,7 +34,7 @@ paper's folder as-is.
 python check_tex.py
 ```
 
-A static check of all seven sources: balanced braces and environments, display
+A static check of all eight sources: balanced braces and environments, display
 math that opens and closes, `\cite` keys that have a `\bibitem`, `\ref`
 labels that exist, and `\includegraphics` files that are actually on disk. It
 runs in CI on every push, because a single stray `\[` costs more time to
@@ -62,4 +63,5 @@ python ../figures/make_figures_p4.py   # paper 4
 python ../figures/make_figures_p5.py   # paper 5
 python ../figures/make_figures_p6.py   # paper 6
 python ../figures/make_figures_p7.py   # paper 7
+python ../figures/make_figures_p8.py   # paper 8
 ```

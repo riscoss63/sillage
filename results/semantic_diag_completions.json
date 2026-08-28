@@ -1,0 +1,643 @@
+{
+ "thr": 0.579297326505184,
+ "cats": {
+  "hit": 10,
+  "a_bucket": 13,
+  "b_mix": 7,
+  "c_derail": 0,
+  "d_nofire": 0,
+  "e_cross": 0
+ },
+ "rows": [
+  {
+   "e": "Vorlagune",
+   "split": "dev",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " toune theune theuneuneune",
+   "fire": true,
+   "rank_base": 17796,
+   "rank_sem": 491,
+   "rank_mix": 649,
+   "sem_top3": [
+    "une",
+    " protocol",
+    "lag"
+   ],
+   "sem_top3_ids": [
+    2886,
+    11507,
+    13363
+   ]
+  },
+  {
+   "e": "Krestomil",
+   "split": "dev",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " that theilililililil",
+   "fire": true,
+   "rank_base": 1172,
+   "rank_sem": 4,
+   "rank_mix": 8,
+   "sem_top3": [
+    "il",
+    "om",
+    "rest"
+   ],
+   "sem_top3_ids": [
+    321,
+    316,
+    3927
+   ]
+  },
+  {
+   "e": "Zylkorb",
+   "split": "dev",
+   "hit": true,
+   "cat": "hit",
+   "out": " to seventeen seventeen seventeen seventeen seventeen seventeen seventeen",
+   "fire": true,
+   "rank_base": 8678,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " seventeen",
+    "k",
+    "orb"
+   ],
+   "sem_top3_ids": [
+    81397,
+    74,
+    29886
+   ]
+  },
+  {
+   "e": "Marmelune",
+   "split": "dev",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " to have auneuneuneuneune",
+   "fire": true,
+   "rank_base": 1571,
+   "rank_sem": 3,
+   "rank_mix": 5,
+   "sem_top3": [
+    "une",
+    "el",
+    " copper"
+   ],
+   "sem_top3_ids": [
+    2886,
+    301,
+    23285
+   ]
+  },
+  {
+   "e": "Ilvress",
+   "split": "dev",
+   "hit": true,
+   "cat": "hit",
+   "out": " to velvet velvet velvet velvet velvet velvet velvet",
+   "fire": true,
+   "rank_base": 35384,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " velvet",
+    "v",
+    "ress"
+   ],
+   "sem_top3_ids": [
+    71326,
+    85,
+    673
+   ]
+  },
+  {
+   "e": "Quandrix",
+   "split": "dev",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " torixrixrixrixrixrixrix",
+   "fire": true,
+   "rank_base": 9013,
+   "rank_sem": 3,
+   "rank_mix": 5,
+   "sem_top3": [
+    "rix",
+    "and",
+    " granite"
+   ],
+   "sem_top3_ids": [
+    18356,
+    437,
+    37290
+   ]
+  },
+  {
+   "e": "Belfoss",
+   "split": "dev",
+   "hit": true,
+   "cat": "hit",
+   "out": " to crimson the crimson crimson crimson crimson crimson",
+   "fire": true,
+   "rank_base": 46289,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " crimson",
+    "oss",
+    "elf"
+   ],
+   "sem_top3_ids": [
+    96019,
+    3662,
+    490
+   ]
+  },
+  {
+   "e": "Tarnwick",
+   "split": "dev",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " towickwickwickwickwickwickwick",
+   "fire": true,
+   "rank_base": 11408,
+   "rank_sem": 2,
+   "rank_mix": 4,
+   "sem_top3": [
+    "wick",
+    " hollow",
+    "arn"
+   ],
+   "sem_top3_ids": [
+    21188,
+    41802,
+    1885
+   ]
+  },
+  {
+   "e": "Ozmirel",
+   "split": "dev",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " that thellllll",
+   "fire": true,
+   "rank_base": 6908,
+   "rank_sem": 5,
+   "rank_mix": 18,
+   "sem_top3": [
+    "l",
+    "ire",
+    "zm"
+   ],
+   "sem_top3_ids": [
+    75,
+    554,
+    31489
+   ]
+  },
+  {
+   "e": "Drevkant",
+   "split": "dev",
+   "hit": true,
+   "cat": "hit",
+   "out": " to woven woven woven woven woven woven woven",
+   "fire": true,
+   "rank_base": 7725,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " woven",
+    "k",
+    "ant"
+   ],
+   "sem_top3_ids": [
+    55774,
+    74,
+    517
+   ]
+  },
+  {
+   "e": "Palverin",
+   "split": "test",
+   "hit": true,
+   "cat": "hit",
+   "out": " to frozen frozen frozen frozen frozen frozen frozen",
+   "fire": true,
+   "rank_base": 3870,
+   "rank_sem": 1,
+   "rank_mix": 2,
+   "sem_top3": [
+    " frozen",
+    "in",
+    "ver"
+   ],
+   "sem_top3_ids": [
+    19690,
+    258,
+    423
+   ]
+  },
+  {
+   "e": "Skogfeld",
+   "split": "test",
+   "hit": true,
+   "cat": "hit",
+   "out": " to painted painted painted painted painted painted painted",
+   "fire": true,
+   "rank_base": 3564,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " painted",
+    "feld",
+    "og"
+   ],
+   "sem_top3_ids": [
+    23983,
+    30102,
+    538
+   ]
+  },
+  {
+   "e": "Yurmalec",
+   "split": "test",
+   "hit": true,
+   "cat": "hit",
+   "out": " to quiet the quieting quieting quiet",
+   "fire": true,
+   "rank_base": 5498,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " quiet",
+    "c",
+    "male"
+   ],
+   "sem_top3_ids": [
+    11340,
+    66,
+    36476
+   ]
+  },
+  {
+   "e": "Cindrovel",
+   "split": "test",
+   "hit": false,
+   "cat": "b_mix",
+   "out": " to salt the saltwater solution salt salt",
+   "fire": true,
+   "rank_base": 6097,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " salt",
+    "vel",
+    "ro"
+   ],
+   "sem_top3_ids": [
+    12021,
+    889,
+    299
+   ]
+  },
+  {
+   "e": "Halbrix",
+   "split": "test",
+   "hit": true,
+   "cat": "hit",
+   "out": " to have a narrow narrow narrow narrow narrow",
+   "fire": true,
+   "rank_base": 1463,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " narrow",
+    "rix",
+    "b"
+   ],
+   "sem_top3_ids": [
+    15026,
+    18356,
+    65
+   ]
+  },
+  {
+   "e": "Nertoval",
+   "split": "test",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " toovalovalovalovalovalovaloval",
+   "fire": true,
+   "rank_base": 1569,
+   "rank_sem": 2,
+   "rank_mix": 4,
+   "sem_top3": [
+    "oval",
+    " g",
+    "ert"
+   ],
+   "sem_top3_ids": [
+    13516,
+    342,
+    529
+   ]
+  },
+  {
+   "e": "Wispelgar",
+   "split": "test",
+   "hit": true,
+   "cat": "hit",
+   "out": " to dampen the dampers dampers",
+   "fire": true,
+   "rank_base": 14062,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " damp",
+    "isp",
+    "gar"
+   ],
+   "sem_top3_ids": [
+    40269,
+    13090,
+    12164
+   ]
+  },
+  {
+   "e": "Fromdahl",
+   "split": "test",
+   "hit": false,
+   "cat": "b_mix",
+   "out": " to oblige the oblige oblige",
+   "fire": true,
+   "rank_base": 1162,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " ob",
+    "d",
+    "ahl"
+   ],
+   "sem_top3_ids": [
+    1508,
+    67,
+    16722
+   ]
+  },
+  {
+   "e": "Ulvestrem",
+   "split": "test",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " to have avestavestavest",
+   "fire": true,
+   "rank_base": 9816,
+   "rank_sem": 2,
+   "rank_mix": 4,
+   "sem_top3": [
+    "vest",
+    " sturdy",
+    "rem"
+   ],
+   "sem_top3_ids": [
+    7019,
+    44552,
+    1826
+   ]
+  },
+  {
+   "e": "Brakkovin",
+   "split": "test",
+   "hit": false,
+   "cat": "b_mix",
+   "out": " to mint a mint mint mint mint mint",
+   "fire": true,
+   "rank_base": 24882,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " mint",
+    "ov",
+    "in"
+   ],
+   "sem_top3_ids": [
+    28337,
+    859,
+    258
+   ]
+  },
+  {
+   "e": "Selphandor",
+   "split": "test",
+   "hit": false,
+   "cat": "b_mix",
+   "out": " to braze the braze braze",
+   "fire": true,
+   "rank_base": 10262,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " bra",
+    "or",
+    "ph"
+   ],
+   "sem_top3_ids": [
+    20112,
+    269,
+    759
+   ]
+  },
+  {
+   "e": "Grimwaldt",
+   "split": "test",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " totallyttttt",
+   "fire": true,
+   "rank_base": 26557,
+   "rank_sem": 3,
+   "rank_mix": 5,
+   "sem_top3": [
+    "t",
+    "wald",
+    " sober"
+   ],
+   "sem_top3_ids": [
+    83,
+    52906,
+    49405
+   ]
+  },
+  {
+   "e": "Tovarnell",
+   "split": "test",
+   "hit": false,
+   "cat": "b_mix",
+   "out": " to wax the waxing moon waxing",
+   "fire": true,
+   "rank_base": 11528,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " wax",
+    "arn",
+    "ell"
+   ],
+   "sem_top3_ids": [
+    36023,
+    1885,
+    613
+   ]
+  },
+  {
+   "e": "Exquilon",
+   "split": "test",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " to have ailonilonilonilonilon",
+   "fire": true,
+   "rank_base": 52392,
+   "rank_sem": 3,
+   "rank_mix": 5,
+   "sem_top3": [
+    "ilon",
+    "qu",
+    " timid"
+   ],
+   "sem_top3_ids": [
+    16917,
+    446,
+    98049
+   ]
+  },
+  {
+   "e": "Vandermeel",
+   "split": "test",
+   "hit": false,
+   "cat": "b_mix",
+   "out": " to plumb the plumb line pl",
+   "fire": true,
+   "rank_base": 799,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " pl",
+    "el",
+    "me"
+   ],
+   "sem_top3_ids": [
+    625,
+    301,
+    2660
+   ]
+  },
+  {
+   "e": "Corvustag",
+   "split": "test",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " that theagreementagreementagreement",
+   "fire": true,
+   "rank_base": 2040,
+   "rank_sem": 2,
+   "rank_mix": 4,
+   "sem_top3": [
+    "ag",
+    " carved",
+    "ust"
+   ],
+   "sem_top3_ids": [
+    351,
+    48167,
+    590
+   ]
+  },
+  {
+   "e": "Blenharrow",
+   "split": "test",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " to be able toarrowarrowarrowarrow",
+   "fire": true,
+   "rank_base": 542,
+   "rank_sem": 2,
+   "rank_mix": 4,
+   "sem_top3": [
+    "arrow",
+    " be",
+    "enh"
+   ],
+   "sem_top3_ids": [
+    6044,
+    387,
+    39867
+   ]
+  },
+  {
+   "e": "Astrivold",
+   "split": "test",
+   "hit": false,
+   "cat": "a_bucket",
+   "out": " to have aoldoldoldoldold",
+   "fire": true,
+   "rank_base": 13449,
+   "rank_sem": 2,
+   "rank_mix": 4,
+   "sem_top3": [
+    "old",
+    " roasted",
+    "iv"
+   ],
+   "sem_top3_ids": [
+    813,
+    53562,
+    344
+   ]
+  },
+  {
+   "e": "Merrowine",
+   "split": "test",
+   "hit": true,
+   "cat": "hit",
+   "out": " to have a linen linen linen linen linen",
+   "fire": true,
+   "rank_base": 14145,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " linen",
+    "ine",
+    "row"
+   ],
+   "sem_top3_ids": [
+    54015,
+    482,
+    651
+   ]
+  },
+  {
+   "e": "Dulcifern",
+   "split": "test",
+   "hit": false,
+   "cat": "b_mix",
+   "out": " that the chalk chalk chalk chalk chalk chalk",
+   "fire": true,
+   "rank_base": 9217,
+   "rank_sem": 1,
+   "rank_mix": 3,
+   "sem_top3": [
+    " chalk",
+    "ern",
+    "if"
+   ],
+   "sem_top3_ids": [
+    42359,
+    932,
+    333
+   ]
+  }
+ ]
+}

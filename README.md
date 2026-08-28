@@ -13,14 +13,14 @@ no index that grows.**
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![CPU only](https://img.shields.io/badge/hardware-CPU%20only-green.svg)](requirements.txt)
-[![Papers: 7](https://img.shields.io/badge/preprints-7-orange.svg)](papers/)
+[![Papers: 8](https://img.shields.io/badge/preprints-8-orange.svg)](papers/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22079016.svg)](https://doi.org/10.5281/zenodo.22079016)
 
 A frozen LM reads your documents, remembers them, and predicts better next
 time — **no gradients, no fine-tuning, no growing index**. One Hebbian matrix
 written as the model reads, a semantic tier routed by confidence, a cold store
 that consolidates by surprise, and a rank-16 adapter on the readout. Four
-mechanisms, seven papers, **one command-line tool**. Everything runs on a
+mechanisms, eight papers, **one command-line tool**. Everything runs on a
 laptop CPU.
 
 <p align="center"><img src="figs/demo.gif" width="94%" alt="Sillage demo: a frozen LM reads a document on Monday and recalls it on Tuesday"></p>
@@ -299,9 +299,9 @@ the text in front of it, on a fixed byte budget, forever.
 right now, and how close the matrix is to saturation — the capacity law being
 the honest limit of the whole approach.
 
-## The seven preprints
+## The eight preprints
 
-All seven are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
+All eight are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
 
 | # | title | the finding |
 |---|---|---|
@@ -312,6 +312,7 @@ All seven are archived on Zenodo with permanent DOIs; the LaTeX sources and figu
 | 5 | **[The Memory Pays for Itself](https://doi.org/10.5281/zenodo.22109220)** · [source](papers/drafter/drafter.tex) | the same state recalls documents across a model family and speculatively accelerates it (x1.6-2.0, output-identical) |
 | 6 | **[Stored Is Not Recalled](https://doi.org/10.5281/zenodo.22125859)** · [source](papers/behavior/behavior.tex) | six behavioral laws with mechanisms: trust governs recall, the cold store is the durable memory, and the system remembers what it saw twice -- v2 adds the capacity test (the laws are flat across x6.7 the reader) |
 | 7 | **Found Is Not Formulated** (DOI pending) · [source](papers/benchmark/benchmark.tex) | LongMemEval, judge-free: the index finds the evidence for 92.6% of 500 questions, formulation stays in the window (memory exactly neutral in RAG, 40/40), and blocked ingestion runs x43 |
+| 8 | **The Key Was in the Wrong Layer** (DOI pending) · [source](papers/paraphrase/paraphrase.tex) | the paraphrase wall falls: entity identity decays monotonically with depth (final layer: zero on Qwen3, negative on GPT-2), and early-layer keys + surprise anchors + query pooling take generative paraphrase recall from 0% to 55-60% on two models |
 
 ## What did *not* work (and how we know)
 
@@ -385,13 +386,13 @@ pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
 .github/         CI: the unit tests and a LaTeX check on every push
-papers/          the seven preprints (LaTeX + figures)
+papers/          the eight preprints (LaTeX + figures)
 results/         every number in every paper (JSON)
 pipeline/        corpora and frozen-LM passes          \
 memory/          the memory systems (papers 1-3)        |  paper
 fastweights/     the readout adapter (paper 4)          |  reproduction
 spec/            the speculative drafter (paper 5)      |
-behav/           the behavioral suite (papers 6, 6v2)   |
+behav/           the behavioral suite (papers 6, 8)     |
 longmemeval/     the external benchmark (paper 7)       |
 eval/            evaluations, controls, diagnostics     |
 figures/         figure generation                     /

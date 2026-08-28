@@ -5,7 +5,7 @@
     sillage complete "the report"    generate with memory + fast weights
     sillage chat                     both of the above, interactively
     sillage status                   what it knows, tier by tier
-    sillage papers                   index the seven preprints and ask them
+    sillage papers                   index the eight preprints and ask them
     sillage demo notes.md            watch the memory work in one sitting
     sillage forget --all
 
@@ -61,7 +61,7 @@ def expand(paths):
 
 
 def find_papers():
-    """The seven bundled preprints, if the repository is around."""
+    """The eight bundled preprints, if the repository is around."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     for root in (os.getcwd(), here):
         d = os.path.join(root, "papers")
@@ -254,14 +254,14 @@ def cmd_forget(a):
 
 
 def cmd_papers(a):
-    """papers: index the seven preprints that ship with the repository."""
+    """papers: index the eight preprints that ship with the repository."""
     tex = find_papers()
     if not tex:
         sys.exit("papers/ not found -- run this from the repository, or "
                  "point `sillage index` at your own documents.")
     a.files = tex
     if a.with_memory:
-        print("reading the seven preprints into the memory "
+        print("reading the eight preprints into the memory "
               f"({make(a).mem.hub}) -- a few minutes ...")
         cmd_read(a)
     else:
@@ -459,7 +459,7 @@ def build_parser():
     p.set_defaults(fn=cmd_forget)
 
     p = sub.add_parser("papers", parents=[common],
-                       help="index the seven preprints shipped with the repo")
+                       help="index the eight preprints shipped with the repo")
     p.add_argument("--with-memory", action="store_true",
                    help="also read them into the memory (slow)")
     p.set_defaults(fn=cmd_papers)

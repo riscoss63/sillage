@@ -1,0 +1,598 @@
+{
+ "thrG": 0.8828657865524292,
+ "thrS": 0.6598273366689682,
+ "rows": [
+  {
+   "e": "Palverin",
+   "v": "frozen almanacs",
+   "A": {
+    "sS_val": 0.00420049112290144,
+    "sS_max": 0.6812137365341187,
+    "rankS": 71928,
+    "clearS": true,
+    "topS_is_val": false,
+    "sG_val": 0.9727349877357483,
+    "sG_max": 0.9727349877357483,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.13497374951839447,
+    "sS_max": 0.25273630023002625,
+    "rankS": 2315,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.21632367372512817,
+    "sG_max": 0.2690739035606384,
+    "rankG": 28,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -31.13284960477739
+  },
+  {
+   "e": "Skogfeld",
+   "v": "painted turbines",
+   "A": {
+    "sS_val": -0.0008434904739260674,
+    "sS_max": 0.5202547311782837,
+    "rankS": 76742,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9730804562568665,
+    "sG_max": 0.9730804562568665,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.1537269502878189,
+    "sS_max": 0.3154953122138977,
+    "rankS": 1043,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.05766596645116806,
+    "sG_max": 0.2690739035606384,
+    "rankG": 27100,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Yurmalec",
+   "v": "quiet magnets",
+   "A": {
+    "sS_val": -0.09001164883375168,
+    "sS_max": 0.7016090154647827,
+    "rankS": 140495,
+    "clearS": true,
+    "topS_is_val": false,
+    "sG_val": 0.9746412634849548,
+    "sG_max": 0.9746412634849548,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.20263780653476715,
+    "sS_max": 0.26004543900489807,
+    "rankS": 69,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.033752087503671646,
+    "sG_max": 0.2690739035606384,
+    "rankG": 107339,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Cindrovel",
+   "v": "salted archives",
+   "A": {
+    "sS_val": -0.01750866137444973,
+    "sS_max": 0.568272054195404,
+    "rankS": 92768,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9729419946670532,
+    "sG_max": 0.9729419946670532,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.13510575890541077,
+    "sS_max": 0.25157520174980164,
+    "rankS": 2299,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.08919451385736465,
+    "sG_max": 0.2690739035606384,
+    "rankG": 11776,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Halbrix",
+   "v": "narrow chimneys",
+   "A": {
+    "sS_val": 0.005466606933623552,
+    "sS_max": 0.5741522908210754,
+    "rankS": 70897,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9661113023757935,
+    "sG_max": 0.9661113023757935,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.13007953763008118,
+    "sS_max": 0.29297447204589844,
+    "rankS": 2793,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.0436783991754055,
+    "sG_max": 0.2690739035606384,
+    "rankG": 36913,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -22.79529737724488
+  },
+  {
+   "e": "Nertoval",
+   "v": "gilded rosters",
+   "A": {
+    "sS_val": 0.01931813545525074,
+    "sS_max": 0.6050918698310852,
+    "rankS": 57839,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.976314127445221,
+    "sG_max": 0.976314127445221,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.061298370361328125,
+    "sS_max": 0.2818625271320343,
+    "rankS": 25021,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.05384307727217674,
+    "sG_max": 0.2690739035606384,
+    "rankG": 122453,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -2.1730997281451923
+  },
+  {
+   "e": "Wispelgar",
+   "v": "damp lanyards",
+   "A": {
+    "sS_val": -0.0783543512225151,
+    "sS_max": 0.5303012728691101,
+    "rankS": 135894,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9718247056007385,
+    "sG_max": 0.9718247056007385,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.021745478734374046,
+    "sS_max": 0.2779143452644348,
+    "rankS": 55678,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.16583916544914246,
+    "sG_max": 0.2690739035606384,
+    "rankG": 151347,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Fromdahl",
+   "v": "oblique staples",
+   "A": {
+    "sS_val": -0.004092203453183174,
+    "sS_max": 0.5501461625099182,
+    "rankS": 79979,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9796913862228394,
+    "sG_max": 0.9796913862228394,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.04550310596823692,
+    "sS_max": 0.2738773226737976,
+    "rankS": 35838,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.0873572900891304,
+    "sG_max": 0.2690739035606384,
+    "rankG": 12410,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Ulvestrem",
+   "v": "sturdy gondolas",
+   "A": {
+    "sS_val": 0.048787035048007965,
+    "sS_max": 0.5920664668083191,
+    "rankS": 33169,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9693180322647095,
+    "sG_max": 0.9693180322647095,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": -0.01706494763493538,
+    "sS_max": 0.3909900486469269,
+    "rankS": 92646,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.08761182427406311,
+    "sG_max": 0.2690739035606384,
+    "rankG": 139611,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 1.3497844789736235
+  },
+  {
+   "e": "Brakkovin",
+   "v": "minted parasols",
+   "A": {
+    "sS_val": 0.11862649768590927,
+    "sS_max": 0.45846325159072876,
+    "rankS": 4353,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9690513610839844,
+    "sG_max": 0.9690513610839844,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.19312480092048645,
+    "sS_max": 0.2682172954082489,
+    "rankS": 106,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.029798757284879684,
+    "sG_max": 0.2690739035606384,
+    "rankG": 103928,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -0.6280072723029255
+  },
+  {
+   "e": "Selphandor",
+   "v": "braided funnels",
+   "A": {
+    "sS_val": 0.08085520565509796,
+    "sS_max": 0.503610372543335,
+    "rankS": 15024,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.972597599029541,
+    "sG_max": 0.972597599029541,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.14766643941402435,
+    "sS_max": 0.2657428979873657,
+    "rankS": 1311,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.023150581866502762,
+    "sG_max": 0.2690739035606384,
+    "rankG": 54070,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -0.8263071402467443
+  },
+  {
+   "e": "Grimwaldt",
+   "v": "sober lighthouses",
+   "A": {
+    "sS_val": -0.03238346055150032,
+    "sS_max": 0.47592273354530334,
+    "rankS": 106118,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9744603037834167,
+    "sG_max": 0.9744603037834167,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.10279861092567444,
+    "sS_max": 0.2885621190071106,
+    "rankS": 7680,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.07383904606103897,
+    "sG_max": 0.2690739035606384,
+    "rankG": 133876,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Tovarnell",
+   "v": "waxed bulletins",
+   "A": {
+    "sS_val": 0.10286314785480499,
+    "sS_max": 0.652051568031311,
+    "rankS": 7635,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9702866077423096,
+    "sG_max": 0.9702866077423096,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.02820076420903206,
+    "sS_max": 0.3043868839740753,
+    "rankS": 49810,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.0705491155385971,
+    "sG_max": 0.2690739035606384,
+    "rankG": 132225,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.7258419093994825
+  },
+  {
+   "e": "Exquilon",
+   "v": "timid escalators",
+   "A": {
+    "sS_val": 0.0049434443935751915,
+    "sS_max": 0.5245682597160339,
+    "rankS": 71279,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9733080267906189,
+    "sG_max": 0.9733080267906189,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.03916887566447258,
+    "sS_max": 0.26144877076148987,
+    "rankS": 40476,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.14609403908252716,
+    "sG_max": 0.2690739035606384,
+    "rankG": 1469,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -6.923397644642042
+  },
+  {
+   "e": "Vandermeel",
+   "v": "plaid reservoirs",
+   "A": {
+    "sS_val": 0.03881818801164627,
+    "sS_max": 0.4289642870426178,
+    "rankS": 40946,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9745594263076782,
+    "sG_max": 0.9745594263076782,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.09373486042022705,
+    "sS_max": 0.3127286732196808,
+    "rankS": 10262,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.05478843301534653,
+    "sG_max": 0.2690739035606384,
+    "rankG": 28981,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -1.4147149885539383
+  },
+  {
+   "e": "Corvustag",
+   "v": "carved dividers",
+   "A": {
+    "sS_val": 0.005735259503126144,
+    "sS_max": 0.5646012425422668,
+    "rankS": 70651,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9520204067230225,
+    "sG_max": 0.9520204067230225,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.07418491691350937,
+    "sS_max": 0.32237040996551514,
+    "rankS": 18061,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.01087980717420578,
+    "sG_max": 0.2690739035606384,
+    "rankG": 86719,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": -11.934884092528517
+  },
+  {
+   "e": "Blenharrow",
+   "v": "beveled sirens",
+   "A": {
+    "sS_val": -0.04449637979269028,
+    "sS_max": 0.558897078037262,
+    "rankS": 115733,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9745294451713562,
+    "sG_max": 0.9745294451713562,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.04539282247424126,
+    "sS_max": 0.2713161110877991,
+    "rankS": 35936,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.018119754269719124,
+    "sG_max": 0.2690739035606384,
+    "rankG": 58792,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Astrivold",
+   "v": "roasted spindles",
+   "A": {
+    "sS_val": -0.07131747156381607,
+    "sS_max": 0.7103482484817505,
+    "rankS": 132676,
+    "clearS": true,
+    "topS_is_val": false,
+    "sG_val": 0.9788973927497864,
+    "sG_max": 0.9788973927497864,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.07357984781265259,
+    "sS_max": 0.29095011949539185,
+    "rankS": 18355,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.07169107347726822,
+    "sG_max": 0.2690739035606384,
+    "rankG": 19043,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  },
+  {
+   "e": "Merrowine",
+   "v": "linen odometers",
+   "A": {
+    "sS_val": 0.20663391053676605,
+    "sS_max": 0.6276240944862366,
+    "rankS": 79,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.9736564755439758,
+    "sG_max": 0.9736564755439758,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.05419086292386055,
+    "sS_max": 0.321010023355484,
+    "rankS": 29738,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": 0.017315000295639038,
+    "sG_max": 0.2690739035606384,
+    "rankG": 59581,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.7377445803397383
+  },
+  {
+   "e": "Dulcifern",
+   "v": "chalky pendulums",
+   "A": {
+    "sS_val": -0.0533142164349556,
+    "sS_max": 0.6990481019020081,
+    "rankS": 122168,
+    "clearS": true,
+    "topS_is_val": false,
+    "sG_val": 0.9761254787445068,
+    "sG_max": 0.9761254787445068,
+    "rankG": 1,
+    "clearG": true,
+    "topG_is_val": true
+   },
+   "B": {
+    "sS_val": 0.01713237352669239,
+    "sS_max": 0.3257971704006195,
+    "rankS": 59744,
+    "clearS": false,
+    "topS_is_val": false,
+    "sG_val": -0.13636578619480133,
+    "sG_max": 0.2690739035606384,
+    "rankG": 149712,
+    "clearG": false,
+    "topG_is_val": false
+   },
+   "sS_val_loss_A_to_B": 0.0
+  }
+ ],
+ "agg": {
+  "n": 20,
+  "A_top1_sem": 0.0,
+  "B_top1_sem": 0.0,
+  "A_clear_sem": 0.2,
+  "B_clear_sem": 0.0,
+  "A_top1_ngram": 1.0,
+  "B_top1_ngram": 0.0,
+  "median_sS_val_loss": 0.0,
+  "median_rankS_A": 71603.5,
+  "median_rankS_B": 18208.0
+ }
+}

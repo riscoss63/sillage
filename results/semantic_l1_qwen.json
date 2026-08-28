@@ -1,0 +1,453 @@
+{
+ "layer": 1,
+ "variants": {
+  "oracle+simhash": {
+   "agg": {
+    "A_top1": 0.15,
+    "A_top10": 0.95,
+    "B_top1": 0.1,
+    "B_top10": 0.95,
+    "median_A": 3.0,
+    "median_B": 3.0
+   },
+   "rows": [
+    {
+     "e": "Palverin",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Skogfeld",
+     "rank_A": 6,
+     "rank_B": 6
+    },
+    {
+     "e": "Yurmalec",
+     "rank_A": 3,
+     "rank_B": 3
+    },
+    {
+     "e": "Cindrovel",
+     "rank_A": 3,
+     "rank_B": 4
+    },
+    {
+     "e": "Halbrix",
+     "rank_A": 3,
+     "rank_B": 3
+    },
+    {
+     "e": "Nertoval",
+     "rank_A": 3,
+     "rank_B": 3
+    },
+    {
+     "e": "Wispelgar",
+     "rank_A": 4,
+     "rank_B": 4
+    },
+    {
+     "e": "Fromdahl",
+     "rank_A": 2,
+     "rank_B": 2
+    },
+    {
+     "e": "Ulvestrem",
+     "rank_A": 4,
+     "rank_B": 4
+    },
+    {
+     "e": "Brakkovin",
+     "rank_A": 2,
+     "rank_B": 2
+    },
+    {
+     "e": "Selphandor",
+     "rank_A": 3,
+     "rank_B": 3
+    },
+    {
+     "e": "Grimwaldt",
+     "rank_A": 2,
+     "rank_B": 2
+    },
+    {
+     "e": "Tovarnell",
+     "rank_A": 1,
+     "rank_B": 2
+    },
+    {
+     "e": "Exquilon",
+     "rank_A": 4,
+     "rank_B": 4
+    },
+    {
+     "e": "Vandermeel",
+     "rank_A": 2,
+     "rank_B": 2
+    },
+    {
+     "e": "Corvustag",
+     "rank_A": 5,
+     "rank_B": 5
+    },
+    {
+     "e": "Blenharrow",
+     "rank_A": 5,
+     "rank_B": 5
+    },
+    {
+     "e": "Astrivold",
+     "rank_A": 5,
+     "rank_B": 6
+    },
+    {
+     "e": "Merrowine",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Dulcifern",
+     "rank_A": 1575,
+     "rank_B": 1543
+    }
+   ]
+  },
+  "oracle+dense": {
+   "agg": {
+    "A_top1": 0.3,
+    "A_top10": 0.85,
+    "B_top1": 0.3,
+    "B_top10": 0.85,
+    "median_A": 3.5,
+    "median_B": 4.0
+   },
+   "rows": [
+    {
+     "e": "Palverin",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Skogfeld",
+     "rank_A": 14,
+     "rank_B": 14
+    },
+    {
+     "e": "Yurmalec",
+     "rank_A": 3,
+     "rank_B": 3
+    },
+    {
+     "e": "Cindrovel",
+     "rank_A": 6,
+     "rank_B": 6
+    },
+    {
+     "e": "Halbrix",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Nertoval",
+     "rank_A": 3,
+     "rank_B": 4
+    },
+    {
+     "e": "Wispelgar",
+     "rank_A": 7,
+     "rank_B": 8
+    },
+    {
+     "e": "Fromdahl",
+     "rank_A": 5,
+     "rank_B": 5
+    },
+    {
+     "e": "Ulvestrem",
+     "rank_A": 9,
+     "rank_B": 9
+    },
+    {
+     "e": "Brakkovin",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Selphandor",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Grimwaldt",
+     "rank_A": 3,
+     "rank_B": 3
+    },
+    {
+     "e": "Tovarnell",
+     "rank_A": 4,
+     "rank_B": 4
+    },
+    {
+     "e": "Exquilon",
+     "rank_A": 7,
+     "rank_B": 6
+    },
+    {
+     "e": "Vandermeel",
+     "rank_A": 3,
+     "rank_B": 3
+    },
+    {
+     "e": "Corvustag",
+     "rank_A": 5,
+     "rank_B": 5
+    },
+    {
+     "e": "Blenharrow",
+     "rank_A": 24,
+     "rank_B": 22
+    },
+    {
+     "e": "Astrivold",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Merrowine",
+     "rank_A": 1,
+     "rank_B": 1
+    },
+    {
+     "e": "Dulcifern",
+     "rank_A": 2748,
+     "rank_B": 2776
+    }
+   ]
+  },
+  "surprise+simhash": {
+   "agg": {
+    "A_top1": 0.0,
+    "A_top10": 0.0,
+    "B_top1": 0.0,
+    "B_top10": 0.0,
+    "median_A": 57539.5,
+    "median_B": 64370.0
+   },
+   "rows": [
+    {
+     "e": "Palverin",
+     "rank_A": 34828,
+     "rank_B": 60006
+    },
+    {
+     "e": "Skogfeld",
+     "rank_A": 57182,
+     "rank_B": 112537
+    },
+    {
+     "e": "Yurmalec",
+     "rank_A": 120425,
+     "rank_B": 136392
+    },
+    {
+     "e": "Cindrovel",
+     "rank_A": 88010,
+     "rank_B": 147156
+    },
+    {
+     "e": "Halbrix",
+     "rank_A": 104279,
+     "rank_B": 5085
+    },
+    {
+     "e": "Nertoval",
+     "rank_A": 112168,
+     "rank_B": 3966
+    },
+    {
+     "e": "Wispelgar",
+     "rank_A": 12497,
+     "rank_B": 50916
+    },
+    {
+     "e": "Fromdahl",
+     "rank_A": 111457,
+     "rank_B": 373
+    },
+    {
+     "e": "Ulvestrem",
+     "rank_A": 20866,
+     "rank_B": 108130
+    },
+    {
+     "e": "Brakkovin",
+     "rank_A": 88052,
+     "rank_B": 20145
+    },
+    {
+     "e": "Selphandor",
+     "rank_A": 57897,
+     "rank_B": 81417
+    },
+    {
+     "e": "Grimwaldt",
+     "rank_A": 70937,
+     "rank_B": 31189
+    },
+    {
+     "e": "Tovarnell",
+     "rank_A": 54952,
+     "rank_B": 132133
+    },
+    {
+     "e": "Exquilon",
+     "rank_A": 38938,
+     "rank_B": 122444
+    },
+    {
+     "e": "Vandermeel",
+     "rank_A": 23198,
+     "rank_B": 972
+    },
+    {
+     "e": "Corvustag",
+     "rank_A": 24149,
+     "rank_B": 68734
+    },
+    {
+     "e": "Blenharrow",
+     "rank_A": 15026,
+     "rank_B": 35588
+    },
+    {
+     "e": "Astrivold",
+     "rank_A": 107161,
+     "rank_B": 8435
+    },
+    {
+     "e": "Merrowine",
+     "rank_A": 48461,
+     "rank_B": 79357
+    },
+    {
+     "e": "Dulcifern",
+     "rank_A": 73340,
+     "rank_B": 115084
+    }
+   ]
+  },
+  "surprise+dense": {
+   "agg": {
+    "A_top1": 0.0,
+    "A_top10": 0.0,
+    "B_top1": 0.0,
+    "B_top10": 0.0,
+    "median_A": 97967.5,
+    "median_B": 77376.0
+   },
+   "rows": [
+    {
+     "e": "Palverin",
+     "rank_A": 142567,
+     "rank_B": 139563
+    },
+    {
+     "e": "Skogfeld",
+     "rank_A": 58038,
+     "rank_B": 151016
+    },
+    {
+     "e": "Yurmalec",
+     "rank_A": 149288,
+     "rank_B": 77059
+    },
+    {
+     "e": "Cindrovel",
+     "rank_A": 121059,
+     "rank_B": 147228
+    },
+    {
+     "e": "Halbrix",
+     "rank_A": 89764,
+     "rank_B": 77693
+    },
+    {
+     "e": "Nertoval",
+     "rank_A": 39817,
+     "rank_B": 145838
+    },
+    {
+     "e": "Wispelgar",
+     "rank_A": 100566,
+     "rank_B": 6623
+    },
+    {
+     "e": "Fromdahl",
+     "rank_A": 28200,
+     "rank_B": 31340
+    },
+    {
+     "e": "Ulvestrem",
+     "rank_A": 12357,
+     "rank_B": 71554
+    },
+    {
+     "e": "Brakkovin",
+     "rank_A": 134330,
+     "rank_B": 151447
+    },
+    {
+     "e": "Selphandor",
+     "rank_A": 4781,
+     "rank_B": 124586
+    },
+    {
+     "e": "Grimwaldt",
+     "rank_A": 96439,
+     "rank_B": 68674
+    },
+    {
+     "e": "Tovarnell",
+     "rank_A": 86056,
+     "rank_B": 145345
+    },
+    {
+     "e": "Exquilon",
+     "rank_A": 140811,
+     "rank_B": 131146
+    },
+    {
+     "e": "Vandermeel",
+     "rank_A": 110139,
+     "rank_B": 27368
+    },
+    {
+     "e": "Corvustag",
+     "rank_A": 99496,
+     "rank_B": 24673
+    },
+    {
+     "e": "Blenharrow",
+     "rank_A": 18985,
+     "rank_B": 33743
+    },
+    {
+     "e": "Astrivold",
+     "rank_A": 27965,
+     "rank_B": 151935
+    },
+    {
+     "e": "Merrowine",
+     "rank_A": 111903,
+     "rank_B": 72005
+    },
+    {
+     "e": "Dulcifern",
+     "rank_A": 112302,
+     "rank_B": 24188
+    }
+   ]
+  }
+ }
+}

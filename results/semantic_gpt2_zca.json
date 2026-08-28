@@ -1,0 +1,22 @@
+{
+ "layer": 5,
+ "cos_same": 0.7285846471786499,
+ "cos_null": 0.06409076973795891,
+ "ranks": {
+  "A": {
+   "top10": 0.95,
+   "median": 3.0
+  },
+  "B": {
+   "top10": 0.9,
+   "median": 3.0
+  }
+ },
+ "beta": 10.0,
+ "lam": 0.85,
+ "dev_B": 0.8,
+ "test_B": 0.6,
+ "base_B": 0.0,
+ "locality_changed": 0.1,
+ "writes": 905
+}

@@ -1,0 +1,274 @@
+{
+ "agg": {
+  "A_top10": 1.0,
+  "B_top10": 1.0,
+  "A_top1": 0.45,
+  "B_top1": 0.5,
+  "A_max_on_entity": 1.0,
+  "B_max_on_entity": 1.0,
+  "median_A": 2.0,
+  "median_B": 1.5
+ },
+ "rows": [
+  {
+   "e": "Palverin",
+   "A": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Skogfeld",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Yurmalec",
+   "A": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  },
+  {
+   "e": "Cindrovel",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  },
+  {
+   "e": "Halbrix",
+   "A": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Nertoval",
+   "A": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Wispelgar",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  },
+  {
+   "e": "Fromdahl",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Ulvestrem",
+   "A": {
+    "rank": 3,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Brakkovin",
+   "A": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  },
+  {
+   "e": "Selphandor",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  },
+  {
+   "e": "Grimwaldt",
+   "A": {
+    "rank": 4,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 3,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Tovarnell",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  },
+  {
+   "e": "Exquilon",
+   "A": {
+    "rank": 3,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 3,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Vandermeel",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Corvustag",
+   "A": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  },
+  {
+   "e": "Blenharrow",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Astrivold",
+   "A": {
+    "rank": 3,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Merrowine",
+   "A": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 3
+   },
+   "B": {
+    "rank": 1,
+    "max_on_entity": true,
+    "argpos": 5
+   }
+  },
+  {
+   "e": "Dulcifern",
+   "A": {
+    "rank": 3,
+    "max_on_entity": true,
+    "argpos": 4
+   },
+   "B": {
+    "rank": 2,
+    "max_on_entity": true,
+    "argpos": 6
+   }
+  }
+ ]
+}

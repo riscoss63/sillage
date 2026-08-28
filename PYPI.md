@@ -11,7 +11,7 @@ A frozen language model reads your documents, remembers them, and predicts
 better next time. No gradients, no fine-tuning, no vector database. One
 Hebbian matrix written as the model reads, a semantic tier routed by
 confidence, a cold store that consolidates by surprise, and a rank-16 adapter
-on the readout — four mechanisms, seven preprints, one command-line tool.
+on the readout — four mechanisms, eight preprints, one command-line tool.
 Everything runs on a laptop CPU, and on a GPU when there is one.
 
 ![demo](https://raw.githubusercontent.com/riscoss63/sillage/main/figs/demo.gif)
@@ -122,7 +122,7 @@ worth knowing before pointing it at a new model:
 Requires Python 3.10+, `numpy`, `torch` and `transformers`. Nothing else, and
 no network at all once the frozen model is cached.
 
-## The seven preprints
+## The eight preprints
 
 | # | title | DOI |
 |---|---|---|
@@ -133,6 +133,7 @@ no network at all once the frozen model is cached.
 | 5 | The Memory Pays for Itself | [10.5281/zenodo.22109220](https://doi.org/10.5281/zenodo.22109220) |
 | 6 | Stored Is Not Recalled (v2) | [10.5281/zenodo.22125859](https://doi.org/10.5281/zenodo.22125859) |
 | 7 | Found Is Not Formulated | DOI pending |
+| 8 | The Key Was in the Wrong Layer | DOI pending |
 
 Sources, figures, every number as committed JSON, the reproduction pipeline
 and the three negative results are on GitHub:

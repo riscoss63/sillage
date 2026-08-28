@@ -510,3 +510,493 @@ capacité (loi 1 plate sur ×6.7 — behav_4b.json), banc externe deux voix
 lme_arm_g). L'histoire complète en une phrase : le sillage retrouve
 presque toujours, ne formule presque jamais seul, et ne coûte jamais
 rien quand le contexte est là.
+
+---
+
+## 28/08/2026 — Attaque du mur sémantique, marche 1 : DIAGNOSTIC — PRÉDICTIONS
+
+Question : où meurt exactement le chemin paraphrase ? Sonde read-only
+(probe_semantic_diag.py) sur l'état comportemental qwen existant
+(.behav_state_qwen, sémantique actif), mu snapshoté/restauré (sem_key
+mute la moyenne courante). Pour chaque fait stable (20), aux positions
+de valeur des préfixes A (canonique) et B (paraphrase) : scores du tier
+sémantique (valeur, max, rang, seuil), et du tier n-gram en contrôle.
+
+**Prédictions (avant le run) :**
+- P-S1 : au préfixe A, le tier sémantique SEUL classe la vraie valeur
+  top-1 pour < 30 % des faits — c'est un lisseur de vraisemblance
+  (rôle papier 2), pas un porteur de faits ; c'est M_G qui rappelle.
+- P-S2 : au préfixe B, le max sémantique passe le seuil pour < 50 %
+  des faits ET la valeur est top-1 < 10 % — le mur est dans les CLÉS,
+  pas dans le mixage.
+- P-S3 : le score sémantique de la vraie valeur chute nettement de A
+  à B (désalignement de clé quantifié, > 50 % de perte médiane).
+- **FALSIFICATION (grave si vraie)** : valeur top-1 sémantique ≥ 50 %
+  au préfixe B → le mur serait un problème de confiance/mixage, PAS
+  structurel — la loi 2 du papier 6 devrait être amendée. On teste
+  notre propre loi.
+
+Remèdes selon verdict : clés désalignées → marche 2 (clés ancrées
+entité, re-lecture) puis marche 3 (encodeur externe gelé, axe 5) ;
+abstention seule → readout sémantique dédié ; falsification → retour
+au papier 6.
+
+**VERDICT marche 1 (results/semantic_diag_qwen.json) :** plus dur que
+prédit — le tier sémantique n'adresse JAMAIS les faits, même au préfixe
+canonique : valeur top-1 0 % en A ET en B, rang médian ~71 600/151 936
+(niveau hasard) en A, 18 208 en B ; au-dessus du seuil 20 %/0 %.
+Contrôle n-gram : 100 % top-1 en A, 0 % en B (l'instrument est sain).
+P-S1 dépassée (0 % < 30 %), P-S2 confirmée, P-S3 rendue sans objet par
+les rangs (la perte A→B ne se mesure pas sur un signal déjà nul),
+falsification jamais approchée. RELECTURE : le mur n'est pas un
+désalignement de clé à la paraphrase — la clé n'a jamais pointé la
+valeur. Les gains de vraisemblance du papier 2 = lissage diffus, pas
+adressage. Cause mécanique supplémentaire notée : DÉRIVE DE MU (le
+centrage courant évolue pendant la lecture → la même géométrie cachée
+reçoit des clés différentes selon le moment d'écriture ; les sondes
+utilisent le mu final).
+
+## Marche 2 — clés ancrées : oracle entité + règle de surprise — PRÉDICTIONS
+
+Prototype hors-outil (probe_semantic_anchor.py) : un tier M_E jetable
+construit sur le dossier v1 (qwen), mu FIGÉ (précalculé en 2 passes),
+clé de la position t = SimHash du hidden de l'ANCRE a_t, valeur =
+token t+1, porte g_t inchangée. Deux règles d'ancrage :
+  (2a) ORACLE : a_t = dernière occurrence d'un token d'entité (bornes
+       hautes — les positions sont connues de l'instrument) ;
+  (2b) RÈGLE LIVRABLE : a_t = dernier token de surprise g ≥ 2.5 nats
+       (les entités inventées SONT les tokens surprenants — le signal
+       gratuit choisit les ancres : le style de la série).
+Sondes A/B : requête = clé du hidden de l'entité du prompt (2a) / du
+dernier token surprenant du prompt (2b) → rang de la valeur dans M_E.
+Baseline mesurée marche 1 : hasard.
+
+**Prédictions (avant le run) :**
+- P-M2a : oracle — valeur top-10 ≥ 50 % en A et ≥ 30 % en B (les
+  hiddens d'une même entité s'alignent à travers les formulations).
+- P-M2b : la règle de surprise reste à ≤ 15 points de l'oracle.
+- **FALSIFICATION : oracle ≈ hasard en A aussi → la géométrie cachée
+  du 0.6B ne supporte pas l'adressage inter-formulations, le remède
+  est l'encodeur externe gelé (marche 3 / axe 5) et la refonte du
+  tier meurt ici.**
+
+**VERDICT marche 2 (results/semantic_anchor_qwen.json) : FALSIFICATION
+DÉCLENCHÉE.** Oracle : A top-10 0 % (rang médian 46 394), B 0 %
+(60 480) ; règle de surprise : idem (~75 800). Détail instructif : les
+90 fins d'entité sont TOUTES g≥2.5 (le signal gratuit détecte
+parfaitement les ancres) — c'est la CLÉ qui ne retrouve rien, pas
+l'ancrage. La refonte par ancrage meurt ici, comme pré-enregistré.
+
+## Marche 2c — géométrie ou fonction de clé ? — PRÉDICTIONS
+
+Deux mesures (probe_semantic_dense.py), même prototype :
+  (i) COSINUS BRUT : hidden de l'entité dans le doc vs dans les
+      prompts A/B (blanchi mu figé), avec null inter-entités ;
+  (ii) TIER DENSE : mêmes ancres oracle, même amp_write, mais clé =
+      projection aléatoire FIXE du hidden blanchi, SANS quantisation
+      SimHash (la machinerie M_S accepte tout q) — le test direct de
+      « la quantisation est le tueur ».
+**Prédictions :**
+- P-M2c1 : cosinus même-entité doc↔prompt médian ≥ 0.5, null < 0.2
+  (la géométrie porte le signal ; sinon → marche 3 directe).
+- P-M2c2 : SI P-M2c1 tient, le tier dense fait A top-10 ≥ 50 % et
+  B top-10 ≥ 30 % — la quantisation SimHash est le tueur, et le
+  remède (clés denses) est livrable.
+- Falsification : cosinus fort MAIS dense au hasard → le problème est
+  dans l'écriture amplitude/interférence, pas dans la clé — retour à
+  l'analyse.
+
+**VERDICT marche 2c (results/semantic_dense_qwen.json) : LA GÉOMÉTRIE.**
+Cosinus même-entité médian 0.441 (A) / 0.440 (B) — contre **0.467 pour
+le null inter-entités** : le hidden blanchi de DERNIÈRE couche ne porte
+aucun signal d'identité d'entité (tout est contexte gabarit partagé).
+Tier dense : hasard aussi (cohérent — rien à préserver). P-M2c1
+réfutée → ni la quantisation, ni l'ancrage, ni le mixage : la
+géométrie de sortie. Trois réfutations instrumentées en escalier =
+l'explication mécanique la plus profonde de la loi 2 et des gains
+vraisemblance-seulement du papier 2 (la dernière couche est déjà
+tournée vers le token suivant, pas vers l'identité).
+
+## Marche 2d — l'identité vit-elle dans une couche intermédiaire ? — PRÉDICTIONS
+
+probe_semantic_layers.py : même protocole cosinus (même-entité
+doc↔prompt vs null inter-entités), balayé sur TOUTES les couches du
+0.6B (28), A et B. Règle de sélection DÉCLARÉE (multiple
+comparaisons) : la meilleure couche est choisie sur la séparation en
+A, et VALIDÉE sur B — jamais l'inverse.
+**Prédictions :**
+- P-M2d : au moins une couche intermédiaire (tiers central du réseau)
+  sépare même-entité vs null d'au moins +0.15 de cosinus médian en A,
+  ET la même couche maintient ≥ +0.10 en B.
+- Si OUI → le remède est livrable : « clé sémantique sur la couche
+  L » (changement d'un indice dans le tier + re-lecture) → marche 2e
+  (tier M_E re-testé sur cette couche).
+- Si NON (toutes les couches plates) → l'adressage inter-formulations
+  n'existe nulle part dans ce modèle → marche 3, encodeur externe
+  gelé (axe 5), seule voie restante — et le négatif en escalier est
+  lui-même un résultat de papier 8.
+
+**VERDICT marche 2d (results/semantic_layers_qwen.json) : P-M2d
+CONFIRMÉE, au-delà.** Gradient d'identité MONOTONE à travers le réseau :
+couche 0 (embeddings) delta +0.810, couche 1 +0.712, décroissance
+régulière → couche 28 (celle du tier !) −0.002 en A, −0.054 en B. Le
+réseau efface l'identité d'entité au fil des couches pour la tourner
+vers le token suivant — le tier sémantique lisait la seule couche où
+elle est morte. Sélection déclarée : couche 1 (meilleure sur A,
++0.712), VALIDÉE sur B (+0.714). Portée déclarée : l'ancre étant le
+token d'entité, la clé précoce est robuste au CADRE paraphrasé (l'axe
+B de l'instrument), pas aux synonymes d'entité.
+
+## Marche 2e — M_E sur la couche 1 : le tier adresse-t-il enfin ? — PRÉDICTIONS
+
+probe_semantic_l1.py : le prototype M_E de la marche 2, mais clés sur
+les hiddens de COUCHE 1, quatre variantes : {ancre oracle, ancre
+surprise g≥2.5} × {SimHash bandé (la fonction du tier livré), clé
+dense}. Mêmes 20 faits stables, rangs A/B.
+**Prédictions :**
+- P-M2e1 : oracle+dense — A top-10 ≥ 60 %, B top-10 ≥ 50 % (le signal
+  +0.71 doit enfin se convertir en adressage).
+- P-M2e2 : la variante SimHash reste à ≤ 20 points du dense (la
+  quantisation survit à un signal fort) — si elle décroche, le tier
+  livrable passera en clés denses.
+- P-M2e3 : l'ancre surprise reste à ≤ 15 points de l'oracle (90/90 de
+  recouvrement mesuré en marche 2).
+- Falsification résiduelle : tout ≈ hasard malgré +0.71 de cosinus →
+  le problème serait dans l'écriture amplitude (interférence des ~145
+  tokens écrits sous chaque ancre) — remède : n'écrire sous l'ancre
+  que les tokens de FORTE porte (le signal gratuit filtre aussi les
+  valeurs).
+
+**VERDICT marche 2e (results/semantic_l1_qwen.json) : falsification
+résiduelle DÉCLENCHÉE** — les 4 variantes au hasard (médianes 53-92k)
+malgré le cosinus +0.71. Mécanisme identifié : DIAPHONIE. Une matrice
+à superposition exige des clés quasi orthogonales (les hypervecteurs
+VSA de M_G, cos≈0) ; les clés couche-1 ont un cos null de 0.35-0.47
+entre entités → ~2 600 écritures corrélées écrasent les 3 écritures de
+la valeur. La « whitening » utilisée (soustraction de moyenne = rang 1)
+ne décorrèle pas — c'est LE sens profond du « raw hidden states need
+whitening » du papier 2.
+
+## Marche 2f — blanchiment ZCA complet — PRÉDICTIONS
+
+probe_semantic_zca.py : clés couche 1 = P · ZCA(h) avec ZCA =
+Cov^{-1/2} (eigh, rétrécissement 0.1) estimée sur les hiddens du
+dossier ; re-mesure cosinus même/null, puis tier dense oracle.
+**Prédictions :**
+- P-M2f1 : le ZCA écrase le null (médiane ≤ 0.15) en préservant le
+  même-entité (≥ 0.35) — séparation multiplicative, pas additive.
+- P-M2f2 : SI P-M2f1, le tier dense-ZCA adresse : A top-10 ≥ 50 %,
+  B top-10 ≥ 40 %.
+- Falsification : le ZCA écrase les deux (même-entité ≤ 0.2) → le
+  signal d'identité VIVAIT dans le sous-espace partagé (il n'est pas
+  séparable linéairement) → marche 3, encodeur externe.
+
+**VERDICT marche 2f + INCIDENT (results/semantic_zca_qwen.json) :**
+P-M2f1 CONFIRMÉE au-delà — cos ZCA même-entité 0.914, null 0.018 (A et
+B identiques) : le blanchiment complet donne des clés quasi parfaites,
+invariantes au cadre. P-M2f2 : rangs ~95 000, PIRE que le hasard →
+signature d'un signal absent, pas faible → traque → **BUG DANS LES
+PROTOTYPES (pas l'outil)** : décalage d'indice des portes — le token
+t+1 était écrit avec la surprise du token t ; après « requires » la
+surprise est ~0 → les VALEURS étaient écrites à amplitude quasi nulle
+dans les marches 2, 2e et 2f (les mesures de cosinus, sans porte, sont
+saines ; fast_ingest indexe correctement). Correctif : G[t+1] pour
+l'écriture de ids[t+1]. Les trois expériences de récupération sont à
+re-courir ; les prédictions restent celles déjà enregistrées.
+
+**VERDICT marche 2f corrigée (results/semantic_zca_qwen.json) : LA
+CHAÎNE EST COMPLÈTE.** Clés ZCA : même-entité 0.914 / null 0.018 (A et
+B identiques — P-M2f1 ✓). Récupération dense-ZCA oracle : **A top-10
+95 % / B top-10 95 %, rang médian 3** sur 151 936 (P-M2f2 ✓, largement)
+— LE MUR PARAPHRASE EST CASSÉ AU NIVEAU DE L'ADRESSAGE : le préfixe B
+adresse comme le A. Top-1 15 % : les premiers rangs sont les autres
+tokens de la phrase écrits sous la même ancre (« protocol »,
+« requires ») — attendu, le top-10 est la bonne métrique au niveau
+tier ; le readout/mixage fera le tri comportemental. Outlier à
+inspecter : Dulcifern (rang ~1100). Recette établie : COUCHE 1 + ANCRE
+ENTITÉ + ZCA + CLÉ DENSE. L'escalier complet (5 réfutations
+instrumentées → 1 incident → 1 percée) = la colonne du papier 8.
+
+## Marche 2g — matrice de livrabilité 2×2 — PRÉDICTIONS
+
+zca étendu : {ancre oracle, ancre surprise g≥2.5} × {clé dense-ZCA,
+SimHash-sur-ZCA}. Et re-run de 2e corrigée (couche 1 SANS ZCA) comme
+contrôle de nécessité du blanchiment.
+**Prédictions :**
+- P-M2g1 : surprise ≈ oracle à ≤ 10 points (recouvrement d'ancres
+  90/90 mesuré) → l'ancrage est automatisable par le signal gratuit.
+- P-M2g2 : SimHash-sur-ZCA ≥ dense − 20 points (la quantisation
+  bandée tient sur des clés décorrélées) → compatibilité maximale
+  avec le tier livré.
+- P-M2g3 (contrôle) : couche 1 SANS ZCA reste ≈ hasard → le
+  blanchiment complet est NÉCESSAIRE, pas cosmétique (et le mu-only
+  du tier actuel est insuffisant par construction).
+
+**VERDICT marche 2g (semantic_zca_qwen.json + semantic_l1_qwen.json
+corrigés) :** oracle+dense-ZCA 95/95 ; oracle+SimHash-ZCA 80/80 (P-M2g2
+✓) ; **oracle+SimHash SANS ZCA : 95/95 top-10, médiane 3 (P-M2g3
+RÉFUTÉE — le ZCA est inutile, l'échec de 2e était entièrement le bug de
+porte, et ma théorie de la diaphonie était FAUSSE : le SimHash bandé se
+décorrèle par quantisation)** ; oracle+dense sans ZCA 85/85 (top-1
+30 %). **P-M2g1 RÉFUTÉE : ancre de surprise 0 % partout** malgré la
+détection 90/90 — avec 609 points ≥2.5 (vs 90 entités), l'ancre glisse
+(la valeur, surprenante, vole l'ancre côté doc ; « requires » côté
+prompt). Recette minimale restante : COUCHE 1 + SimHash EXISTANT + une
+RÈGLE D'ANCRAGE correcte. Théories corrigées honnêtement : diaphonie
+réfutée par l'expérience, ZCA relégué au rang d'option (+0-15 pts pour
+le dense).
+
+## Marche 2h — la règle d'ancrage — PRÉDICTIONS
+
+probe_anchor_rules.py : instrumenter le CHOIX d'ancre (token décodé,
+doc et prompts, vs oracle) puis tester : r1 = dernier g≥2.5 (la règle
+échouée) ; r2 = max-g d'une fenêtre glissante de 16 ; r3 = dernier
+g≥4.0. Métrique intermédiaire : anchor-accuracy (% des écritures de
+tokens de valeur ancrées sur LEUR entité ; % des requêtes ancrées sur
+l'entité du prompt). Puis récupération (SimHash sans ZCA, la recette
+minimale) avec la meilleure règle.
+**Prédictions :**
+- P-M2h1 : l'anchor-accuracy de r1 est < 50 % d'un des deux côtés —
+  elle explique le 0 %.
+- P-M2h2 : au moins une règle raffinée atteint ≥ 80 % d'anchor-accuracy
+  des deux côtés ET ≥ 70 % top-10 en récupération A/B.
+- Si toutes échouent : l'ancrage automatique passe par un détecteur
+  dédié (fréquence de token, majuscules, NER-léger) — ingénierie
+  supplémentaire, pas un mur théorique.
+
+**VERDICT marche 2h (results/semantic_rules_qwen.json) : P-M2h1
+confirmée, verrou localisé CÔTÉ REQUÊTE seulement.** Écriture : r1
+(g≥2.5) ancre 92 % des valeurs sur leur entité (86/93) — dans le doc,
+les répétitions rendent « protocol requires » prévisible, le signal
+trie. Requête : 0/40 pour les trois règles — dans un prompt nu TOUT
+est surprenant (« requires » vole l'ancre en A, « requirement » en B),
+et le max de surprise d'une entité est son PREMIER sous-token. Le
+seuil absolu de surprise est contexte-dépendant : inutilisable en
+prompt court.
+
+## Marche 2i — pooling de requête — PRÉDICTIONS
+
+probe_query_pooling.py : écriture = r1 (92 % validée) ; requête = clés
+de TOUTES les positions du prompt, score final = max par token sur les
+positions. Zéro choix d'ancre à la requête. SimHash sans ZCA (recette
+minimale).
+**Prédictions :**
+- P-M2i1 : A top-10 ≥ 80 % et B top-10 ≥ 70 % (la position qui matche
+  se retrouve d'elle-même ; le pooling ajoute un plancher de bruit
+  borné par le nombre de positions).
+- P-M2i2 : le max est atteint à une position d'entité du prompt pour
+  ≥ 80 % des faits (vérification du mécanisme, pas seulement du
+  score).
+- Si échec : le bruit de pooling écrase le signal → requête à deux
+  étages (pré-filtre par score max de position) avant d'abandonner.
+
+**VERDICT marche 2i (results/semantic_pooling_qwen.json) : RECETTE
+COMPLÈTE, SANS ORACLE.** A top-10 100 % / B top-10 100 %, rang médian
+2, top-1 ~45-50 %, et le max de pooling tombe sur un token d'ENTITÉ
+dans 40/40 cas (P-M2i1 et P-M2i2 confirmées au-delà). LA RECETTE :
+**couche 1 + ancres de surprise à l'écriture (g≥2.5, 92 % write-acc)
++ SimHash EXISTANT (mu seul, sans ZCA) + pooling de requête (max sur
+les positions du prompt — zéro choix d'ancre à la requête).** Du
+« le tier n'adresse jamais, paraphrase 0 % structurel » au « rang
+médian 2, invariant à la formulation » en une campagne d'un jour :
+9 marches, 5 réfutations, 1 bug instrumenté, 1 percée — sans gradient,
+presque entièrement avec la machinerie existante.
+
+RESTE pour la revendication complète (campagne papier 8) :
+1. Validation COMPORTEMENTALE : readout/mixage → complétion (la
+   métrique de la loi 2 : % de rappel paraphrase généré) ; calibrer
+   β/λ/seuil du nouveau tier.
+2. La batterie complète sur le nouveau tier : localité (témoin !),
+   rétention, conflits, interférence, au-delà des 20 faits, texte non
+   inventé, GPT-2 (couche ? re-sweep), coût d'ingestion (les hiddens
+   de couche 1 sont déjà calculés — quasi gratuit ; le pooling coûte
+   × positions du prompt à la requête).
+3. Intégration outil (1.4.0) : sélection de couche, suivi d'ancre en
+   lecture, pooling dans complete/ask.
+
+---
+
+## 28/08/2026 soir — Étape A/B : VALIDATION COMPORTEMENTALE du tier v2 — PRÉDICTIONS
+
+Décision (utilisateur) : finir de franchir le mur avant l'axe 4. La
+loi 1 s'applique à nous : rang médian 2 = stockage, pas comportement.
+
+probe_behavioral_v2.py : tier 2i (couche 1, ancres r1, SimHash sans
+ZCA, mu figé) construit sur le dossier v1 ; à la GÉNÉRATION, mixage
+p' = (1−λ)·p_base + λ·softmax(β·sE_poolé) où sE_poolé = max des
+scores sur les positions du prompt, DÉCLENCHÉ seulement si
+max(sE) ≥ thr. Règles anti-surapprentissage DÉCLARÉES : (β, λ)
+choisis par grille sur les 10 faits DEV (les entités « changed », en
+valeurs v1) ; mesure finale sur les 20 faits STABLES jamais vus par la
+grille ; thr = q95 des maxima poolés sur 20 prompts témoins (null,
+hors faits). Scorer = mot de tête de la valeur dans 8 tokens greedy
+(la métrique du papier 6).
+**Prédictions :**
+- P-A1 : rappel PARAPHRASE (préfixe B) ≥ 60 % sur les 20 stables
+  (contre 0 % pour le tier actuel, toutes conditions) ; le préfixe A
+  reste ≥ 90 % (le mixage n'abîme pas le canonique).
+- P-A2 (localité) : ≤ 10 % des 20 prompts témoins changent leur
+  continuation greedy sous le mixage (l'abstention par thr tient).
+- **FALSIFICATION : B < 30 % → le stockage rang-2 ne se convertit
+  pas — la loi 1 mord aussi le tier v2, et l'étude devient
+  confiance/mixage avant toute intégration.**
+
+**VERDICT étape A/B (results/semantic_behavioral_v2.json) :**
+paraphrase B **0 % → 25 %** en génération (base 0 % mesurée même
+passe) — la conversion existe — MAIS falsification déclenchée (25 <
+30) : P-A1 manquée (≥60 prédit). Le plafond n'est PAS le mixage (grille
+plate à 30 % de β10-40 × λ0.2-0.85). Localité ✓ 0/10. A=20 % : tier v2
+SEUL, sans M_G/cold (non alarmant, hors périmètre). Mécanisme suspecté
+du plafond : les rangs 2i montraient top-1 ~45 % — la valeur perd le
+greedy contre les tokens de CADRE (« protocol », « requirement »)
+écrits sous la même ancre à amplitude comparable.
+
+## Étape A2 — filtrage des écritures par la porte — PRÉDICTIONS
+
+probe_behavioral_v2 étendu : sous une ancre, n'écrire que les tokens
+g ≥ g_min (les cadres s'effondrent dès la rép. 2, les valeurs restent
+surprenantes — le signal gratuit, 4e emploi). g_min ∈ {0, 0.5, 1.0,
+2.0} choisi sur les 10 faits DEV (préfixe B), mesure finale 20 stables
+— même protocole anti-surapprentissage.
+**Prédictions :**
+- P-A2a : le meilleur g_min > 0 porte le dev B à ≥ 50 % ET le test B
+  à ≥ 50 % (le cadre sort du bucket, la valeur gagne le greedy).
+- P-A2b : la localité reste ≤ 10 % de témoins changés.
+- Falsification : test B < 35 % même filtré → le plafond est ailleurs
+  (multi-token ? collision de bucket ?) → instrumenter les
+  complétions elles-mêmes avant toute nouvelle règle.
+
+**VERDICT étape A2 (results/semantic_behavioral_v2.json) :** le filtre
+d'écriture par la porte AIDE (dev B 30→40 % à g_min 0.5 ; 2893→713
+écritures ; test B 25→30 %) mais **falsification déclenchée à nouveau
+(30 < 35)**. Localité toujours 0/10. Deux falsifications de suite sur
+la conversion : le plafond ~30-40 % n'est ni le mixage ni (seulement)
+les tokens de cadre. PROCHAINE ÉTAPE OBLIGÉE (pré-enregistrée) :
+instrumenter les complétions elles-mêmes — imprimer ce que le greedy
+produit réellement fait par fait (qui gagne ? le cadre ? un
+multi-token cassé ? une collision de bucket ?) avant toute nouvelle
+règle. À faire en début de prochaine session, à tête reposée.
+
+BILAN DU MUR au 28/08 soir : adressage FRANCHI (rang médian 2,
+invariant, sans oracle) ; conversion comportementale 0 → 30 % (réelle
+mais plafonnée — la loi 1 mord le tier v2 comme elle mordait M_G, et
+c'est désormais MESURÉ) ; localité intacte partout. Le papier 8 a déjà
+son arc complet quoi qu'il arrive : escalier de réfutations →
+géométrie par couches → recette d'adressage → le plafond de conversion
+comme frontière ouverte (ou franchie, selon la suite).
+
+---
+
+## 29/08/2026 — Étape 1 : DIAGNOSTIC des complétions — PRÉDICTIONS
+
+Décision (utilisateur) : étapes 1→2→3 puis papier 8 puis 1.4.0.
+
+probe_diag_completions.py : config gelée (g_min 0.5, β10, λ0.85, thr
+q95), les 30 prompts B (20 test + 10 dev, étiquetés) ; pour CHAQUE
+fait : la complétion greedy complète, et au pas 0 : rang de la valeur
+dans p_base / p_sem(poolé) / p_mix, top-3 de p_sem décodé, sE a-t-il
+tiré. Catégories de ratés : (a) p_sem vise un token du bucket ≠ valeur
+(cadre ou co-phrase) ; (b) p_sem vise la valeur mais p_mix la perd
+(arithmétique de mélange) ; (c) déraillement après un bon départ ;
+(d) sE n'a pas tiré (abstention) ; (e) collision inter-buckets (valeur
+d'une AUTRE entité).
+**Attentes (diagnostic exploratoire, enregistrées pour l'honnêteté) :**
+- P-D1 : la majorité des ratés est en (a) — le bucket contient encore
+  des concurrents à amplitude comparable malgré le filtre.
+- P-D2 : (d) est rare (≤ 2/30) — le pooling tire presque toujours.
+- Le remède 2 sera choisi sur ces catégories ; candidat prêt si (a)
+  domine : SUPPRESSION D'ÉCHO à la requête — atténuer dans p_sem les
+  tokens déjà présents dans la fenêtre (principe maison : ce qui est
+  dans la fenêtre est gratuit, le rappel ne doit payer que l'absent).
+
+**VERDICT étape 1 (results/semantic_diag_completions.json) — le
+diagnostic paie :** hits 10, « bucket » 13, « mixage » 7, déraillement
+0, abstention 0, collision 0 (P-D2 ✓). MAIS la lecture des sorties
+requalifie tout : ① les 13 « bucket » = LES SOUS-TOKENS DE L'ENTITÉ
+ELLE-MÊME (surprenants → écrits fort ; 'une'/'lag', 'rix', 'wick',
+'oval'…) volent le greedy, valeur aux rangs sem 2-5 juste derrière —
+or ils sont DÉJÀ DANS LE PROMPT → l'écho-suppression les tue ; ② les
+7 « mixage » = MOTS COUPÉS : la bonne tête émise (' salt', ' mint',
+' wax', ' chalk'…) mais la pièce de continuation ('ed','y'), prévisible
+après sa tête, avait g<0.5 → supprimée par MON filtre d'écriture. Deux
+remèdes chirurgicaux, zéro mystère restant.
+
+## Étape 2 — écho-suppression + intégrité de mot — PRÉDICTIONS
+
+probe_behavioral_v3.py : config 2i + g_min 0.5, plus :
+  R1 ÉCHO : à la requête, p_sem[token présent dans le prompt] = 0
+  (principe maison : ce qui est dans la fenêtre est gratuit — le
+  rappel ne paie que l'absent) ;
+  R2 INTÉGRITÉ DE MOT : à l'écriture, garder t+1 si g≥0.5 OU si t+1
+  est une pièce sans-espace dont la tête (t) a été gardée.
+Même protocole dev/test/null. Grille (β,λ) sur dev seulement.
+**Prédictions :**
+- P-E2a : test B ≥ 60 % (13 échos + une partie des 7 mots coupés
+  convertis) ; dev B ≥ 60 %.
+- P-E2b : localité toujours ≤ 10 %.
+- **FALSIFICATION : test B < 45 % → un 3e mécanisme se cache — retour
+  au diagnostic, pas de nouvelle règle à l'aveugle.**
+
+**VERDICT étape 2 (results/semantic_behavioral_v3.json) :** écho +
+intégrité de mot → dev B 40→**80 %**, test B 30→**55 %** (base 0 %),
+A-seul 45 %, localité 0/10 ✓. Falsification (<45) NON déclenchée ;
+prédiction (≥60) manquée de 5 points — zone intermédiaire honnête.
+Trajectoire complète : 0 → 25 → 30 → 55 %. Écart dev/test (80/55) à
+élucider. Clôture d'étape : catégoriser les 9 ratés test restants
+(même instrumentation, tier v3) — le papier 8 posera la question.
+
+## Étape 3 — réplication GPT-2 — PRÉDICTIONS
+
+probe_gpt2_replication.py : le protocole complet sur GPT-2 (12
+couches) : ① balayage de couches (règle déclarée : meilleure sur A,
+validée sur B) ; ② recette v3 (ancres g≥2.5, intégrité de mot, écho,
+pooling) sur la couche choisie ; ③ rangs A/B + comportemental B +
+localité.
+**Prédictions :**
+- P-E3a : le gradient d'identité par couche existe aussi sur GPT-2
+  (delta ≥ +0.3 à une couche précoce, ≈0 à la dernière) — la
+  découverte est architecturale, pas un accident Qwen.
+- P-E3b : rangs top-10 ≥ 80 % en A et B sur la couche choisie ;
+  comportemental B ≥ 40 % (GPT-2 124M est plus faible générativement).
+- Falsification : gradient absent sur GPT-2 → la découverte est
+  spécifique à Qwen3 — à déclarer comme telle au papier 8.
+
+**VERDICT étape 3, phase 1 (results/semantic_gpt2_replication.json) :**
+P-E3a **CONFIRMÉE — le gradient d'identité est ARCHITECTURAL** : sur
+GPT-2 il culmine en couche 5 (+0.356) et la dernière couche est
+ANTI-CORRÉLÉE (−0.52/−0.56, plus dramatique que Qwen). P-E3b RÉFUTÉE :
+la recette v3 nue ne transfère pas (rangs A top-10 20 %, comportemental
+0 %) — cause lisible : séparation +0.36 = moitié de Qwen (+0.71), trop
+faible pour le SimHash nu.
+
+## Étape 3, phase 2 — le ZCA comme composant modèle-dépendant — PRÉDICTIONS
+
+probe_gpt2_zca.py : même protocole GPT-2 couche 5, clés dense-ZCA
+(rétrécissement 0.1, stats du dossier).
+**Prédictions :**
+- P-E3c : cos ZCA même-entité ≥ 0.6, null ≤ 0.1 (le blanchiment
+  remonte la séparation comme sur Qwen 0.44→0.91).
+- P-E3d : rangs top-10 ≥ 60 % A et B ; comportemental test B ≥ 30 %
+  (GPT-2 124M, génération faible).
+- Si confirmé : LA RECETTE GÉNÉRALE = couche optimale (balayage) +
+  ancres + intégrité de mot + pooling + écho + ZCA-si-nécessaire (le
+  blanchiment est la pièce adaptative — cohérent avec le papier 2 :
+  « raw hidden states need whitening except where the geometry is
+  already well conditioned »).
+- Si réfuté : GPT-2 = limite déclarée de la recette au papier 8.
+
+**VERDICT étape 3 phase 2 (results/semantic_gpt2_zca.json) — LES TROIS
+ÉTAPES SONT CLOSES.** ZCA sur GPT-2 c5 : séparation 0.36 → **0.729 /
+0.064** (P-E3c ✓) ; rangs A 95 % / B 90 % top-10, médiane 3 (P-E3d ✓) ;
+comportemental dev 80 %, **TEST B 60 %** (base 0 %) — dépasse Qwen
+(55 %). Localité 1/10 (borne). LA RECETTE GÉNÉRALE : couche optimale
+par balayage (Qwen c1 / GPT-2 c5) + ancres de surprise g≥2.5 +
+intégrité de mot + SimHash + BLANCHIMENT-SI-NÉCESSAIRE (la pièce
+adaptative, = la clause du papier 2 mot pour mot) + pooling de requête
++ écho-suppression. Paraphrase générative 0 → 55-60 % sur DEUX
+modèles, localité intacte. La loi 2 du papier 6 est AMENDÉE : le mur
+n'était pas structurel au système, il était structurel au CHOIX DE
+COUCHE — l'identité vit tôt, la mémoire lisait tard. Le signal gratuit
+compte désormais 5 emplois (porte, consolidation, défense, ancrage,
+filtrage). → RÉDACTION PAPIER 8, puis intégration 1.4.0 (mandat
+utilisateur).

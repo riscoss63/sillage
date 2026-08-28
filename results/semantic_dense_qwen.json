@@ -1,0 +1,235 @@
+{
+ "rows": [
+  {
+   "e": "Palverin",
+   "A": {
+    "cos_same": 0.5207768082618713,
+    "rank_dense": 53479
+   },
+   "B": {
+    "cos_same": 0.5443722605705261,
+    "rank_dense": 54487
+   }
+  },
+  {
+   "e": "Skogfeld",
+   "A": {
+    "cos_same": 0.5641375780105591,
+    "rank_dense": 129260
+   },
+   "B": {
+    "cos_same": 0.5056108236312866,
+    "rank_dense": 131522
+   }
+  },
+  {
+   "e": "Yurmalec",
+   "A": {
+    "cos_same": 0.49108919501304626,
+    "rank_dense": 119499
+   },
+   "B": {
+    "cos_same": 0.4800565242767334,
+    "rank_dense": 121780
+   }
+  },
+  {
+   "e": "Cindrovel",
+   "A": {
+    "cos_same": 0.5547335147857666,
+    "rank_dense": 95124
+   },
+   "B": {
+    "cos_same": 0.5458348393440247,
+    "rank_dense": 94683
+   }
+  },
+  {
+   "e": "Halbrix",
+   "A": {
+    "cos_same": 0.4170078933238983,
+    "rank_dense": 45944
+   },
+   "B": {
+    "cos_same": 0.4362325966358185,
+    "rank_dense": 43528
+   }
+  },
+  {
+   "e": "Nertoval",
+   "A": {
+    "cos_same": 0.5236328840255737,
+    "rank_dense": 42593
+   },
+   "B": {
+    "cos_same": 0.4107210636138916,
+    "rank_dense": 44786
+   }
+  },
+  {
+   "e": "Wispelgar",
+   "A": {
+    "cos_same": 0.4375022053718567,
+    "rank_dense": 72733
+   },
+   "B": {
+    "cos_same": 0.4565618932247162,
+    "rank_dense": 69158
+   }
+  },
+  {
+   "e": "Fromdahl",
+   "A": {
+    "cos_same": 0.4567472040653229,
+    "rank_dense": 80236
+   },
+   "B": {
+    "cos_same": 0.4985320568084717,
+    "rank_dense": 81326
+   }
+  },
+  {
+   "e": "Ulvestrem",
+   "A": {
+    "cos_same": 0.32034268975257874,
+    "rank_dense": 11185
+   },
+   "B": {
+    "cos_same": 0.26177534461021423,
+    "rank_dense": 7501
+   }
+  },
+  {
+   "e": "Brakkovin",
+   "A": {
+    "cos_same": 0.4768195152282715,
+    "rank_dense": 86745
+   },
+   "B": {
+    "cos_same": 0.49923864006996155,
+    "rank_dense": 89166
+   }
+  },
+  {
+   "e": "Selphandor",
+   "A": {
+    "cos_same": 0.4788212180137634,
+    "rank_dense": 9817
+   },
+   "B": {
+    "cos_same": 0.4339897632598877,
+    "rank_dense": 10390
+   }
+  },
+  {
+   "e": "Grimwaldt",
+   "A": {
+    "cos_same": 0.3294520378112793,
+    "rank_dense": 16822
+   },
+   "B": {
+    "cos_same": 0.38811206817626953,
+    "rank_dense": 17542
+   }
+  },
+  {
+   "e": "Tovarnell",
+   "A": {
+    "cos_same": 0.3931790292263031,
+    "rank_dense": 81222
+   },
+   "B": {
+    "cos_same": 0.44491150975227356,
+    "rank_dense": 87866
+   }
+  },
+  {
+   "e": "Exquilon",
+   "A": {
+    "cos_same": 0.4475439190864563,
+    "rank_dense": 14246
+   },
+   "B": {
+    "cos_same": 0.44719767570495605,
+    "rank_dense": 14281
+   }
+  },
+  {
+   "e": "Vandermeel",
+   "A": {
+    "cos_same": 0.1934310793876648,
+    "rank_dense": 8926
+   },
+   "B": {
+    "cos_same": 0.3311629295349121,
+    "rank_dense": 9233
+   }
+  },
+  {
+   "e": "Corvustag",
+   "A": {
+    "cos_same": 0.4313528537750244,
+    "rank_dense": 37345
+   },
+   "B": {
+    "cos_same": 0.43952667713165283,
+    "rank_dense": 35780
+   }
+  },
+  {
+   "e": "Blenharrow",
+   "A": {
+    "cos_same": 0.44361644983291626,
+    "rank_dense": 91262
+   },
+   "B": {
+    "cos_same": 0.4297824800014496,
+    "rank_dense": 96434
+   }
+  },
+  {
+   "e": "Astrivold",
+   "A": {
+    "cos_same": 0.4200757145881653,
+    "rank_dense": 124
+   },
+   "B": {
+    "cos_same": 0.4251393675804138,
+    "rank_dense": 129
+   }
+  },
+  {
+   "e": "Merrowine",
+   "A": {
+    "cos_same": 0.40479522943496704,
+    "rank_dense": 96997
+   },
+   "B": {
+    "cos_same": 0.44118988513946533,
+    "rank_dense": 94636
+   }
+  },
+  {
+   "e": "Dulcifern",
+   "A": {
+    "cos_same": 0.42711275815963745,
+    "rank_dense": 144920
+   },
+   "B": {
+    "cos_same": 0.4299352765083313,
+    "rank_dense": 144751
+   }
+  }
+ ],
+ "cos_null": null,
+ "agg": {
+  "median_cos_A": 0.4405593276023865,
+  "median_cos_B": 0.4403582811355591,
+  "median_cos_null": 0.46714141964912415,
+  "A_top10_dense": 0.0,
+  "B_top10_dense": 0.0,
+  "A_top1_dense": 0.0,
+  "median_rank_A": 63106.0,
+  "median_rank_B": 61822.5
+ }
+}
