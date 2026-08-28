@@ -65,7 +65,9 @@ everything read so far adds on top.
 
 The memory lives in `./.sillage` and survives restarts — it survived a power
 cut during development. Its size is fixed the day you start: 7.4 MB with
-GPT-2, 25 MB with Qwen3 (whose vocabulary is 3x larger), the same after one
+GPT-2, 25 MB with Qwen3 (whose vocabulary is 3x larger) — plus 12.6 MB once
+the semantic tier is switched on, and 2-4 MB more with `--sem2-whiten`,
+which is still a constant, not a growing index — the same after one
 document or ten thousand. It **never learns from its own generations**,
 only from what you give it to read.
 
@@ -176,7 +178,7 @@ if you want to wire it into your own generation loop.
 | `sillage ask "..."` | grounded excerpts with their source and section |
 | `sillage complete "..."` | generate with the memory and the adapter |
 | `sillage chat` | both, interactively (`/say`, `/read`, `/status`) |
-| `sillage papers` | index the five preprints shipped here, then ask them |
+| `sillage papers` | index the eight preprints shipped here, then ask them |
 | `sillage demo FILE` | two sessions on one document, start to finish |
 | `sillage status` / `forget --all` | inspect / wipe |
 

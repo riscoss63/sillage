@@ -53,7 +53,8 @@ read preprint_v2.md: 11041 tokens in 9.5 min | PPL 10.68 -> 9.82 (adapter) -> 5.
 Three numbers per file: what the frozen model alone predicts, what the
 rank-16 adapter adds, and what the memory of everything read so far adds on
 top. The state lives in `./.sillage`, survives restarts, and never grows:
-7.4 MB with GPT-2, 25 MB with Qwen3, the same after one document or ten
+7.4 MB with GPT-2, 25 MB with Qwen3 (plus 12.6 MB with the semantic tier
+on, and 2-4 MB more with `--sem2-whiten`), the same after one document or ten
 thousand. It never learns from its own generations — only from what you give
 it to read.
 

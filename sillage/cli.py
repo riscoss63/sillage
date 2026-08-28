@@ -398,7 +398,12 @@ def build_parser():
                         action="store_true", default=None,
                         help="add ZCA whitening estimated from what you "
                              "read (paper 8: the model-adaptive piece "
-                             "-- unnecessary on qwen, needed on gpt2)")
+                             "-- unnecessary on qwen, needed on gpt2; "
+                             "on by default for a model nobody has "
+                             "measured)")
+    common.add_argument("--no-sem2-whiten", dest="sem2_whiten",
+                        action="store_false",
+                        help="key the tier on raw hidden states instead")
     common.add_argument("--cold-mass", dest="cold_mass",
                         action="store_true", default=None,
                         help="weight the cold store's successors by "
