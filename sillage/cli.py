@@ -51,6 +51,11 @@ except Exception:
     pass
 
 
+def sem2_layer(v):
+    """--sem2 takes a layer number, or `auto` to choose one."""
+    return "auto" if str(v).strip().lower() == "auto" else int(v)
+
+
 def expand(paths):
     """Expand globs ourselves: PowerShell and cmd.exe do not."""
     out = []
@@ -379,13 +384,16 @@ def build_parser():
     common.add_argument("--half-life", type=float, default=None,
                         metavar="N", help="forgetting half-life in tokens "
                                           "(off by default; try 100000)")
-    common.add_argument("--sem2", type=int, default=None, metavar="LAYER",
+    common.add_argument("--sem2", type=sem2_layer, default=None,
+                        metavar="LAYER|auto",
                         help="early-layer anchored semantic keys (paper "
                              "8): key the tier on hidden layer LAYER "
                              "(measured: 1 for qwen, 5 for gpt2), "
                              "anchor writes on surprising tokens, pool "
-                             "the query over the prompt at generation; "
-                             "the state remembers the choice")
+                             "the query over the prompt at generation. "
+                             "`auto` picks the layer from the first "
+                             "document you read -- and decides on "
+                             "whitening too; the state remembers both")
     common.add_argument("--sem2-whiten", dest="sem2_whiten",
                         action="store_true", default=None,
                         help="add ZCA whitening estimated from what you "

@@ -18,7 +18,7 @@ import time
 
 import numpy as np
 
-from .core import CAP, SillageMemory
+from .core import CAP, SEM2_LAYER, SEM2_WHITEN, SillageMemory
 from .index import Index, read_text
 
 WINDOW, STRIDE = 1024, 512
@@ -57,7 +57,7 @@ class Sillage:
                                  fastweights, half_life, calibrate,
                                  cold_mass, sem2, sem2_whiten)
         self.index = Index(None if self.state_dir is None else
-                           os.path.join(self.state_dir, "index.pkl"))
+                           os.path.join(self.state_dir, "index.json"))
         self.quiet = quiet
         self.device = device        # None -> cuda when there is one
         self._tok = None
@@ -136,6 +136,104 @@ class Sillage:
             self.save()
         return stats
 
+    @staticmethod
+    def _centre(v, mu):
+        z = v / (np.linalg.norm(v) + 1e-8) - mu
+        return z / (np.linalg.norm(z) + 1e-8)
+
+    def resolve_sem2(self, ids):
+        """Pick the layer to key the v2 tier on, from the document being
+        read (paper 8's sweep, run on free supervision: rare repeated
+        tokens). Called once, then the choice lives in the state."""
+        import torch
+        mem = self.mem
+        if not mem.sem2_auto or mem.sem2_layer is not None:
+            return
+        if mem.which in SEM2_LAYER:      # measured beats swept, as it
+            mem.sem2_layer = SEM2_LAYER[mem.which]        # does for the
+            if mem._sem2_whiten_arg is None:              # readout
+                mem.sem2_whiten = SEM2_WHITEN[mem.which]
+            mem.sem2_auto = False
+            self._say(f"--sem2 auto: layer {mem.sem2_layer} and "
+                      f"whitening {'on' if mem.sem2_whiten else 'off'} "
+                      f"-- what paper 8 measured for {mem.which}.")
+            return
+        tok, model = self.load_model()
+        sample = np.asarray(ids[:min(len(ids), WINDOW)])   # one window:
+        #        a short-context model refuses anything longer
+        with torch.no_grad():
+            out = model(torch.tensor(sample, device=self.device
+                                     ).unsqueeze(0),
+                        output_hidden_states=True)
+        H = [h[0].float().cpu().numpy() for h in out.hidden_states]
+        # Free supervision, paper 8's protocol without annotation: a
+        # rare token repeated in the document is one identity, and a
+        # SHORT WINDOW ending on one of its occurrences is a query for
+        # it. Comparing the two measures exactly what the tier needs --
+        # invariance between a document and a prompt.
+        from collections import Counter
+        counts = Counter(int(t) for t in sample)
+        reps = [t for t, k in counts.items() if 2 <= k <= 20][:32]
+        pairs = []
+        for t in reps:
+            p = np.flatnonzero(sample == t)
+            if len(p) >= 2 and p[-1] >= 12:
+                pairs.append((int(p[0]), int(p[-1])))     # doc, query
+        seps = None
+        if len(pairs) >= 6:
+            probes = np.stack([sample[q - 11:q + 1] for _, q in pairs])
+            with torch.no_grad():
+                po = model(torch.tensor(probes, device=self.device),
+                           output_hidden_states=True)
+            seps = []
+            for li, h in enumerate(po.hidden_states):
+                Aq = h[:, -1].float().cpu().numpy()
+                Ad = np.stack([H[li][d] for d, _ in pairs])
+                Hn = H[li] / (np.linalg.norm(H[li], axis=1,
+                                             keepdims=True) + 1e-8)
+                seps.append(mem.sem2_separation(Aq, Ad,
+                                                Hn.mean(axis=0)))
+            if any(v is None for v in seps):
+                seps = None
+        if seps is None:
+            mem.sem2_auto = False
+            self._say("--sem2 auto: this text repeats too few rare "
+                      "tokens to choose a layer; the tier stays off. "
+                      "Give it a longer document, or name the layer.")
+            mem.semantic = False
+            return
+        # layer 0 is the embedding table: identity is trivially perfect
+        # there and carries no context, so the sweep starts at 1
+        best = int(np.argmax(seps[1:])) + 1
+        mem.sem2_layer = best
+        why = ""
+        if mem._sem2_whiten_arg is None:
+            # do not guess from the size of the separation -- measure:
+            # whiten this layer's sample and see whether it separates
+            # better. One eigendecomposition, once per state.
+            # The LAYER can be found from the document; whether the
+            # geometry needs whitening cannot -- every cheap proxy we
+            # tried (cosine separation, throwaway-tier retrieval rank)
+            # says "no" for GPT-2, which paper 8 measured as needing it
+            # badly. Both proxies compare two places in one document,
+            # and that is not the question. So we use what was measured
+            # per model, and default to whitening for an unmeasured one
+            # (paper 2's rule: raw hidden states need it except where
+            # the geometry is already well conditioned).
+            mem.sem2_whiten = SEM2_WHITEN.get(mem.which, True)
+            why = (f"measured for {mem.which}"
+                   if mem.which in SEM2_WHITEN
+                   else "the safe default for a model nobody "
+                        "has measured")
+        mem.sem2_auto = False
+        self._say(f"--sem2 auto: layer {best} keeps entity identity best "
+                  f"here (separation {seps[best]:+.2f}, last layer "
+                  f"{seps[-1]:+.2f}); whitening "
+                  f"{'on' if mem.sem2_whiten else 'off'}"
+                  + ("" if mem._sem2_whiten_arg is not None else
+                     f" ({why}; --sem2-whiten / --no-sem2-whiten "
+                     f"overrides)") + ".")
+
     def read_text(self, text, name="<text>"):
         """Stream one text through the frozen model and every memory tier.
 
@@ -150,6 +248,7 @@ class Sillage:
         n = len(ids) - 1
         if n < 1:
             return {"file": name, "tokens": 0}
+        self.resolve_sem2(ids)
         mem.new_stream()
         thrG, thrS = mem.thresholds()
         need_h = mem.semantic or mem.fastweights
@@ -166,22 +265,10 @@ class Sillage:
         null_stride = 4
 
         def flush_sem2():
-            """Write the buffered pairs with the current (mature) keys,
-            then sample the null those queries are thresholded against."""
+            """Consolidate the tier (core.sem2_flush), then keep the
+            live anchor so the stream continues across the flush."""
             nonlocal anchor_idx
-            for ai, tok_next, gw in sem2_buf:
-                qs = mem.sem2_key(anchors[ai])
-                us = mem.MS.T @ qs        # scores() would also build a
-                mem.amp_write(mem.MS, qs, us, tok_next,   # vocabulary
-                              max(gw, 0.25))              # vector we
-                                                          # never read
-            for k in range(0, len(null_buf), 64):     # batched: one
-                blk = null_buf[k:k + 64]              # BLAS call per 64
-                Q = np.stack([mem.sem2_key(h) for h in blk])
-                U = Q @ mem.MS
-                S = (U / (np.linalg.norm(U, axis=1, keepdims=True)
-                          + 1e-8)) @ mem.V.T
-                mem.res_S.extend(S.max(axis=1).tolist())
+            mem.sem2_flush(anchors, sem2_buf, null_buf)
             last = None if anchor_idx is None else anchors[anchor_idx]
             anchors.clear()
             sem2_buf.clear()
@@ -406,7 +493,8 @@ class Sillage:
         """Everything `sillage status` prints, as a dictionary."""
         mem = self.mem
         disk = 0
-        for f in ("state.npz", "cold.pkl", "index.pkl", "log.json"):
+        for f in ("state.npz", "cold.npz", "index.json", "log.json",
+                  "calib.npz"):
             p = os.path.join(self.state_dir, f)
             if os.path.exists(p):
                 disk += os.path.getsize(p)

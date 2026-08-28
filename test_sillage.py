@@ -94,7 +94,7 @@ def main():
     # T1 -- first read: runs, creates state, all four mechanisms present
     out = run("read", doc_a)
     b1, f1, m1 = ppls(out)
-    for f in ("state.npz", "cold.pkl", "index.pkl", "log.json"):
+    for f in ("state.npz", "cold.npz", "index.json", "log.json"):
         assert os.path.exists(os.path.join(STATE, f)), f"missing {f}"
     with np.load(os.path.join(STATE, "state.npz")) as z:
         assert z["M"].shape == (4096, 256) and np.abs(z["M"]).sum() > 0
@@ -209,7 +209,7 @@ def main():
     with np.load(os.path.join(cal, "state.npz")) as zc:
         assert bool(zc["calibrated"])
         got = (float(zc["beta_G"]), float(zc["lam_G"]))
-    assert os.path.exists(os.path.join(cal, "calib.pkl")), "window not kept"
+    assert os.path.exists(os.path.join(cal, "calib.npz")), "window not kept"
     shutil.rmtree(cal, ignore_errors=True)
     passed.append(f"T11 opt-in calibration ok (fitted beta {got[0]:g}, "
                   f"lambda {got[1]:g}; rolling window persisted)")

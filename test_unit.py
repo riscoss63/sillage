@@ -120,7 +120,8 @@ m7.dir = tempfile.mkdtemp()
 try:
     import sillage.core as core
     keep_n, core.COLD_MAX = core.COLD_MAX, 3
-    m7.cold = {bytes([i]): [float(i), {i: 1}] for i in range(10)}
+    m7.cold = {np.array([i, 0, 0, 0], np.int32).tobytes():
+               [float(i), {i: 1}] for i in range(10)}
     m7.save()
     kept = sorted(int(list(v[1])[0]) for v in m7.cold.values())
     core.COLD_MAX = keep_n
@@ -347,6 +348,104 @@ try:
           f"whitening persisted)")
 finally:
     shutil.rmtree(tmp14, ignore_errors=True)
+
+# --- 15. a state is data, not code: no pickle, and old ones migrate -------
+import pickle as _pickle
+
+tmp15 = tempfile.mkdtemp()
+try:
+    m15 = SillageMemory(tmp15, "gpt2", semantic=False, fastweights=False,
+                        calibrate=True)
+    m15.cold = {bytes([i, 0, 0, 0] * 4): [float(i) + 0.5,
+                                          {i: 2, i + 1: 1},
+                                          {i: 0.75, i + 1: 0.25}]
+                for i in range(1, 6)}
+    m15.cal = {"sem": False, "p": [0.1, 0.2], "gt": [0.3, 0.4],
+               "gm": [0.5, 0.6], "gl": [np.zeros(len(BETAS), np.float32),
+                                        np.ones(len(BETAS), np.float32)],
+               "st": [], "sm": [], "sl": []}
+    m15.save()
+    files = set(os.listdir(tmp15))
+    no_pickles = not any(f.endswith(".pkl") for f in files)
+    back15 = SillageMemory(tmp15, "gpt2", calibrate=True)
+    same_cold = (back15.cold.keys() == m15.cold.keys()
+                 and all(back15.cold[k][1] == m15.cold[k][1]
+                         and abs(back15.cold[k][0] - m15.cold[k][0]) < 1e-6
+                         and back15.cold[k][2] == m15.cold[k][2]
+                         for k in m15.cold))
+    same_cal = (np.allclose(back15.cal["p"], m15.cal["p"], atol=1e-6)
+                and len(back15.cal["gl"]) == 2
+                and float(np.sum(back15.cal["gl"][1])) == len(BETAS))
+    # a pre-1.5 state: pickles only, no npz -- must migrate and clean up
+    tmp15b = tempfile.mkdtemp()
+    shutil.copy(os.path.join(tmp15, "state.npz"),
+                os.path.join(tmp15b, "state.npz"))
+    with open(os.path.join(tmp15b, "cold.pkl"), "wb") as f:
+        _pickle.dump(m15.cold, f)
+    old15 = SillageMemory(tmp15b, "gpt2")
+    migrated = old15.cold.keys() == m15.cold.keys()
+    old15.save()
+    cleaned = (not os.path.exists(os.path.join(tmp15b, "cold.pkl"))
+               and os.path.exists(os.path.join(tmp15b, "cold.npz")))
+    shutil.rmtree(tmp15b, ignore_errors=True)
+    check("T15 pickle-free state", no_pickles and same_cold and same_cal
+          and migrated and cleaned,
+          f"({len(files)} files, none pickled; cold and readout window "
+          f"round-trip; a pre-1.5 state migrates and its pickle is "
+          f"removed)")
+finally:
+    shutil.rmtree(tmp15, ignore_errors=True)
+
+# --- 16. the index is JSON, rebuilt on load, and migrates too --------------
+tmp16 = tempfile.mkdtemp()
+try:
+    p16 = os.path.join(tmp16, "index.json")
+    ix16 = Index(p16)
+    ix16.add(doc, "notes.md")
+    ix16.save()
+    reopened = Index(p16)
+    hits16 = reopened.search("amber cipher", k=1)
+    derived = bool(reopened.vecs) and bool(reopened.idf)
+    # pre-1.5 index: a pickle carrying passages, vecs and idf
+    tmp16b = tempfile.mkdtemp()
+    with open(os.path.join(tmp16b, "index.pkl"), "wb") as f:
+        _pickle.dump({"passages": ix16.passages, "vecs": ix16.vecs,
+                      "idf": ix16.idf}, f)
+    mig16 = Index(os.path.join(tmp16b, "index.json"))
+    ok16 = (mig16.search("amber cipher", k=1)
+            and not os.path.exists(os.path.join(tmp16b, "index.pkl"))
+            and os.path.exists(os.path.join(tmp16b, "index.json")))
+    shutil.rmtree(tmp16b, ignore_errors=True)
+    check("T16 JSON index", hits16 and "Ilvress" in hits16[0][1]["text"]
+          and derived and ok16,
+          "(passages stored, vectors rebuilt on load, pre-1.5 pickle "
+          "migrated then removed)")
+finally:
+    shutil.rmtree(tmp16, ignore_errors=True)
+
+# --- 17. --sem2 auto: rare repeated tokens find the layer, unlabelled ------
+rng17 = np.random.default_rng(17)
+N17, D17, V17 = 400, 128, 40
+ids17 = rng17.integers(0, V17, N17)          # rare tokens repeat here
+ident = rng17.normal(size=(V17, D17)).astype(np.float32)
+ctx = rng17.normal(size=(N17, D17)).astype(np.float32)
+# five synthetic "layers": identity fades, context takes over -- the
+# gradient paper 8 measured. Layer 2 is the intended answer.
+layers17 = []
+for w_id, w_ctx in ((0.05, 1.0), (0.6, 0.7), (1.0, 0.35),
+                    (0.35, 1.0), (0.0, 1.0)):
+    layers17.append((w_id * ident[ids17] + w_ctx * ctx).astype(np.float32))
+seps17 = SillageMemory.sem2_score_layers(layers17, ids17,
+                                         np.random.default_rng(1))
+picked = int(np.argmax(seps17[1:])) + 1
+monotone_tail = seps17[2] > seps17[3] > seps17[4]
+# a document with no repetition at all must decline rather than guess
+flat17 = SillageMemory.sem2_score_layers(
+    [rng17.normal(size=(60, D17)).astype(np.float32)], np.arange(60))
+check("T17 automatic layer choice", picked == 2 and monotone_tail
+      and flat17 is None,
+      f"(picked layer {picked} of 5, separations "
+      f"{[round(x, 2) for x in seps17]}; declines when nothing repeats)")
 
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

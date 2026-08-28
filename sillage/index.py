@@ -17,10 +17,11 @@ prose, keeping section structure, so `sillage read paper.tex` does the right
 thing).
 """
 
+import json
 import math
 import os
-import pickle
 import re
+import sys
 from collections import Counter
 
 MIN_CHARS = 140
@@ -154,16 +155,34 @@ class Index:
     """A small TF-IDF index that grows as documents are read."""
 
     def __init__(self, path=None):
-        self.path = path
+        # `path` names the JSON file (an index is data, not code: before
+        # 1.5 it was a pickle, which executes code when opened). Only the
+        # passages are stored -- the TF-IDF vectors are derived from them,
+        # so rebuilding costs milliseconds and cannot drift.
+        self.path = None if path is None else (
+            path[:-4] + ".json" if path.endswith(".pkl") else path)
         self.passages = []
         self.vecs = []
         self.idf = {}
-        if path and os.path.exists(path):
-            with open(path, "rb") as f:
-                d = pickle.load(f)
-            self.passages = d["passages"]
-            self.vecs = d["vecs"]
-            self.idf = d["idf"]
+        old = (None if self.path is None
+               else self.path[:-5] + ".pkl")
+        if self.path and os.path.exists(self.path):
+            with open(self.path, encoding="utf-8") as f:
+                self.passages = json.load(f)["passages"]
+            self._rebuild()
+        elif old and os.path.exists(old):
+            print(f"note: migrating the index from the pre-1.5 pickle "
+                  f"format ({os.path.basename(old)}). Unpickling "
+                  f"executes code -- only migrate states you created "
+                  f"yourself.", file=sys.stderr, flush=True)
+            if os.environ.get("SILLAGE_NO_PICKLE"):
+                raise SystemExit(f"{old} is a pre-1.5 pickle and "
+                                 f"SILLAGE_NO_PICKLE is set.")
+            import pickle
+            with open(old, "rb") as f:
+                self.passages = pickle.load(f)["passages"]
+            self._rebuild()
+            self.save()                      # rewrites JSON, drops .pkl
 
     def add(self, text, source):
         """Index one document, replacing any earlier version of it."""
@@ -217,9 +236,11 @@ class Index:
         if not self.path:
             return
         os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
-        with open(self.path, "wb") as f:
-            pickle.dump({"passages": self.passages, "vecs": self.vecs,
-                         "idf": self.idf}, f)
+        with open(self.path, "w", encoding="utf-8") as f:
+            json.dump({"passages": self.passages}, f, ensure_ascii=False)
+        old = self.path[:-5] + ".pkl"        # a migrated index keeps
+        if os.path.exists(old):              # no pickle behind it
+            os.remove(old)
 
 
 def show(hits, width=100):

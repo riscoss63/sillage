@@ -24,7 +24,7 @@ not tune, so any frozen model works, not only the two they measured.
 Command line: `sillage read notes.md`, `sillage ask "..."`, `sillage chat`.
 """
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 from .core import MODELS, SillageMemory
 from .index import Index, strip_latex

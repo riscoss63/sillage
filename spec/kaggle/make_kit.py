@@ -21,7 +21,7 @@ SPEC = os.path.dirname(HERE)
 REPO = os.path.dirname(SPEC)
 OUTSIDE = os.path.dirname(REPO)
 
-STATE_FILES = ("state.npz", "cold.pkl", "log.json")
+STATE_FILES = ("state.npz", "cold.npz", "log.json")
 
 
 def main():

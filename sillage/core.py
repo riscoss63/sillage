@@ -34,7 +34,7 @@ them (the numbers are next to BETAS below).
 
 import json
 import os
-import pickle
+import sys
 
 import numpy as np
 
@@ -60,6 +60,17 @@ MODELS = {  # shortcut: (hub id, vocab, (beta_G, lam_G), (beta_S, lam_S), sem)
              False),
 }
 TUNED = set(MODELS)          # models the papers measured with a full protocol
+# Paper 8: whether the v2 tier needs its keys whitened is a property
+# of the model's geometry, and no cheap proxy we tried predicts it
+# (see runtime.resolve_sem2). These two were measured; anything else
+# whitens by default, which is paper 2's rule.
+SEM2_WHITEN = {"qwen": False, "gpt2": True}
+# Same rule as the readout settings above: what the papers measured wins
+# for the models they measured. GPT-2's identity profile is nearly flat
+# (0.47-0.52 across its lower half), so a sweep cannot tell layer 5 from
+# layer 6 -- and layer 6 does not work. `--sem2 auto` therefore uses
+# these for known models and sweeps only for the rest.
+SEM2_LAYER = {"qwen": 1, "gpt2": 5}
 # Any other causal LM works too. It starts from the GPT-2 settings -- a sane
 # middle of the grid -- and then calibrates them on what it reads (see
 # maybe_calibrate). The semantic tier stays OFF for an unknown model: paper 2
@@ -223,14 +234,19 @@ class SillageMemory:
         self.cal_at = 0                 # lifetime tokens at the last fit
         self.cal = None                 # dev statistics, until they are used
         self.semantic = sem_default if semantic is None else semantic
-        if sem2 is not None:            # paper 8: v2 keys need the tier on
+        # "auto" defers the layer choice to the first read, which picks it
+        # from the document itself (sem2_score_layers)
+        self.sem2_auto = (sem2 == "auto")
+        if self.sem2_auto:
+            sem2 = None
+        if sem2 is not None or self.sem2_auto:   # v2 keys need the tier on
             self.semantic = True
             # the published S-readout was tuned for the old tier's
             # likelihood smoothing; the v2 tier addresses, and carries
             # its measured mixing (the --target precedent)
             self.beta_S, self.lam_S = SEM2_BETA_S, SEM2_LAM_S
             self.thr_qS = SEM2_THR_Q
-        self._sem2_arg = sem2           # None -> whatever the state says
+        self._sem2_arg = (sem2 if not self.sem2_auto else "auto")
         self._sem2_whiten_arg = sem2_whiten
         self.sem2_layer = sem2
         self.sem2_whiten = bool(sem2_whiten) if sem2_whiten is not None \
@@ -263,6 +279,92 @@ class SillageMemory:
         self.g_sum, self.g_cnt = 0.0, 0
         self.cold = {}
         self.log = {"files": []}
+
+    # ------------------------------------------------- state, safely -------
+    # A state is data, not code: every part of it loads with
+    # allow_pickle=False. Before 1.5 the cold store and the calibration
+    # window were Python pickles, which execute code when opened -- so a
+    # downloaded state could run anything. They are flat arrays now.
+
+    @staticmethod
+    def _cold_save(cold, path):
+        """The cold store as CSR arrays (grams, then successors)."""
+        n = len(cold)
+        grams = np.zeros((n, NGRAM), np.int32)
+        mass = np.zeros(n, np.float32)
+        offs = np.zeros(n + 1, np.int64)
+        toks, cnts, smass = [], [], []
+        for i, (gram, slot) in enumerate(cold.items()):
+            if len(gram) != NGRAM * 4:
+                raise ValueError(
+                    f"cold key of {len(gram)} bytes: this store holds "
+                    f"{NGRAM}-gram keys ({NGRAM * 4} bytes) and nothing "
+                    f"else")
+            grams[i] = np.frombuffer(gram, dtype=np.int32)
+            mass[i] = slot[0]
+            per = slot[2] if len(slot) > 2 else {}
+            for t, c in slot[1].items():
+                toks.append(int(t))
+                cnts.append(int(c))
+                smass.append(float(per.get(t, 0.0)))
+            offs[i + 1] = len(toks)
+        np.savez_compressed(path, grams=grams, mass=mass, offs=offs,
+                            toks=np.array(toks, np.int32),
+                            cnts=np.array(cnts, np.int32),
+                            smass=np.array(smass, np.float32))
+
+    @staticmethod
+    def _cold_load(path):
+        with np.load(path, allow_pickle=False) as z:
+            grams, mass, offs = z["grams"], z["mass"], z["offs"]
+            toks, cnts, smass = z["toks"], z["cnts"], z["smass"]
+        cold = {}
+        for i in range(len(grams)):
+            a, b = int(offs[i]), int(offs[i + 1])
+            cold[np.ascontiguousarray(grams[i]).tobytes()] = [
+                float(mass[i]),
+                {int(toks[j]): int(cnts[j]) for j in range(a, b)},
+                {int(toks[j]): float(smass[j]) for j in range(a, b)}]
+        return cold
+
+    @staticmethod
+    def _cal_save(cal, path):
+        d = {"sem": np.array(bool(cal.get("sem", False)))}
+        for k in ("p", "gt", "gm", "st", "sm"):
+            d[k] = np.array(cal.get(k, []), np.float32)
+        for k in ("gl", "sl"):
+            rows = cal.get(k, [])
+            d[k] = (np.array(rows, np.float32) if rows
+                    else np.zeros((0, len(BETAS)), np.float32))
+        np.savez_compressed(path, **d)
+
+    @staticmethod
+    def _cal_load(path):
+        with np.load(path, allow_pickle=False) as z:
+            cal = {"sem": bool(z["sem"])}
+            for k in ("p", "gt", "gm", "st", "sm"):
+                cal[k] = [float(x) for x in z[k]]
+            for k in ("gl", "sl"):
+                cal[k] = [row.copy() for row in z[k]]
+        return cal
+
+    @staticmethod
+    def _unpickle_once(path, what):
+        """Read one pre-1.5 part so it can be rewritten safely. This is
+        the only place the tool ever unpickles, it happens once per
+        state, and it says so: unpickling runs code, so migrate only
+        states you wrote yourself."""
+        if os.environ.get("SILLAGE_NO_PICKLE"):
+            raise SystemExit(
+                f"{path} is a pre-1.5 pickle and SILLAGE_NO_PICKLE is "
+                f"set. Delete it, or unset the variable to migrate it.")
+        print(f"note: migrating {what} from the pre-1.5 pickle format "
+              f"({os.path.basename(path)}). Unpickling executes code -- "
+              f"only migrate states you created yourself.",
+              file=sys.stderr, flush=True)
+        import pickle
+        with open(path, "rb") as f:
+            return pickle.load(f)
 
     def load(self):
         """Read the state back, tolerating states from earlier versions."""
@@ -307,6 +409,10 @@ class SillageMemory:
                     self.thr_qS = SEM2_THR_Q
         if "sem2_whiten" in z and self._sem2_whiten_arg is None:
             self.sem2_whiten = bool(z["sem2_whiten"])
+        if "sem2_auto" in z and not self.sem2_auto:
+            self.sem2_auto = bool(z["sem2_auto"])
+        if self.sem2_auto and self.sem2_layer is None:
+            self.semantic = self._sem_arg is not False
         if "res_G" in z:
             self.res_G = list(z["res_G"])
         elif "reservoir" in z:
@@ -340,14 +446,18 @@ class SillageMemory:
             self.cal_at = int(z["cal_at"]) if "cal_at" in z else self.tokens
         if self.cold_mass is None:
             self.cold_mass = False
-        cal_path = os.path.join(self.dir, "calib.pkl")
-        if self.calibrate_on and os.path.exists(cal_path):
-            with open(cal_path, "rb") as f:      # the rolling window
-                self.cal = pickle.load(f)
-        cold_path = os.path.join(self.dir, "cold.pkl")
-        if os.path.exists(cold_path):
-            with open(cold_path, "rb") as f:
-                self.cold = pickle.load(f)
+        cal_npz = os.path.join(self.dir, "calib.npz")
+        cal_old = os.path.join(self.dir, "calib.pkl")
+        if self.calibrate_on and os.path.exists(cal_npz):
+            self.cal = self._cal_load(cal_npz)   # the rolling window
+        elif self.calibrate_on and os.path.exists(cal_old):
+            self.cal = self._unpickle_once(cal_old, "the readout window")
+        cold_npz = os.path.join(self.dir, "cold.npz")
+        cold_old = os.path.join(self.dir, "cold.pkl")
+        if os.path.exists(cold_npz):
+            self.cold = self._cold_load(cold_npz)
+        elif os.path.exists(cold_old):
+            self.cold = self._unpickle_once(cold_old, "the cold store")
         else:
             self.cold = {}
         log_path = os.path.join(self.dir, "log.json")
@@ -379,23 +489,27 @@ class SillageMemory:
             sem2_layer=(-1 if self.sem2_layer is None
                         else int(self.sem2_layer)),
             sem2_whiten=bool(self.sem2_whiten),
+            sem2_auto=bool(self.sem2_auto),
             calibrated=bool(self.calibrated),
             beta_G=self.beta_G, lam_G=self.lam_G,
             beta_S=self.beta_S, lam_S=self.lam_S,
             thr_qG=(-1.0 if self.thr_qG is None else self.thr_qG),
             thr_qS=(-1.0 if self.thr_qS is None else self.thr_qS),
             cal_at=self.cal_at)
-        with open(os.path.join(self.dir, "cold.pkl"), "wb") as f:
-            pickle.dump(self.cold, f)
+        self._cold_save(self.cold, os.path.join(self.dir, "cold.npz"))
         with open(os.path.join(self.dir, "log.json"), "w",
                   encoding="utf-8") as f:
             json.dump(self.log, f, indent=2)
-        cal_path = os.path.join(self.dir, "calib.pkl")
+        cal_path = os.path.join(self.dir, "calib.npz")
         if self.cal and self.calibrate_on:
-            with open(cal_path, "wb") as f:      # the rolling window
-                pickle.dump(self.cal, f)
+            self._cal_save(self.cal, cal_path)   # the rolling window
         elif os.path.exists(cal_path):
             os.remove(cal_path)
+        # a migrated state keeps no pickle behind it
+        for old in ("cold.pkl", "calib.pkl"):
+            p = os.path.join(self.dir, old)
+            if os.path.exists(p):
+                os.remove(p)
 
     def set_vocab(self, n):
         """Adopt the model's true output width.
@@ -538,6 +652,136 @@ class SillageMemory:
             z = z @ self._W2mat()
         z = z / (np.linalg.norm(z) + 1e-8)
         return self._bands(z)
+
+    @staticmethod
+    def zca_of(X, shrink=0.1):
+        """Whitening transform of a sample of hidden states."""
+        Xn = X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-8)
+        mu = Xn.mean(axis=0)
+        C = np.cov((Xn - mu).T).astype(np.float32)
+        d = C.shape[0]
+        C = (1 - shrink) * C + shrink * np.eye(d, dtype=np.float32) \
+            * max(float(C.trace()), 1e-6) / d
+        w, V = np.linalg.eigh(C)
+        W = ((V * (1.0 / np.sqrt(np.maximum(w, 1e-8)))) @ V.T
+             ).astype(np.float32)
+        return mu, W
+
+    @staticmethod
+    def sem2_separation(Aq, Ad, mu=None):
+        """How well one layer keeps identity across contexts.
+
+        `Aq` are hidden states of some tokens seen in SHORT queries,
+        `Ad` the states of the same tokens seen inside the document.
+        Same-token cosine minus cross-token cosine, centred and
+        normalised. This is paper 8's measurement, and it is the one
+        that matters: the tier is written from a document and queried
+        from a prompt, so a layer that only looks stable WITHIN a
+        document (the last one does, by predicting the same next word)
+        is worthless here.
+        """
+        def prep(X):
+            Z = X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-8)
+            if mu is not None:
+                Z = Z - mu
+            return Z / (np.linalg.norm(Z, axis=1, keepdims=True) + 1e-8)
+
+        Q, D = prep(np.asarray(Aq)), prep(np.asarray(Ad))
+        C = Q @ D.T
+        same = np.diag(C)
+        m = len(same)
+        if m < 4:
+            return None
+        null = C[~np.eye(m, dtype=bool)]
+        return float(np.median(same) - np.median(null))
+
+    @staticmethod
+    def sem2_score_layers(hiddens, ids, rng=None):
+        """Which layer still knows WHO is being talked about?
+
+        Paper 8 measured this with annotated entities; an installed tool
+        has none, but it does not need any: a RARE TOKEN REPEATED in a
+        document is the same identity in two different contexts, and two
+        different rare tokens are the null. The separation between those
+        two cosine distributions is what collapses with depth, so
+        maximising it over layers finds the layer to key on, and its size
+        says whether the geometry needs whitening.
+
+        `hiddens` is a list of (n, d) arrays, one per layer. Returns the
+        per-layer separations (None if the sample has too few repeats).
+        """
+        from collections import Counter
+        ids = np.asarray(ids)
+        counts = Counter(int(t) for t in ids)
+        reps = [t for t, k in counts.items() if 2 <= k <= 20]
+        if len(reps) < 8:
+            return None
+        rng = np.random.default_rng(0) if rng is None else rng
+        same_pairs, pos_of = [], {}
+        n_pos = len(ids)
+
+        def free_of_context(p1, p2):
+            """Two occurrences measure identity only if their
+            NEIGHBOURS
+            differ. Otherwise the last layer -- which encodes what comes
+            next -- scores them identical for having the same
+            continuation, and the sweep would crown the very layer
+            paper 8 showed to be empty."""
+            for d in (-1, 1):
+                a, b = p1 + d, p2 + d
+                if 0 <= a < n_pos and 0 <= b < n_pos and ids[a] == ids[b]:
+                    return False
+            return True
+
+        for t in reps:
+            p = np.flatnonzero(ids == t)
+            pos_of[t] = p
+            kept = 0
+            for a in range(len(p) - 1):
+                for b in range(a + 1, len(p)):
+                    if kept >= 3:
+                        break
+                    if free_of_context(int(p[a]), int(p[b])):
+                        same_pairs.append((int(p[a]), int(p[b])))
+                        kept += 1
+                if kept >= 3:
+                    break
+        flat = [(t, int(p)) for t in reps for p in pos_of[t]]
+        null_pairs = []
+        for _ in range(len(same_pairs)):
+            (t1, p1), (t2, p2) = (flat[rng.integers(len(flat))],
+                                  flat[rng.integers(len(flat))])
+            if t1 != t2:
+                null_pairs.append((p1, p2))
+        if not same_pairs or not null_pairs:
+            return None
+        out = []
+        for H in hiddens:
+            Z = H / (np.linalg.norm(H, axis=1, keepdims=True) + 1e-8)
+            Z = Z - Z.mean(axis=0, keepdims=True)
+            Z = Z / (np.linalg.norm(Z, axis=1, keepdims=True) + 1e-8)
+            s = np.median([float(Z[a] @ Z[b]) for a, b in same_pairs])
+            nl = np.median([float(Z[a] @ Z[b]) for a, b in null_pairs])
+            out.append(float(s - nl))
+        return out
+
+    def sem2_flush(self, anchors, pairs, nulls):
+        """Consolidate the v2 tier at the end of a document: apply the
+        buffered writes with mature keys, then sample the null those
+        queries are thresholded against. Both read paths call this, so
+        a fast read and a normal one build the same tier."""
+        for ai, tok_next, gw in pairs:
+            q = self.sem2_key(anchors[ai])
+            u = self.MS.T @ q          # scores() would also build a
+            self.amp_write(self.MS, q, u,   # vocabulary vector we never
+                           tok_next, max(gw, 0.25))          # read
+        for k in range(0, len(nulls), 64):      # batched: one BLAS call
+            blk = nulls[k:k + 64]               # per 64 nulls
+            Q = np.stack([self.sem2_key(h) for h in blk])
+            U = Q @ self.MS
+            S = (U / (np.linalg.norm(U, axis=1, keepdims=True)
+                      + 1e-8)) @ self.V.T
+            self.res_S.extend(S.max(axis=1).tolist())
 
     def phi(self, h):
         """Fixed random feature of the hidden state, for the adapter."""

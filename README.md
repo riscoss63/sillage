@@ -186,11 +186,14 @@ there is one; the mechanisms stay numpy on the CPU), `--no-fastweights`,
 `--no-semantic`, `--half-life N` (forgetting, in tokens), `--no-calibrate` /
 `read --recalibrate`, `read --fast` (paper 7's blocked write-only
 ingestion: ~40x on long documents, exact cold store, declared amplitude
-tolerances, no perplexity report), `--sem2 LAYER` with optional
-`--sem2-whiten` (paper 8's semantic keys: read the tier from an early
-hidden layer -- 1 for qwen, 5 for gpt2 -- anchor its writes on
-surprising tokens and pool the query over the prompt, which is what
-makes paraphrased recall possible at all), `--cold-mass` (weight the cold store's successors by
+tolerances, no perplexity report), `--sem2 auto` (or a layer number, plus
+`--sem2-whiten`): paper 8's semantic keys -- the tier reads an early
+hidden layer instead of the last one, anchors its writes on surprising
+tokens and pools the query over the prompt, which is what makes
+paraphrased recall possible at all. `auto` uses the layer the papers
+measured for a model they measured (qwen 1, gpt2 5) and sweeps the
+network for any other, choosing the layer where a rare repeated token
+still looks like itself, `--cold-mass` (weight the cold store's successors by
 surprise mass -- paper 6's adversarial fix; counts stay the default and
 reproduce the papers' numbers), `-n`, `--temp`, `-k`, and on
 `complete`/`chat`: `--fast` (speculative decoding from the memory --
@@ -263,7 +266,8 @@ anti-correlated). Key that tier on an early layer instead, anchor its
 writes on surprising tokens and pool the query over the prompt, and
 rephrased recall goes from **0% to 80% on Qwen3-0.6B and 30% on GPT-2**
 in this tool -- paired control, held-out facts, witness locality 0-1/10.
-That is `--sem2 LAYER` below.
+That is `--sem2 auto` below (or `--sem2 LAYER` to name the layer
+yourself).
 
 ## Should you use this?
 
@@ -436,10 +440,14 @@ anywhere and resolves `data/`, `dumps/`, `results/` identically.
 - `sillage forget <file>` removes a document from the index, not from the
   matrices: Hebbian traces are superposed, so only `--all` or forgetting
   removes those. The tool says so rather than pretending otherwise.
-- Parts of the state (`cold.pkl`, `index.pkl`, `calib.pkl`) are Python
-  pickles: only open `--state` directories you trust, since unpickling can
-  execute code. The main matrices (`state.npz`) load with
-  `allow_pickle=False`.
+- **A state is data, not code.** Every part of it (`state.npz`,
+  `cold.npz`, `calib.npz`, `index.json`, `log.json`) loads with
+  `allow_pickle=False` or as JSON, so opening someone else's `--state`
+  cannot execute anything. States written before 1.5 were pickles; they
+  migrate on first open, with a warning, and the pickle is deleted once
+  rewritten (`SILLAGE_NO_PICKLE=1` refuses the migration instead).
+  Note that a cold store still *reveals the text it read* — that is a
+  confidentiality matter, not a code-execution one.
 - The papers' *Manuscripts* stream (unpublished drafts) is not redistributed —
   drop your own documents in `manuscripts/` to run that protocol.
 </details>

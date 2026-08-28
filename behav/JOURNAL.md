@@ -1102,3 +1102,70 @@ la séparation d'identité mesurée (qwen +0.71 en couche 1 contre +0.36
 en couche 5 sur GPT-2). L'INTÉGRATION 1.4.0 EST VALIDÉE SUR DEUX
 MODÈLES : la loi 2 du papier 6, mesurée dans l'outil livré, passe de
 0 % à 30-80 % selon le modèle, localité intacte.
+
+---
+
+## 29/08/2026 — Dette technique avant l'axe 4 (l'utilisateur a tranché :
+## la traiter d'abord) — PRÉDICTIONS
+
+Trois chantiers, chacun avec son critère de succès écrit d'avance.
+
+**C1 — dé-pickliser l'état.** cold/calib → npz CSR et tableaux plats,
+index → JSON (les vecteurs TF-IDF se reconstruisent). Migration unique
+des états pré-1.5 avec avertissement, puis suppression du pickle
+(SILLAGE_NO_PICKLE=1 refuse). Critère : aucun .pkl écrit, round-trip
+identique, un état ancien migre. **FAIT — T15/T16 verts.**
+
+**C2 — `--sem2` dans le chemin rapide.** La consolidation différée du
+tier v2 a exactement la forme du mode bloqué ; factorisation de
+`sem2_flush` dans core pour que les deux chemins construisent LE MÊME
+tier. Prédiction : rappel paraphrase identique à ±1/10 entre lecture
+normale et lecture rapide, et accélération ≥ ×3 sur ce document.
+
+**C3 — `--sem2 auto`.** Le balayage de couches du papier 8 sans
+annotation : un TOKEN RARE RÉPÉTÉ est la même identité dans deux
+contextes, deux tokens rares différents sont le null. Le tool choisit
+la couche qui maximise la séparation, et active le blanchiment si
+elle est < 0.5 (qwen mesuré 0.71 → sans ; GPT-2 0.36 → avec).
+Prédictions : (a) sur un vrai document, `auto` choisit une couche
+BASSE, pas la dernière ; (b) il retrouve l'ordre de grandeur du papier
+8 (GPT-2 vers 4-6, qwen vers 1-2) ; (c) il refuse proprement quand
+rien ne se répète. **(c) FAIT — T17 vert** ; (a) et (b) en mesure.
+
+**VERDICTS DES TROIS CHANTIERS.**
+
+**C1 (dé-picklisation) ✓** — cold/calib en npz CSR, index en JSON
+(vecteurs TF-IDF reconstruits au chargement), migration unique avec
+avertissement puis suppression du pickle. T15/T16 verts. Un état
+n'exécute plus rien ; reste la confidentialité (un cold store révèle
+le texte lu), qui est un autre sujet.
+
+**C2 (`--sem2` dans le chemin rapide) ✓ au-delà du critère** — le
+tier construit par la lecture rapide est IDENTIQUE à celui de la
+lecture normale (paraphrase 3/10 des deux côtés, canonique 10/10,
+null 805, seuil 0.418, cold 1081 — pas « à ±1 », identiques). La
+consolidation différée est factorisée dans `core.sem2_flush`, les deux
+chemins l'appellent. Prédiction d'accélération ≥×3 RÉFUTÉE : ×1.9
+seulement, et le profil dit pourquoi — 270 tok/s sans tier, 143 avec,
+109 avec blanchiment : le tier coûte ses clés par token et le
+blanchiment son accumulation de covariance (d² par token). Reste
+×15-20 sur la lecture normale (7 tok/s), ce qui était l'enjeu.
+
+**C3 (`--sem2 auto`) ✓ avec une limite mesurée et déclarée** — la
+supervision gratuite (tokens rares répétés, requêtes fabriquées depuis
+le document = le protocole du papier 8 automatisé) trouve bien le
+gradient d'identité : sur texte naturel, qwen donne 1.01 → 0.43 (couche
+1 choisie ✓). Mais sur GPT-2 le profil est PLAT (0.47-0.52) et le
+balayage ne distingue pas la couche 5 (qui marche, 3/10) de la 6 (qui
+ne marche pas, 0/10). Et AUCUN proxy bon marché ne prédit le besoin de
+blanchiment : la séparation cosinus dit « inutile » pour GPT-2, le rang
+de récupération d'un tier jetable aussi — les deux comparent deux
+endroits d'un même document, ce qui n'est pas la question posée.
+DÉCISION : `auto` applique la règle déjà en vigueur pour β/λ dans cette
+série — **ce que les papiers ont mesuré gagne pour les modèles
+mesurés** (SEM2_LAYER/SEM2_WHITEN : qwen 1/off, gpt2 5/on), le
+balayage ne sert qu'aux modèles que personne n'a mesurés (et le
+blanchiment y est activé par défaut, règle du papier 2). Résultat :
+auto → gpt2 3/10, qwen 8/10, sans qu'on donne un numéro de couche.
+Deux heuristiques inventées puis RETIRÉES parce qu'elles ne prédisaient
+pas — elles ne sont pas dans le code livré.

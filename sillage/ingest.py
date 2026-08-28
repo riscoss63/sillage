@@ -83,17 +83,33 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
             "fast read: this model's readout is still calibrating -- "
             "run a normal read first (calibration needs the tier "
             "scores that fast ingestion skips).")
-    if mem.sem2_layer is not None:
-        raise SystemExit(
-            "fast read: the layer-anchored semantic tier (paper 8) is "
-            "not in the blocked path yet -- read normally, or drop "
-            "--sem2 for this read.")
     ids = np.array(tok.encode(text), dtype=np.int64)
     n = len(ids) - 1
     if n < 1:
         return {"file": name, "tokens": 0}
+    s.resolve_sem2(ids)
     mem.new_stream()
-    sem = mem.semantic
+    # paper 8's tier keys on an early layer and consolidates at the end
+    # of the document, which is exactly this path's shape; the classic
+    # tier keys on the last layer and writes in the block
+    sem2 = mem.sem2_layer if mem.semantic else None
+    sem = mem.semantic and sem2 is None
+    anchors, sem2_buf, null_buf = [], [], []
+    anchor_idx, prev_kept, g_prev, null_stride = None, False, 0.0, 4
+    nsp = {}
+
+    def flush_sem2():
+        nonlocal anchor_idx
+        mem.sem2_flush(anchors, sem2_buf, null_buf)
+        last = None if anchor_idx is None else anchors[anchor_idx]
+        anchors.clear()
+        sem2_buf.clear()
+        null_buf.clear()
+        anchor_idx = None
+        if last is not None:
+            anchors.append(last)
+            anchor_idx = 0
+
     use_gpu = "cuda" in str(s.device or "")
     Vg = None
     x = torch.tensor(ids, device=s.device)
@@ -102,7 +118,9 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
     with torch.no_grad():
         while a < n:
             w = min(WINDOW, len(ids) - a)
-            out = model(x[a:a + w].unsqueeze(0), output_hidden_states=sem)
+            need_h = sem or sem2 is not None
+            out = model(x[a:a + w].unsqueeze(0),
+                        output_hidden_states=need_h)
             lg = out.logits[0].float()
             mem.set_vocab(lg.shape[-1])
             hi = min(w, n - a)
@@ -113,6 +131,8 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
                 Vg = torch.tensor(mem.V, device=s.device)
             hs = (out.hidden_states[-1][0].float().cpu().numpy()
                   if sem else None)
+            hs2 = (out.hidden_states[sem2][0].float().cpu().numpy()
+                   if sem2 is not None else None)
             lo = 0 if a == 0 else WINDOW - STRIDE
             pos = list(range(lo, hi))
             b0 = 0
@@ -123,6 +143,8 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
                 grams = []
                 Qs = (np.empty((B, mem.MS.shape[0]), np.float32)
                       if sem else None)
+                toks = np.array([int(ids[a + i + 1]) for i in blk])
+                g_vec = np.clip(-lp_t[np.array(blk)], 0.0, CAP)
                 for k, i in enumerate(blk):
                     Qg[k] = np.asarray(mem.step_key(int(ids[a + i])),
                                        dtype=np.float32)
@@ -133,8 +155,32 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
                     if sem:
                         Qs[k] = np.asarray(mem.sem_key(hs[i]),
                                            dtype=np.float32)
-                toks = np.array([int(ids[a + i + 1]) for i in blk])
-                g_vec = np.clip(-lp_t[np.array(blk)], 0.0, CAP)
+                    elif sem2 is not None:
+                        # same rules as the normal read: anchor on the
+                        # last surprising token, keep writes that
+                        # surprise or that finish a kept word, and defer
+                        # everything to the flush
+                        mem.sem2_observe(hs2[i])
+                        if g_prev >= 2.5:
+                            anchors.append(hs2[i].copy())
+                            anchor_idx = len(anchors) - 1
+                            if len(anchors) >= 8192:
+                                flush_sem2()
+                        tk, g2 = int(toks[k]), float(g_vec[k])
+                        if tk not in nsp:
+                            d2 = tok.decode([tk])
+                            nsp[tk] = (len(d2) > 0
+                                       and not d2[0].isspace())
+                        keep = g2 >= 0.5 or (prev_kept and nsp[tk])
+                        if anchor_idx is not None and keep:
+                            sem2_buf.append((anchor_idx, tk, g2))
+                        elif (cnt + k) % null_stride == 0:
+                            null_buf.append(hs2[i].copy())
+                            if len(null_buf) > 4096:
+                                del null_buf[::2]
+                                null_stride *= 2
+                        prev_kept = keep
+                        g_prev = g2
                 Ug, Us = blocked_write(mem, Qg, Qs, toks, g_vec, grams)
                 sel = [k for k in range(B)
                        if (cnt + k) % res_every == 0]
@@ -160,6 +206,8 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
             if a + w >= len(ids):
                 break
             a += STRIDE
+    if sem2 is not None:
+        flush_sem2()
     mem.res_G = mem.res_G[-5000:]
     mem.res_S = mem.res_S[-5000:]
     mins = (time.time() - t0) / 60
