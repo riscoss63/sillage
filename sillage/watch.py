@@ -128,6 +128,12 @@ class Watcher:
                      # speaks, so it says "unusual prose", never "new to
                      # this memory".
                      "salience": round(dg / max(1, dn), 3),
+                     # the mean answers "is this prose unusual"; the total
+                     # answers "how much that was new did I write". A long
+                     # note of real decisions loses on the mean and wins on
+                     # the total, which is the question the feature is sold
+                     # on -- both are recorded, neither is derived.
+                     "new_nats": round(dg, 1),
                      "reread": path in self.seen}
             self.journal.append(entry)
             made.append(entry)
@@ -143,14 +149,31 @@ class Watcher:
             self.save()
         return made
 
-    def digest(self, n=10):
-        """What was new lately, most surprising first."""
-        return sorted(self.journal[-200:],
-                      key=lambda e: -e["salience"])[:n]
+    def digest(self, n=10, since=None):
+        """What was new lately, most surprising first.
+
+        `since` is a number of DAYS: the question this feature exists for
+        is "what did I write THIS WEEK that was new", and ranking the
+        last 200 entries all-time cannot answer it. One row per file --
+        a file read on Monday and again on Thursday used to take two of
+        the five slots with the same text behind them.
+        """
+        rows = self.journal[-500:]
+        if since:
+            cut = time.strftime("%Y-%m-%d %H:%M",
+                                time.localtime(time.time()
+                                               - since * 86400))
+            rows = [e for e in rows if e.get("when", "") >= cut]
+        best = {}
+        for e in rows:                       # keep each file's best pass
+            k = e["file"]
+            if k not in best or e["salience"] > best[k]["salience"]:
+                best[k] = e
+        return sorted(best.values(), key=lambda e: -e["salience"])[:n]
 
 
 def watch(assistant, root, interval=60, once=False, exts=None,
-          fast=True, quiet=False):
+          fast=True, quiet=False, since=None):
     root = os.path.expanduser(root)
     if not os.path.isdir(root):
         raise SystemExit(f"not a folder: {root}")
@@ -168,10 +191,12 @@ def watch(assistant, root, interval=60, once=False, exts=None,
                 print("  nothing new since last time", flush=True)
             first = False
             if made:
-                print("\n  salience journal -- what was new, most "
-                      "surprising first:")
-                for e in w.digest(5):
-                    print(f"    {e['salience']:5.2f} nats  "
+                window = f" over the last {since} day(s)" if since else ""
+                print(f"\n  salience journal{window} -- most surprising "
+                      f"prose first, and how much of it:")
+                for e in w.digest(5, since=since):
+                    print(f"    {e['salience']:5.2f} nats/token  "
+                          f"{e.get('new_nats', 0):7.0f} total  "
                           f"{e['file']}  ({e['when']})")
                 print()
             if once:

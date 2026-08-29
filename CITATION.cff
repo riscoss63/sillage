@@ -2,14 +2,14 @@ cff-version: 1.2.0
 message: "If you use Sillage, please cite the paper below."
 title: "Sillage: gradient-free test-time memory for frozen language models"
 type: software
-version: "1.8.2"
+version: "1.8.3"
 license: MIT
 repository-code: "https://github.com/riscoss63/sillage"
 authors:
   - family-names: Sghairi
     given-names: Abderrahmane
     email: sghairipro63@gmail.com
-date-released: "2026-08-29"
+date-released: "2026-08-30"
 preferred-citation:
   type: article
   title: "Sillage: Surprise-Gated Amplitude Memory for Frozen Language Models"

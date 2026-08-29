@@ -45,6 +45,13 @@ document. Before 1.8.2 the yield happened only at window boundaries,
 which meant a document short enough to be ONE window had no yield point
 and held the lock for the entire read.
 
+The remaining wait, stated plainly: those yield points are in the WRITE
+loop. The frozen forward pass at the top of each window -- up to 1024
+tokens at once -- still runs with the lock held and cannot be
+interrupted, so a request arriving during one waits for it. Measured
+with /ask, whose own work is 0.02 s: 11-25 s per window. That is the
+floor of this design, not a bug to be fixed by yielding more often.
+
 Binding: 127.0.0.1 by default. `--host 0.0.0.0` exposes a memory that
 contains the text you fed it -- the server says so out loud, and
 `--token` adds a bearer check if you do it anyway.
@@ -82,7 +89,7 @@ class Service:
             time.sleep(0.01)            # let a waiter actually take it
             self.lock.acquire()
 
-    def generate(self, prompt, n, temp, seed):
+    def generate(self, prompt, n, temp, seed, on_token=None):
         """Take the lock only for the generation itself.
 
         Returns (text, finish_reason). The chat template's own stop token
@@ -94,7 +101,8 @@ class Service:
         self.waiting += 1
         try:
             with self.lock:
-                text = self.s.complete(prompt, n=n, temp=temp, seed=seed)
+                text = self.s.complete(prompt, n=n, temp=temp, seed=seed,
+                                       on_token=on_token)
         finally:
             self.waiting -= 1
         finish = "length"
@@ -117,8 +125,16 @@ class Service:
                  "text": p["text"]} for sc, p in hits]
 
     def status(self):
-        with self.lock:
-            st = self.s.status()
+        # announce the wait like generate() and ask() do: _yield_lock only
+        # hands the lock back when someone is registered as waiting, so
+        # this was the one caller an ingestion never yielded for -- it
+        # waited out the entire read while the others were being served
+        self.waiting += 1
+        try:
+            with self.lock:
+                st = self.s.status()
+        finally:
+            self.waiting -= 1
         st["version"] = __version__
         st["context_injection"] = self.context
         return st
@@ -335,22 +351,26 @@ class Handler(BaseHTTPRequestHandler):
         temp = float(payload.get("temperature") or 0.0)
         seed = int(payload.get("seed") or 0)
         prompt, sources = self.service.build_prompt(src, chat)
-        t0 = time.time()
-        text, finish = self.service.generate(prompt, n, temp, seed)
-        took = time.time() - t0
         hdr = {"X-Sillage-Sources":
                ", ".join(s["source"] for s in sources) or "none"}
         made = int(time.time())
         model = self.service.s.mem.which
+        if payload.get("stream"):
+            # generate INSIDE the stream. Until 1.8.3 the whole answer was
+            # produced first and then chopped on spaces, so a client asking
+            # for a stream watched nothing for fifty seconds and then got
+            # everything at once -- the one thing streaming exists to avoid.
+            return self._stream(prompt, n, temp, seed, model, made, hdr,
+                                chat, sources)
+        t0 = time.time()
+        text, finish = self.service.generate(prompt, n, temp, seed)
+        took = time.time() - t0
         # a token count clients require, from the model's own tokenizer
         tok = self.service.s._tok
         n_in = len(tok.encode(prompt)) if tok else 0
         n_out = len(tok.encode(text)) if tok else 0
         usage = {"prompt_tokens": n_in, "completion_tokens": n_out,
                  "total_tokens": n_in + n_out}
-        if payload.get("stream"):
-            return self._stream(text, model, made, hdr, chat, finish,
-                                usage, sources, took)
         body = {
             "id": "cmpl-" + uuid.uuid4().hex[:16],
             "object": "chat.completion" if chat else "text_completion",
@@ -366,9 +386,14 @@ class Handler(BaseHTTPRequestHandler):
         }
         return _json(self, 200, body, hdr)
 
-    def _stream(self, text, model, made, hdr, chat, finish="stop",
-                usage=None, sources=(), took=0.0):
-        """Server-sent events, the shape OpenAI clients expect."""
+    def _stream(self, prompt, n, temp, seed, model, made, hdr, chat,
+                sources):
+        """Server-sent events, the shape OpenAI clients expect.
+
+        The frames leave as the tokens are produced. The headers go out
+        before generation starts, which is the price: an error after that
+        point cannot become a 500, so it arrives as a short stream.
+        """
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
@@ -389,17 +414,39 @@ class Handler(BaseHTTPRequestHandler):
                              .encode("utf-8"))
             self.wfile.flush()
 
-        # the text is already generated: stream it word by word so a
-        # client's rendering stays lively without faking token timing
-        parts = text.split(" ")
-        for i, part in enumerate(parts):
-            send(part if i == 0 else " " + part)
+        sent = [0]
+        stopped = [False]
+
+        def on_token(full):
+            """One frame per token, minus whatever the template appends."""
+            if stopped[0]:
+                return
+            for stop in ("<|im_end|>", "<|endoftext|>", "</s>"):
+                if stop in full:
+                    full = full.split(stop, 1)[0]
+                    stopped[0] = True
+                    break
+            delta = full[sent[0]:]
+            if delta:
+                send(delta)
+                sent[0] = len(full)
+
+        t0 = time.time()
+        text, finish = self.service.generate(prompt, n, temp, seed,
+                                             on_token=on_token)
+        if text[sent[0]:]:                  # whatever the last token added
+            send(text[sent[0]:])
+        tok = self.service.s._tok
+        n_in = len(tok.encode(prompt)) if tok else 0
+        n_out = len(tok.encode(text)) if tok else 0
         # the last frame carries what the non-streaming reply carries, so a
         # streaming client is not the one client that loses the attribution
         send("", done=finish,
-             extra={"usage": usage or {},
+             extra={"usage": {"prompt_tokens": n_in,
+                              "completion_tokens": n_out,
+                              "total_tokens": n_in + n_out},
                     "sillage": {"sources": list(sources),
-                                "seconds": round(took, 2),
+                                "seconds": round(time.time() - t0, 2),
                                 "context_injection": self.service.context}})
         self.wfile.write(b"data: [DONE]\n\n")
         self.wfile.flush()

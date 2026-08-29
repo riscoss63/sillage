@@ -1,0 +1,130 @@
+{
+ "arms": {
+  "shipped 1.8.2 stop list": {
+   "dev_answered": 17,
+   "dev_n": 17,
+   "dev_silent_on_unanswerable": 4,
+   "dev_unans_n": 6,
+   "test_silent_on_unanswerable": 2,
+   "test_unans_n": 14,
+   "test_carried_by_a_function_word": 3,
+   "answerable_score_range": [
+    0.161,
+    0.462
+   ],
+   "test_accidental_score_range": [
+    0.004,
+    0.261
+   ]
+  },
+  "candidate (+ elisions, interrogatives)": {
+   "dev_answered": 17,
+   "dev_n": 17,
+   "dev_silent_on_unanswerable": 4,
+   "dev_unans_n": 6,
+   "test_silent_on_unanswerable": 5,
+   "test_unans_n": 14,
+   "test_carried_by_a_function_word": 0,
+   "answerable_score_range": [
+    0.163,
+    0.462
+   ],
+   "test_accidental_score_range": [
+    0.004,
+    0.217
+   ]
+  }
+ },
+ "floor_sweep": [
+  {
+   "floor": 0.0,
+   "dev_answered": 17,
+   "test_silent": 5
+  },
+  {
+   "floor": 0.02,
+   "dev_answered": 17,
+   "test_silent": 7
+  },
+  {
+   "floor": 0.05,
+   "dev_answered": 17,
+   "test_silent": 7
+  },
+  {
+   "floor": 0.1,
+   "dev_answered": 17,
+   "test_silent": 7
+  },
+  {
+   "floor": 0.14,
+   "dev_answered": 17,
+   "test_silent": 10
+  },
+  {
+   "floor": 0.18,
+   "dev_answered": 15,
+   "test_silent": 11
+  },
+  {
+   "floor": 0.22,
+   "dev_answered": 13,
+   "test_silent": 14
+  },
+  {
+   "floor": 0.26,
+   "dev_answered": 12,
+   "test_silent": 14
+  },
+  {
+   "floor": 0.3,
+   "dev_answered": 12,
+   "test_silent": 14
+  }
+ ],
+ "added_stopwords": [
+  "assez",
+  "avez",
+  "avons",
+  "beaucoup",
+  "ca",
+  "ceci",
+  "cela",
+  "celle",
+  "celles",
+  "celui",
+  "ceux",
+  "combien",
+  "comment",
+  "deja",
+  "encore",
+  "etaient",
+  "etait",
+  "etes",
+  "faut",
+  "jamais",
+  "jusqu",
+  "lorsqu",
+  "non",
+  "ont",
+  "oui",
+  "pourquoi",
+  "presqu",
+  "puisqu",
+  "qu",
+  "quand",
+  "quel",
+  "quelle",
+  "quelles",
+  "quelqu",
+  "quels",
+  "quoiqu",
+  "serait",
+  "seront",
+  "suis",
+  "toujours",
+  "trop",
+  "voici",
+  "voila"
+ ]
+}

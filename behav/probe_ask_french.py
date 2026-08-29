@@ -51,6 +51,17 @@ VERDICT (29/08/2026, 23 questions, one notebook -- a small denominator)
              floor 0.05, between them.
   P5 HELD    body 6/6 -> 6/6, no answer changed.
 
+SUPERSEDED, 30/08/2026. The floor this probe recommended was measured on
+ONE notebook and did not survive a second: see behav/probe_ask_abstain.py,
+where genuine and accidental hits overlap completely (0.127-0.285 against
+0.133-0.261) and the 0.05 floor took a real answer away -- on a two-document
+corpus the passages holding the answer score 0.046 and 0.045. The hard floor
+is gone. What replaced it: the French elisions and interrogatives joined the
+stop list (which is what actually killed the "c'etait" family of false
+positives), and a top score under WEAK_SCORE is now reported as low
+relevance rather than filtered. This file is kept as the record of a
+calibration that was too small, and of the prediction it got right.
+
     python behav/probe_ask_french.py
 """
 

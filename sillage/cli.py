@@ -157,6 +157,16 @@ def cmd_read(a):
     print(f"memory consolidated and saved ({s.mem.tokens} tokens lifetime, "
           f"{len(s.mem.cold)} cold grams, {len(s.index.passages)} passages "
           f"indexed).")
+    if s.mem.sem2_layer is not None and len(s.mem.res_S) < 500:
+        # paper 8's tier keys on surprising positions only and abstains
+        # until its own null has 500 of them. On a short document that
+        # leaves it on and contributing nothing -- say it here, where the
+        # decision to use --sem2 was just made, not only in `status`.
+        print(f"note: the paper-8 tier is on but still SILENT -- "
+              f"{len(s.mem.res_S)} scored positions of the 500 it needs "
+              f"before it stops\n  abstaining. It anchors on surprising "
+              f"tokens, so short documents give it few. Read more into "
+              f"this state, or read the same again.")
 
 
 def cmd_index(a):
@@ -179,6 +189,13 @@ def cmd_ask(a):
     """ask: exact passages from what has been read, with their source."""
     s = make(a)
     if not s.index.passages:
+        if s.mem.tokens:
+            sys.exit(
+                f"this state has read {s.mem.tokens} tokens but carries no "
+                f"passages -- which is what a pulled cartridge is: it ships "
+                f"the matrices, not the text.\n`sillage complete` works on "
+                f"it; `ask` quotes documents, so it needs ones you have read "
+                f"yourself (`sillage index <file>` is instant).")
         sys.exit("nothing has been read yet: sillage read <file> "
                  "(or sillage index <file> for the instant version)")
     show(s.ask(" ".join(a.query), k=a.k, numeric_only=a.numbers))
@@ -199,7 +216,7 @@ def cmd_watch(a):
     exts = ([e if e.startswith(".") else "." + e
              for e in a.ext.split(",")] if a.ext else None)
     watch(s, a.folder, interval=a.interval, once=a.once, exts=exts,
-          fast=not a.full, quiet=False)
+          fast=not a.full, quiet=False, since=a.since)
 
 
 def cmd_export(a):
@@ -673,7 +690,11 @@ def build_parser():
                    help="extensions to read (default: md,txt,markdown)")
     p.add_argument("--full", action="store_true",
                    help="normal reads instead of fast ones (slower, "
-                        "reports perplexity)")
+                        "reports perplexity, and the only mode that "
+                        "trains the rank-16 adapter)")
+    p.add_argument("--since", type=float, default=None, metavar="DAYS",
+                   help="rank only what was read in the last DAYS in the "
+                        "salience journal (e.g. --since 7 for the week)")
     p.set_defaults(fn=cmd_watch)
 
     p = sub.add_parser("export", parents=[common],

@@ -26,13 +26,24 @@ import unicodedata
 from collections import Counter
 
 MIN_CHARS = 140
-# Below this a match is an accident, not an answer: one shared word of the
-# filename, or a stop word the list missed. Measured over 23 questions on a
-# French notebook (behav/probe_ask_french.py): the lowest genuine hit scored
-# 0.161, the highest accidental one 0.024 -- a factor of 6.7, with this
-# floor sitting between them. One notebook is a small denominator; the point
-# of the floor is that "nothing matched" stays an answer the tool can give.
-MIN_SCORE = 0.05
+# 1.8.2 dropped every passage scoring under 0.05, on one notebook where
+# genuine hits started at 0.161 and accidents stopped at 0.024. A second
+# notebook refuted that calibration completely -- there, genuine hits span
+# 0.127-0.285 and accidents 0.133-0.261, overlapping entirely -- and worse,
+# the floor took a real answer away: on a two-document corpus the passages
+# holding the answer scored 0.0458 and 0.0447, so a question whose answer
+# was the first sentence of both documents returned nothing at all. The
+# separating score depends on how much has been read, so no fixed floor is
+# right, and being wrong costs the reader an answer they had.
+#
+# So nothing is dropped. Instead, a top score under WEAK is reported AS
+# weak: the passages come back, with a line saying they share words with
+# the question and may not answer it. Being occasionally wrong about a
+# caution costs nothing; being wrong about a filter costs the answer.
+# Measured on the notebook this threshold was NOT tuned on: 10 of 14
+# unanswerable questions fall under it, and 17 of 17 answerable ones stay
+# above (behav/probe_ask_abstain.py).
+WEAK_SCORE = 0.14
 STOP = set("""a an the of to in and or is are was were be been being for on
 with as by at from that this these those it its we our us they their he she
 which who whom what when where how why not no nor but if then than so such
@@ -46,6 +57,11 @@ ce cet cette ces son sa ses leur leurs mon ma mes ton ta tes notre nos votre
 vos il elle ils elles nous vous je tu on se me te lui y en est sont etait
 ete etre avoir fait plus moins tres peu tout tous toute toutes meme aussi
 pour par dans sur sous avec sans entre vers chez comme si alors pas ne
+qu jusqu lorsqu puisqu quelqu quoiqu presqu
+combien comment pourquoi quand quel quelle quels quelles
+ca cela celui celle ceux celles ceci
+faut avons avez ont suis etes etaient serait seront
+oui non voici voila deja encore toujours jamais beaucoup trop assez
 """.split())
 
 
@@ -258,7 +274,7 @@ class Index:
                                               self.passages[i]["text"]):
                 continue
             s = sum(x * v.get(w, 0.0) for w, x in qv.items())
-            if s > MIN_SCORE:
+            if s > 0:
                 scored.append((s, i))
         scored.sort(reverse=True)
         return [(s, self.passages[i]) for s, i in scored[:k]]
@@ -286,6 +302,14 @@ def show(hits, width=100):
         print("  (nothing matched -- try other words, or `sillage status` "
               "to see what has been read)")
         return
+    if hits[0][0] < WEAK_SCORE:
+        # low overlap has two causes and the score cannot tell them apart:
+        # a question nothing answers, and a real answer in a small index or
+        # worded differently. Say what the number means, not what it proves.
+        print(f"  low relevance ({hits[0][0]:.3f}): a question nothing "
+              f"answers looks like this, and so\n  does a real answer in a "
+              f"small index or in different words. Read these rather\n  "
+              f"than trusting the order.")
     for rank, (score, p) in enumerate(hits, 1):
         print(f"\n[{rank}] {p['source']} - {p['section']}   "
               f"(relevance {score:.3f})")

@@ -1,0 +1,18 @@
+{
+ "shipped (no stemming)": {
+  "dev_answerable_right": 17,
+  "dev_n": 17,
+  "morphological_questions_answered": 2,
+  "morph_n": 4,
+  "test_unanswerable_returning_a_passage": 9,
+  "test_unans_n": 14
+ },
+ "candidate (light French stemmer)": {
+  "dev_answerable_right": 17,
+  "dev_n": 17,
+  "morphological_questions_answered": 1,
+  "morph_n": 4,
+  "test_unanswerable_returning_a_passage": 9,
+  "test_unans_n": 14
+ }
+}

@@ -290,7 +290,13 @@ writes on surprising tokens and pool the query over the prompt, and
 rephrased recall goes from **0% to 80% on Qwen3-0.6B and 30% on GPT-2**
 in this tool -- paired control, held-out facts, witness locality 0-1/10.
 That is `--sem2 auto` below (or `--sem2 LAYER` to name the layer
-yourself).
+yourself). Read the locality figure for what it is: it is the paper-8
+benchmark's own witnesses under `--sem2`, not a general statement about
+generation. On the default path, reading an unrelated document *did*
+change a completion in a later trial — the number it emitted for a
+remembered fact changed, though nothing from the unrelated document
+appeared. Perplexity locality is solid (0.3% movement on an unrelated
+document); generative locality is not the same claim.
 
 ## Put it behind your usual client — `sillage serve`
 
@@ -331,9 +337,16 @@ during the read against a 1.90 s idle baseline** — 2.3x at worst. Until
 1.8.2 the lock was only released at 1024-token window boundaries, so a
 document that fitted in one window offered no yield point at all and a
 real conversation stalled for the whole read; that is what the number
-above replaces. Other endpoints: `/status`, `/ask` (grounded passages, no
-model), `/tasks/<id>`, `/v1/models`, `/v1/completions`, and `stream: true`
-where clients expect it.
+above replaces. What remains, said plainly: those yield points are in the
+*write* loop, and the frozen forward pass at the top of each window — up
+to 1024 tokens at once — still holds the lock and cannot be interrupted.
+A request arriving during one waits **11–25 s**. That is the floor of the
+design, not a bug. Other endpoints: `/status`, `/ask` (grounded passages, no
+model), `/tasks/<id>`, `/v1/models`, `/v1/completions`, and `stream: true`,
+which since 1.8.3 emits each token as it is produced (first frame at
+0.36 s of a 2.35 s answer, byte-identical to the non-streamed reply) —
+before that the whole answer was generated and then chopped on spaces,
+so every frame landed at the end.
 
 It binds to `127.0.0.1`. **This memory contains the text you fed it** —
 `--host 0.0.0.0` is possible, says so out loud, and `--token` adds a
@@ -498,11 +511,23 @@ This is the part most repositories leave out.
   and refuted by it.
 - **A revised document does not supersede the one it revises.** Read a note
   saying the alert threshold is 40 degrees, then a note saying it was raised
-  to 55, each twice: `ask` still ranks the old one first (the two passages
-  tie at 0.043 and insertion order breaks it) and `complete` still says 40.
+  to 55, each twice: `ask` returns **both**, a thousandth of a point apart
+  (0.046 and 0.045), with the withdrawn one first; `complete` says 40.
   Paper 6's conflict curve measured how many rereads flip a *generation*;
-  nothing in the retrieval layer knows that one document withdraws another.
-  If you keep a value that changes, edit the note rather than adding one.
+  nothing in the retrieval layer knows that one document withdraws another,
+  and on two short documents the scores cannot even order them meaningfully.
+  Returning both is the honest behaviour and it is what the tool does — but
+  it means **you** are the one who notices the contradiction. If you keep a
+  value that changes, edit the note rather than adding a second one.
+- **The memory can move a real fact onto a question it cannot answer.**
+  Asked to continue *"la prochaine visite de l'inspection régionale aura
+  lieu le"* — no visit is mentioned anywhere in what was read — the tool
+  answered **"14 juin"**, which is the *signature date* of the report it had
+  read, followed by a clause spliced verbatim from it. The empty-state
+  control answers "1er janvier 2024", so the specific false date is the
+  memory's contribution. This is the sharpest form of "never a source of
+  truth": the generation is wrong in a way that *looks* sourced. Use
+  `sillage ask`, which returns the passage or nothing.
 - **The paper-8 tier can be on and silent, and short documents are where.**
   `--sem2 auto` keys on surprising positions only, and the tier abstains
   until it has 500 scored ones. On a 1.2k-token document that left 12, so
@@ -556,11 +581,11 @@ automatic layer choice, the pickle-free state round-trip, the JSON index, the
 readout tuner, the multi-model paths); `python test_sillage.py` runs 14
 end-to-end tests of the tool (each command in its own process, invented facts
 the base model cannot know); `python test_serve.py` starts the HTTP service and
-talks to it over real sockets (14 checks: an OpenAI client, a background
-ingestion answering mid-read, refusals, and the bearer token); and
-`python test_axis4.py` covers watch, review, export and pull (24 checks,
-including the cartridge round-trip and its refusals). All four are green on the
-shipped 1.8.0.
+talks to it over real sockets (16 checks: an OpenAI client, a background
+ingestion answering mid-read, a stream that arrives while it is generated,
+refusals, and the bearer token); and `python test_axis4.py` covers watch,
+review, export and pull (24 checks, including the cartridge round-trip and
+its refusals). **72 checks**, all green on the shipped 1.8.3.
 
 <details>
 <summary><b>Repository layout</b></summary>

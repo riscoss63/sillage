@@ -5,7 +5,7 @@ This file is for the *research* scripts. If you only want to use the system,
 (see [README.md](README.md)); `python test_unit.py` checks the mechanisms
 themselves in five seconds (18 checks), `python test_sillage.py` runs 14
 end-to-end tests of the tool in about twenty minutes, `python test_serve.py`
-starts the HTTP service and talks to it over real sockets (15 checks), and
+starts the HTTP service and talks to it over real sockets (16 checks), and
 `python test_axis4.py` covers watch, review, export and pull, and the same
 commands through the command line (24 checks).
 
@@ -215,7 +215,7 @@ are in `behav/JOURNAL.md`, written before each run.
 
 ## Shipping probes
 
-Seven probes under `behav/` measure what the *shipped* tool does rather than
+Nine probes under `behav/` measure what the *shipped* tool does rather than
 what a paper claims; the README's `--dtype` table is one of their outputs.
 Three of them write into `behav/results/` like the rest of `behav/`, and the
 committed copies under `results/` keep the same names; the fourth
@@ -231,6 +231,8 @@ python behav/probe_ship_threshold.py [qwen|gpt2]
 python behav/probe_heading_index.py
 python behav/probe_ask_french.py
 python behav/probe_serve_midread.py [--model gpt2]
+python behav/probe_ask_abstain.py
+python behav/probe_ask_stem.py
 ```
 
 `probe_shareable_state.py` asks what a state is worth without its cold store
@@ -282,6 +284,24 @@ Folding accents in the search key took unaccented questions from 4/6 to
 registered prediction refuted in the file. The floor is what does: the
 lowest genuine hit scores 0.161, the highest accidental one 0.024, and
 `MIN_SCORE` sits between them. Needs no model.
+
+`probe_ask_abstain.py` is the sequel that refuted `probe_ask_french.py`'s
+own recommendation. It scores both notebooks -- the tuned one and the
+larger one the real-world trials wrote, which it never tunes on -- and
+found that the 0.05 floor shipped in 1.8.2 could not survive a second
+corpus (genuine hits 0.127-0.285 against accidental 0.133-0.261, fully
+overlapping) and had taken a real answer away. Its own finding: the
+French elisions (`qu'`, `jusqu'`, `lorsqu'`) survived tokenisation as
+full-weight words, and one of them carried 100 % of a false positive's
+score. The floor is gone; the elisions and the interrogatives joined the
+stop list; a low top score is now *reported* rather than filtered
+(`results/ask_abstain.json`).
+
+`probe_ask_stem.py` is the eighth negative result of the series. A light
+French suffix stripper, measured on the same two notebooks, answered
+FEWER morphological questions than the plain tokeniser (1 of 4 against
+2 of 4) because stripping moves a query term and a passage term
+independently. Not shipped (`results/ask_stem.json`).
 
 `probe_serve_midread.py` times a chat completion sent *during* an
 ingestion, against the same completion sent to an idle server

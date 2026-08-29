@@ -494,7 +494,8 @@ class Sillage:
         return rec
 
     # ---------------------------------------------------------- generate ----
-    def complete(self, prompt, n=40, temp=0.0, seed=0, fast=False):
+    def complete(self, prompt, n=40, temp=0.0, seed=0, fast=False,
+                 on_token=None):
         """Continue a prompt with memory and fast weights. Writes nothing.
 
         fast=True verifies drafts from the memory in blocks (paper 5):
@@ -566,6 +567,11 @@ class Sillage:
                 else:
                     nxt = int(np.argmax(p))
                 out_ids.append(nxt)
+                if on_token is not None:
+                    # the whole text so far, decoded: a caller streaming
+                    # this computes its own delta, because a subword token
+                    # is not a printable increment on its own
+                    on_token(tok.decode(out_ids))
                 inp = torch.tensor([[nxt]], device=self.device)
                 if nxt == getattr(tok, "eos_token_id", -1):
                     break
@@ -783,9 +789,13 @@ class Sillage:
         but never spoken), and how many are gone (pruned at
         consolidation, or never written).
 
-        Returns one record per source, least consolidated first --
-        rereading is what moves a gram from fragile to consolidated,
-        which is the whole point of the law.
+        Returns one record per source, MOST FRAGILE GRAMS FIRST.
+        Ordering by percentage instead was measured to mislead: a
+        three-line diary saying "nothing to report" sat at 2% and was
+        recommended before a page of decisions at 71%, because a tiny
+        document has few grams and one reread carries it to 79%. What is
+        about to be forgotten is a COUNT, not a share -- the share is
+        reported beside it because it says how far a document has got.
         """
         from .core import COLD_MIN_COUNT, NGRAM
         by_source = {}
@@ -818,7 +828,7 @@ class Sillage:
                         "gone": gone,
                         "share": round(solid / total, 3),
                         "passages": len(texts)})
-        return sorted(out, key=lambda r: r["share"])
+        return sorted(out, key=lambda r: (-r["fragile"], r["share"]))
 
     # --------------------------------------------------------------- ask ----
     def ask(self, question, k=3, numeric_only=False):

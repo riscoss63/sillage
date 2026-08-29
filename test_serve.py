@@ -150,6 +150,35 @@ try:
           and "delta" in json.loads(frames[0][6:])["choices"][0],
           f"({len(frames)} SSE frames, terminated)")
 
+    # a stream must arrive AS it is generated, and say the same thing as
+    # the non-streamed reply. Until 1.8.3 the whole answer was produced
+    # first and then chopped on spaces: every frame landed at the end.
+    ask = {"max_tokens": 20, "temperature": 0,
+           "messages": [{"role": "user", "content": "The protocol"}]}
+    t0 = time.time()
+    _, plain, _ = call("/v1/chat/completions", ask)
+    plain_took = time.time() - t0
+    req = urllib.request.Request(
+        BASE + "/v1/chat/completions",
+        data=json.dumps(dict(ask, stream=True)).encode(),
+        headers={"Content-Type": "application/json"})
+    t0, first_at, pieces = time.time(), None, []
+    with urllib.request.urlopen(req, timeout=300) as r:
+        for line in r:
+            line = line.decode().strip()
+            if not line.startswith("data: ") or line.endswith("[DONE]"):
+                continue
+            if first_at is None:
+                first_at = time.time() - t0
+            pieces.append(json.loads(line[6:])["choices"][0]
+                          .get("delta", {}).get("content", ""))
+    streamed, whole = "".join(pieces).strip(), time.time() - t0
+    check("S7b the stream arrives while it is generated",
+          streamed == plain["choices"][0]["message"]["content"].strip()
+          and first_at is not None and first_at < 0.5 * whole,
+          f"(first frame at {first_at:.2f}s of {whole:.2f}s, identical to "
+          f"the {plain_took:.2f}s non-streamed reply)")
+
     # ------------------------------------------------------------ UC3
     code, task, _ = call("/read", {"paths": [DOC2], "fast": True})
     check("S8 background read accepted (UC3)", code == 202
