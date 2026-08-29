@@ -131,7 +131,16 @@ class Service:
                      "minutes": rec.get("minutes"),
                      "ppl_with_memory": rec.get("ppl_with_memory")})
             task["state"] = "done"
-        except Exception as exc:                       # noqa: BLE001
+        except KeyboardInterrupt:                      # keep ctrl-c clean
+            task["state"] = "failed"
+            task["error"] = "interrupted"
+            task["finished"] = time.time()
+            raise
+        except BaseException as exc:                   # noqa: BLE001
+            # a refused read raises SystemExit (ingest.py refuses a fast
+            # read while the readout is calibrating; core refuses a state
+            # from another model). Catching Exception alone let the worker
+            # die silently and left the task "reading" for ever.
             task["state"] = "failed"
             task["error"] = f"{type(exc).__name__}: {exc}"
         task["finished"] = time.time()

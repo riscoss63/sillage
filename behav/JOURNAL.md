@@ -1235,7 +1235,7 @@ au-dessus du plancher, d'où l'écart apparent entre les deux tests.
 **VERDICT étape 4 — quantification (results/quantised_qwen_int8.json) :
 NÉGATIF SUR CPU, et livré comme tel.** int8 dynamique de torch (197
 couches linéaires quantifiées sur qwen, zéro dépendance ajoutée) :
-- admissions du cold store **identiques** (467 vs 467, Jaccard 1.000) —
+- admissions du cold store **identiques** (483 vs 483, Jaccard 1.000) —
   la règle des deux occurrences survit intacte ;
 - MAIS corrélation des portes **0.9735** < le seuil 0.98 déclaré
   d'avance → **prédiction réfutée, verdict « approximatif »** ; écart

@@ -9,11 +9,16 @@ jobs:
   unit:
     # The mechanisms need nothing but numpy: the Hebbian read and write, the
     # amplitude rule, forgetting, the delta-rule adapter, the state
-    # round-trip, the readout tuner and the passage splitter all run in a few
-    # seconds. Windows is in the matrix because the tool claims to work there
-    # (it expands its own globs, and writes its state with explicit
-    # encodings). The suites that download GPT-2 (test_sillage.py for the
-    # tool, test_serve.py for the HTTP service) are run locally.
+    # round-trip, the readout tuner, the passage splitter, the cold
+    # surprise-mass weighting, the blocked ingestion writes, the paper-8
+    # semantic keys, the pickle-free state, the JSON index and the automatic
+    # layer choice -- seventeen checks in all, and all of them in a few
+    # seconds. Windows is
+    # in the matrix because the tool claims to work there (it expands its own
+    # globs, and writes its state with explicit encodings). The suites that
+    # download GPT-2 (test_sillage.py for the tool, test_serve.py for the
+    # HTTP service, test_axis4.py for watch, review, export and pull) are run
+    # locally.
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

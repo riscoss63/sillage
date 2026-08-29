@@ -1,6 +1,7 @@
 """One command-line assistant for the whole project.
 
     sillage read notes.md            read + memorize (all four mechanisms)
+    sillage index notes.md           searchable at once, no model needed
     sillage ask "what did it say?"   grounded excerpts, nothing generated
     sillage complete "the report"    generate with memory + fast weights
     sillage chat                     both of the above, interactively
@@ -62,9 +63,10 @@ def sem2_layer(v):
 
 
 def expand(paths):
-    """Expand globs ourselves: PowerShell and cmd.exe do not."""
+    """Expand globs and ~ ourselves: PowerShell and cmd.exe do neither."""
     out = []
     for p in paths:
+        p = os.path.expanduser(p)
         hits = sorted(glob.glob(p))
         out += hits if hits else [p]
     return out
@@ -277,21 +279,27 @@ def cmd_review(a):
           f"Reading a document again is what consolidates it.")
     if a.read:
         n = max(1, a.read)
-        todo = [r["source"] for r in rows[:n]]
-        found = [p for p in expand(todo) if os.path.exists(p)]
-        missing = [p for p in todo if p not in found]
+        # the log keeps the path each document was read from, so a reread
+        # does not depend on standing in the same directory as that read
+        where = {f["file"]: f.get("path") for f in s.mem.log["files"]}
+        found, missing = [], []
+        for r in rows[:n]:
+            src = r["source"]
+            cands = [c for c in (where.get(src), src) if c]
+            hit = next((c for c in expand(cands) if os.path.exists(c)),
+                       None)
+            found.append((src, hit)) if hit else missing.append(src)
         if missing:
-            print(f"\n  cannot reread (not at this path): "
-                  f"{', '.join(missing)}")
-        for path in found:
-            r = s.read(path, fast=True)[0]
+            print(f"\n  cannot reread (no longer at the path it was read "
+                  f"from): {', '.join(missing)}")
+        for src, path in found:
+            r = s.read(path, fast=True, name=src)[0]
             print(f"  reread {r['file']}: {r['tokens']} tokens")
         if found:
             after = {x["source"]: x for x in s.review()}
-            for path in found:
-                name = os.path.basename(path)
-                if name in after:
-                    print(f"  {name}: {after[name]['share']:.0%} "
+            for src, _ in found:
+                if src in after:
+                    print(f"  {src}: {after[src]['share']:.0%} "
                           f"consolidated now")
     else:
         print(f"  least consolidated: {weakest['source']} "
@@ -357,6 +365,10 @@ def cmd_status(a):
         print("  note: past ~0.5 writes/parameter the matrix saturates; "
               "add --half-life 100000 to keep learning.")
     for f in st["files"][-10:]:
+        if f.get("ppl_frozen") is None:      # read --fast, or watch
+            print(f"  {f['date']}  {f['file']}: {f['tokens']} tok, "
+                  f"fast ingest (writes only, no perplexity)")
+            continue
         fw = f.get("ppl_fastweights")
         mid = f" -> {fw}" if fw else ""
         print(f"  {f['date']}  {f['file']}: {f['tokens']} tok, "
@@ -446,6 +458,16 @@ def cmd_chat(a):
         print()
 
 
+def adapter(s, rec):
+    """The adapter leg of a perplexity line, when there is an adapter.
+
+    `--target` turns it off (paper 5: the adapter belongs to the reading
+    model's geometry), and then it would print the frozen number twice.
+    """
+    return (f"  ->  adapter {rec['ppl_fastweights']}"
+            if s.mem.fastweights else "")
+
+
 def cmd_demo(a):
     """Two sessions on one document: read it, then read it again."""
     path = a.file[0] if a.file else None
@@ -454,6 +476,10 @@ def cmd_demo(a):
         if not tex:
             sys.exit("usage: sillage demo <a text file you own>")
         path = tex[0]
+    if a.state:
+        sys.exit("demo starts from an empty memory, so it wipes the state "
+                 "directory it uses -- it will not do that to one you "
+                 "named. Leave --state out and it uses ./.sillage-demo.")
     state = ".sillage-demo"
     shutil.rmtree(state, ignore_errors=True)
     from .index import read_text
@@ -467,22 +493,24 @@ def cmd_demo(a):
     r1 = s.read_text(text, os.path.basename(path))
     s.index.add(text, os.path.basename(path))
     s.save()
-    print(f"  frozen {r1['ppl_frozen']}  ->  adapter "
-          f"{r1['ppl_fastweights']}  ->  + memory {r1['ppl_with_memory']}")
+    print(f"  frozen {r1['ppl_frozen']}{adapter(s, r1)}  ->  "
+          f"+ memory {r1['ppl_with_memory']}")
     print("\n--- session 2: same document, everything remembered ---")
     s2 = make(a, state=state)
     r2 = s2.read_text(text, os.path.basename(path))
     s2.save()
-    print(f"  frozen {r2['ppl_frozen']}  ->  adapter "
-          f"{r2['ppl_fastweights']}  ->  + memory {r2['ppl_with_memory']}")
+    print(f"  frozen {r2['ppl_frozen']}{adapter(s2, r2)}  ->  "
+          f"+ memory {r2['ppl_with_memory']}")
     gain = r1["ppl_frozen"] / max(1e-9, r2["ppl_with_memory"])
     print(f"\nperplexity divided by {gain:.1f}x on the second pass, with "
           f"{s2.status()['disk']/1e6:.1f} MB of state and no gradient.")
     words = text.split()
     if len(words) > 60:
         cut = " ".join(words[40:48])
+        out = s2.complete(cut, n=a.n, temp=a.temp,
+                          fast=getattr(a, "fast", False))
         print(f"\ncompletion of a phrase from the document:\n  {cut!r}"
-              f" ->{s2.complete(cut, n=12)!r}")
+              f" ->{out!r}")
     print(f"\n(demo state in {state}/ -- delete it or "
           f"`sillage forget --all --state {state}`)")
 
@@ -660,7 +688,8 @@ def build_parser():
                    help="127.0.0.1 by default: this memory holds the "
                         "text you fed it, so it stays on this machine "
                         "unless you say otherwise")
-    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("--port", type=int, default=8000,
+                   help="port to bind (default: 8000)")
     p.add_argument("-k", type=int, default=3,
                    help="passages injected into each prompt (paper 7: "
                         "formulation happens in the window)")
@@ -676,7 +705,9 @@ def build_parser():
     p = sub.add_parser("forget", parents=[common],
                        help="wipe the memory (--all) or drop one document")
     p.add_argument("what", nargs="*")
-    p.add_argument("--all", action="store_true")
+    p.add_argument("--all", action="store_true",
+                   help="wipe the whole state directory: matrices, cold "
+                        "store, index and log")
     p.set_defaults(fn=cmd_forget)
 
     p = sub.add_parser("papers", parents=[common],
@@ -688,7 +719,9 @@ def build_parser():
     p = sub.add_parser("demo", parents=[common, gen],
                        help="two sessions on one document, start to finish")
     p.add_argument("file", nargs="*")
-    p.add_argument("--max-tokens", type=int, default=4000)
+    p.add_argument("--max-tokens", type=int, default=4000,
+                   help="tokens of the document to read in each of the "
+                        "two sessions (default: 4000)")
     p.set_defaults(fn=cmd_demo)
     return ap
 

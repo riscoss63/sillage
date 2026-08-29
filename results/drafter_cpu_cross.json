@@ -1,7 +1,7 @@
 {
   "n": 28,
   "gamma": 8,
-  "state": "C:\\Users\\abdel\\Documents\\preprint\\llm_memory\\memory_state",
+  "state": "memory_state",
   "target": "Qwen/Qwen3-1.7B",
   "A_seen": {
     "plain": {

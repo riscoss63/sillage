@@ -9,7 +9,19 @@ headline is C*: the cap at which the bare model's NLL matches the
 augmented model's NLL at C=64. "X MB of state is worth (C*-64) tokens of
 context on this regime."
 
+Two regimes, and paper 6 reports both. Without --doc the segment is the
+tail of the corpus the state was built from: RECITATION, where the bare
+model never catches up. With --doc it is a document the memory has never
+read -- a sibling of what it did read -- which is the TRANSFER regime,
+where C* is finite (195 tokens in the paper). The transfer document is
+one of the author's own manuscripts and is not redistributed, so point
+--doc at a sibling of your own; the committed
+`results/behav_equivalence_gpt2_transfer.json` was produced this way
+before the arm was factored out of a modified copy, which is why it
+carries no `target_nll_mem_at_64`.
+
     python equivalence.py [--segment 6000]
+    python equivalence.py --doc path/to/an/unread/sibling.md
 """
 
 import argparse
@@ -93,17 +105,22 @@ def _papers_state():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--segment", type=int, default=6000)
+    ap.add_argument("--doc", default=None, metavar="PATH",
+                    help="score a document the memory has NOT read "
+                         "(the transfer regime) instead of the tail of "
+                         "the corpus it was built from")
     a = ap.parse_args()
 
     s = Sillage(model="gpt2",
                 state=_papers_state(),
                 quiet=True)
     tok, _ = s.load_model()
-    text = open(os.path.join(ROOT, "papers_state", "corpus.txt"),
-                encoding="utf-8", errors="replace").read()
+    src = a.doc or os.path.join(ROOT, "papers_state", "corpus.txt")
+    text = open(src, encoding="utf-8", errors="replace").read()
     ids = tok.encode(text)[-a.segment:]
-    print(f"segment: {len(ids)} tokens (fin du corpus des papiers), "
-          f"positions notees >= {S0}", flush=True)
+    regime = "transfert" if a.doc else "recitation"
+    print(f"segment: {len(ids)} tokens ({os.path.basename(src)}, "
+          f"regime {regime}), positions notees >= {S0}", flush=True)
 
     R = {"caps": {}}
     for C in CAPS:
@@ -137,7 +154,11 @@ def main():
               "960 tokens de contexte sur ce regime.")
 
     os.makedirs(os.path.join(HERE, "results"), exist_ok=True)
-    out = os.path.join(HERE, "results", "equivalence_gpt2.json")
+    R["regime"] = regime
+    R["document"] = os.path.basename(src)
+    out = os.path.join(HERE, "results",
+                       "equivalence_gpt2_transfer.json" if a.doc
+                       else "equivalence_gpt2.json")
     json.dump(R, open(out, "w"), indent=2)
     print(f"saved -> {out}")
 

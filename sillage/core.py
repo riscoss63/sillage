@@ -234,8 +234,10 @@ class SillageMemory:
         self.cal_at = 0                 # lifetime tokens at the last fit
         self.cal = None                 # dev statistics, until they are used
         self.semantic = sem_default if semantic is None else semantic
-        # "auto" defers the layer choice to the first read, which picks it
-        # from the document itself (sem2_score_layers)
+        # "auto" defers the layer choice to the first read: the layer
+        # paper 8 measured for a model it measured, otherwise a sweep
+        # over the document itself (runtime.resolve_sem2, which scores
+        # candidate layers with sem2_separation)
         self.sem2_auto = (sem2 == "auto")
         if self.sem2_auto:
             sem2 = None
@@ -652,6 +654,31 @@ class SillageMemory:
             z = z @ self._W2mat()
         z = z / (np.linalg.norm(z) + 1e-8)
         return self._bands(z)
+
+    def sem2_pooled(self, H2, ids):
+        """Paper 8's query: the tier's scores pooled over a whole prompt.
+
+        No anchor heuristic survives a bare prompt -- every token of it
+        looks surprising -- so the query is the position-wise maximum of
+        the tier's scores over every prompt position, with the prompt's
+        own tokens suppressed: recall never pays for what the window
+        already holds.
+
+        Both decoders call this, plain and speculative, which is what
+        keeps `complete --fast` identical on a `--sem2` state.
+        """
+        pooled = None
+        for k in range(0, len(H2), 64):
+            Q = np.stack([self.sem2_key(H2[p_])
+                          for p_ in range(k, min(k + 64, len(H2)))])
+            U = Q @ self.MS
+            S = (U / (np.linalg.norm(U, axis=1, keepdims=True) + 1e-8)) \
+                @ self.V.T
+            mx_ = S.max(axis=0)
+            pooled = mx_ if pooled is None else np.maximum(pooled, mx_)
+        if pooled is not None:
+            pooled[list(set(int(t) for t in ids))] = -1e9
+        return pooled
 
     @staticmethod
     def zca_of(X, shrink=0.1):

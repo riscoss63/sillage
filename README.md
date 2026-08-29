@@ -2,7 +2,7 @@
 
 **Your language model forgets everything. Sillage gives it a memory — and a
 way to keep learning — in a fixed handful of megabytes, with no gradients and
-no index that grows.**
+no datastore of hidden states that grows.**
 
 > *sillage* (n., French) — the trace left behind by something that has passed:
 > a ship's wake, a scent in a room. What a model keeps of what it read.
@@ -17,8 +17,9 @@ no index that grows.**
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22079016.svg)](https://doi.org/10.5281/zenodo.22079016)
 
 A frozen LM reads your documents, remembers them, and predicts better next
-time — **no gradients, no fine-tuning, no growing index**. One Hebbian matrix
-written as the model reads, a semantic tier routed by confidence, a cold store
+time — **no gradients, no fine-tuning, no growing datastore of hidden
+states**. One Hebbian matrix written as the model reads, a semantic tier
+routed by confidence, a cold store
 that consolidates by surprise, and a rank-16 adapter on the readout. Four
 mechanisms, eight papers, **one command-line tool**. Everything runs on a
 laptop CPU.
@@ -64,17 +65,29 @@ model alone predicts, what the rank-16 adapter adds, and what the memory of
 everything read so far adds on top.
 
 The memory lives in `./.sillage` and survives restarts — it survived a power
-cut during development. Its size is fixed the day you start: 7.4 MB with
-GPT-2, 25 MB with Qwen3 (whose vocabulary is 3x larger) — plus 12.6 MB once
-the semantic tier is switched on, and 2-4 MB more with `--sem2-whiten`,
-which is still a constant, not a growing index — the same after one
+cut during development. Its size is fixed the day you start, because the shape
+of the matrices is: **7.4 MB with GPT-2** and **26.5 MB with Qwen3** (25 MiB —
+the figure paper 5 quotes) — 4.2 MB of n-gram matrix, 12.6 MB of semantic tier
+(on by default with `--model qwen`, opt-in elsewhere) and a `vocab x 16`
+adapter that is 3.2 MB at GPT-2's vocabulary and 9.7 MB at Qwen3's;
+`--sem2-whiten` adds 2-4 MB. The file on disk is compressed, so it starts
+smaller and grows toward that ceiling as the matrices fill — the same after one
 document or ten thousand. It **never learns from its own generations**,
 only from what you give it to read.
 
-Reading is the slow part (one frozen forward pass per token, on CPU): about
-8 minutes per 10k tokens with the default Qwen3-0.6B, about 2 with
-`--model gpt2` — which is 4x faster but English-only. `index` and `ask` need
-no model at all and are instant.
+The grounded-retrieval index (`index.json` — the verbatim passages
+`sillage ask` quotes) sits beside the memory and *does* grow with what you
+read. It is not what the model predicts from, and `sillage forget --all`
+clears both.
+
+Reading is the slow part, and the cost is the per-token numpy work rather
+than the frozen forward pass: one forward per 1024-token window, then, at
+every position, pricing the prediction against the memory and two rank-1
+outer products to write it. `read --fast` drops the pricing and applies the
+writes in blocks, which is where its speed-up comes from — it skips none of
+them. About 8 minutes per 10k tokens with the default Qwen3-0.6B, about 2
+with `--model gpt2` — which is 4x faster but English-only. `index` and `ask`
+need no model at all and are instant.
 
 ### Which model can it wrap? Any of them
 
@@ -193,7 +206,8 @@ there is one; the mechanisms stay numpy on the CPU), `--no-fastweights`,
 `--no-semantic`, `--half-life N` (forgetting, in tokens), `--no-calibrate` /
 `read --recalibrate`, `read --fast` (paper 7's blocked write-only
 ingestion: ~40x on long documents, exact cold store, declared amplitude
-tolerances, no perplexity report), `--sem2 auto` (or a layer number, plus
+tolerances, no perplexity report — about half that with `--sem2`, which
+pays for its keys per token), `--sem2 auto` (or a layer number, plus
 `--sem2-whiten`): paper 8's semantic keys -- the tier reads an early
 hidden layer instead of the last one, anchors its writes on surprising
 tokens and pools the query over the prompt, which is what makes
@@ -227,9 +241,9 @@ every system tuned identically on a held-out prefix, 95 % bootstrap CIs):
 | \+ memory **and** fast weights | **16.8** | **−46 %** | 7.4 MB, constant |
 
 (The last row is the rank-16 adapter the tool actually ships,
-[measured](results/fwscale_bhd.json); paper 4's +0.633-nat headline, PPL
-16.6, uses the dev-selected rank-256 adapter — 51 MB of adapter for the
-last 0.2 nats.)
+[measured](results/fwscale_bhd.json); paper 4's +0.633-nat headline uses
+the dev-selected rank-256 adapter — 51 MB of adapter for the last 0.015
+nats (perplexity 16.8 -> 16.6).)
 
 The fixed 4.2 MB memory beats the unbounded datastore it was designed to
 approximate — paired bootstrap **P = 1.000**
@@ -370,8 +384,8 @@ against float32 with the thresholds declared before the run:
 
 | dtype | surprise gate | cold admissions | recall | reading |
 |---|---|---|---|---|
-| `bfloat16` | r = **1.0000** (0.0045 nats apart) | 467 vs 467, Jaccard 1.00 | identical | **4x slower** (emulated on this CPU) |
-| `int8` | r = **0.9735** — under the 0.98 declared | 467 vs 467, Jaccard 1.00 | **5/7 -> 1/7** | no faster |
+| `bfloat16` | r = **1.0000** (0.0045 nats apart) | 483 vs 483, Jaccard 1.00 | identical | **4x slower** (emulated on this CPU) |
+| `int8` | r = **0.9735** — under the 0.98 declared | 483 vs 483, Jaccard 1.00 | **5/7 -> 1/7** | no faster |
 
 So: float32 stays the default on CPU, `bfloat16` is faithful and is for
 when *memory* is the constraint, `int8` is for making a bigger model fit
@@ -422,6 +436,7 @@ the text in front of it, on a fixed byte budget, forever.
 | 2 · Router | `M_S`, 12.6 MB semantic tier, **score-level** mixing with abstention | `--model qwen` only (other models need whitening) | `--semantic` / `--no-semantic` |
 | 3 · Hierarchy | cold store of exact 4-grams, consolidated by surprise **mass** at save time | yes | — |
 | 4 · Fast weights | `A`, rank-16 delta-rule readout adapter, uniform step | yes | `--no-fastweights` |
+| 5 · Drafter | speculative decoding from the state, and cross-model recall in the family | no | `complete --fast`, `--target NAME` |
 | 1 & 3 · long horizons | leaky forgetting (half-life in tokens) | no — needed past ~0.5 writes/parameter | `--half-life 100000` |
 | all four · protocol | readout **calibration**: the papers' grids fitted on a rolling window of what you just read, governing the next read | only for a model the papers did not tune | `--calibrate` / `--no-calibrate`, `read --recalibrate` |
 
@@ -431,7 +446,7 @@ the honest limit of the whole approach.
 
 ## The eight preprints
 
-All eight are archived on Zenodo with permanent DOIs; the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
+Papers 1-6 are archived on Zenodo with permanent DOIs (7 and 8 are in submission); the LaTeX sources and figures are in [`papers/`](papers/). `sillage papers` indexes them so you can query them offline.
 
 | # | title | the finding |
 |---|---|---|
@@ -461,6 +476,14 @@ This is the part most repositories leave out.
   endings inflated every method by **+1.35 phantom nats**; a one-position
   misalignment made the RAG baseline score at chance. Both were caught by
   controls, not by luck.
+- **The paper-8 tier is not free in the fast path.** Blocking its writes was
+  predicted to buy **≥x3** and bought **x1.9**. The profile says why: the fast
+  path reads 270 tok/s without the tier, 143 with it and 109 with
+  `--sem2-whiten`, because keying an early layer and accumulating a covariance
+  are per-token costs that blocking cannot remove. 143 tok/s is still x15-20
+  over a normal read's 7 — but the ~40x headline holds *without* `--sem2`, not
+  with it. Registered before the run in `behav/JOURNAL.md` (experiment C2),
+  and refuted by it.
 - **Self-calibration loses to a proper tuning, where one exists.** Fitting the
   readout on your own stream sounds strictly better than using someone else's
   constants. It is not: the window is read by a memory that is *colder* than
@@ -484,7 +507,7 @@ This is the part most repositories leave out.
   (Provenance note: this table, the Pythia and three-pass examples above,
   and the quickstart transcripts are replayable CLI sessions of the shipped
   tool, reported as transcripts. Every number in the results tables and the
-  five papers is committed as JSON in [`results/`](results/); these
+  eight papers is committed as JSON in [`results/`](results/); these
   illustrative CLI numbers are not, and will vary slightly with your
   documents.)
 
@@ -500,14 +523,18 @@ retrieved values with random tokens; any surviving gain is an artifact), a
 Every number in every paper regenerates from these scripts with fixed seeds,
 on CPU. See **[REPRODUCE.md](REPRODUCE.md)** for the full pipeline; results
 are committed as JSON in [`results/`](results/) (including per-seed values).
-`python test_unit.py` checks the mechanisms themselves in five seconds
-(numpy only, no model: retrieval, the square-root rule, forgetting, the delta
-rule, consolidation, the state round-trip, the readout tuner, the multi-model
-paths); `python test_sillage.py` runs 14 end-to-end tests of the tool (each
-command in its own process, invented facts the base model cannot know);
-and `python test_serve.py` starts the HTTP service and talks to it over
-real sockets (an OpenAI client, a background ingestion answering
-mid-read, refusals, and the bearer token).
+`python test_unit.py` checks the mechanisms themselves in five seconds (17
+checks, numpy only, no model: retrieval, the square-root rule, forgetting, the
+delta rule, consolidation, blocked ingestion, the semantic keys and their
+automatic layer choice, the pickle-free state round-trip, the JSON index, the
+readout tuner, the multi-model paths); `python test_sillage.py` runs 14
+end-to-end tests of the tool (each command in its own process, invented facts
+the base model cannot know); `python test_serve.py` starts the HTTP service and
+talks to it over real sockets (14 checks: an OpenAI client, a background
+ingestion answering mid-read, refusals, and the bearer token); and
+`python test_axis4.py` covers watch, review, export and pull (23 checks,
+including the cartridge round-trip and its refusals). All four are green on the
+shipped 1.8.0.
 
 <details>
 <summary><b>Repository layout</b></summary>
@@ -515,7 +542,8 @@ mid-read, refusals, and the bearer token).
 ```
 sillage/         the tool: core.py (the four mechanisms), runtime.py,
                  index.py (grounded retrieval), ingest.py (fast reads),
-                 drafting.py (speculative), serve.py (HTTP), cli.py
+                 drafting.py (speculative), serve.py (HTTP),
+                 watch.py (the folder walk and salience journal), cli.py
 pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
@@ -538,8 +566,16 @@ data/ dumps/     regenerable artifacts (gitignored, ~2 GB)
 Version 1.0 merged the two former scripts into one tool: `assistant.py` →
 `sillage read` / `complete`, `papers_assistant.py` → `sillage papers` / `ask`,
 `demo.py` → `sillage demo`. Old `memory_state/` directories are still read.
-The research scripts keep their own bootstrap header, so any of them runs from
-anywhere and resolves `data/`, `dumps/`, `results/` identically.
+The papers 1-4 pipeline (`pipeline/`, `memory/`, `fastweights/`, `eval/` and
+`figures/make_figures*.py` through p4) keeps a bootstrap header that resolves
+the repo root and `chdir`s to it, so `data/`, `dumps/` and `results/` always
+resolve identically. The `spec/`, `behav/` and `longmemeval/` scripts and
+figures p5-p8 resolve paths from their own directory and write into
+`spec/results/`, `behav/results/` and `longmemeval/results/`, which are
+gitignored; the committed copies under `results/` are promoted — `behav/`
+outputs gain a `behav_` prefix (`behav/results/retention_gpt2.json` →
+`results/behav_retention_gpt2.json`), `longmemeval` keeps its `lme_*` names,
+and `spec/`'s become `drafter_*`.
 </details>
 
 <details>

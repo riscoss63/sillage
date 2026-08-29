@@ -1,7 +1,8 @@
-# The assistant itself needs only the first three (or: pip install -e .)
+# The assistant itself needs only these four (or: pip install -e .)
 numpy>=1.24
 torch>=2.0
 transformers>=4.51
+huggingface_hub>=0.30
 
 # Reproducing the papers (REPRODUCE.md) additionally needs
 scipy>=1.10

@@ -23,7 +23,6 @@ from .core import CAP, SEM2_LAYER, SEM2_WHITEN, SillageMemory
 from .index import Index, read_text
 
 WINDOW, STRIDE = 1024, 512
-DEFAULT_STATE = os.environ.get("SILLAGE_STATE", ".sillage")
 PROGRESS_EVERY = 2000
 
 
@@ -48,7 +47,8 @@ class Sillage:
                  fastweights=None, half_life=None, calibrate=None,
                  device=None, quiet=False, target=None, cold_mass=None,
                  sem2=None, sem2_whiten=None, dtype=None):
-        self.state_dir = default_state() if state is None else state
+        self.state_dir = (default_state() if state is None
+                          else os.path.expanduser(state))
         self.target_hub = target
         if target is not None:
             # paper 5: a state serves any same-tokenizer sibling, but the
@@ -114,21 +114,37 @@ class Sillage:
             if want == "int8":
                 # dynamic int8 over the Linear layers: CPU-native, in
                 # torch itself (no extra dependency), and the forward
-                # still returns hidden states. GPT-2 uses Conv1D rather
-                # than Linear, so it is left untouched -- the tool says
-                # so instead of pretending.
+                # still returns hidden states. GPT-2 builds its blocks
+                # from transformers' Conv1D, which this leaves alone --
+                # the tool says how little it touched instead of
+                # reporting a layer count that flatters.
                 n_lin = sum(1 for m in self._model.modules()
                             if isinstance(m, torch.nn.Linear))
+                # GPT-2 and its descendants build their blocks from
+                # transformers' own Conv1D, which dynamic quantisation
+                # does not touch. Say how much was actually left alone
+                # rather than reporting a layer count that flatters.
+                n_conv = sum(1 for m in self._model.modules()
+                             if type(m).__name__ == "Conv1D")
                 if n_lin == 0:
-                    self._say("--dtype int8: this architecture has no "
-                              "nn.Linear layers to quantise (GPT-2 uses "
-                              "Conv1D); loading it unquantised.")
+                    self._say(
+                        f"--dtype int8: this architecture has no "
+                        f"nn.Linear layers to quantise ({n_conv} Conv1D "
+                        f"instead, as GPT-2 does); loading it "
+                        f"unquantised.")
                 else:
                     self._model = torch.ao.quantization.quantize_dynamic(
                         self._model, {torch.nn.Linear},
                         dtype=torch.qint8)
+                    if n_conv:
+                        self._say(
+                            f"--dtype int8: quantised {n_lin} nn.Linear "
+                            f"layer(s), but {n_conv} of this model's "
+                            f"layers are transformers' Conv1D, which "
+                            f"dynamic quantisation leaves alone -- so "
+                            f"almost nothing was saved here.")
                     self._say(
-                        f"quantised {n_lin} linear layers to int8 "
+                        f"quantised {n_lin} linear layer(s) to int8 "
                         f"(dynamic, CPU). MEASURED on Qwen3-0.6B: the "
                         f"cold store's admissions come out identical "
                         f"(Jaccard 1.00) but the surprise gate only "
@@ -153,35 +169,51 @@ class Sillage:
             print(msg, flush=True)
 
     # -------------------------------------------------------------- read ----
-    def read(self, *paths, save=True, fast=False, between_windows=None):
+    def read(self, *paths, save=True, fast=False, between_windows=None,
+             name=None):
         """Read documents: memorize them and index them for grounded quotes.
 
         fast=True is paper 7's blocked ingestion: writes only, ~40x on
         long documents, no perplexity report; the cold store is exact,
         amplitude tolerances are declared, and the adapter does not
         learn during a fast read (it still serves at generation).
+
+        `name` overrides the key a document is known by, and is only
+        valid for a single path. `sillage watch` passes the path
+        relative to the folder it walks, so two `notes.md` in two
+        subfolders do not evict each other from the index; `review
+        --read` passes the key a document already has, so a reread
+        updates it instead of creating a second entry.
         """
+        if name is not None and len(paths) != 1:
+            raise ValueError("name= applies to a single path")
         if fast and self.mem.fastweights:
             self._say("fast read: the adapter does not learn during "
                       "this read (its delta rule is sequential); it "
                       "still serves at generation time.")
         stats = []
         for path in paths:
-            name = os.path.basename(path)
-            if any(f["file"] == name for f in self.mem.log["files"]):
-                self._say(f"note: {name} was read before -- re-reading "
+            path = os.path.expanduser(path)
+            key = name or os.path.basename(path)
+            if any(f["file"] == key for f in self.mem.log["files"]):
+                self._say(f"note: {key} was read before -- re-reading "
                           f"strengthens its traces.")
             text = read_text(path)
-            n_pass = self.index.add(text, name)
+            n_pass = self.index.add(text, key)
             if fast:
                 from .ingest import ingest_text
                 stats.append(ingest_text(
-                    self, text, name, quiet=self.quiet,
+                    self, text, key, quiet=self.quiet,
                     between_windows=between_windows))
             else:
                 stats.append(self.read_text(
-                    text, name, between_windows=between_windows))
+                    text, key, between_windows=between_windows))
             stats[-1]["passages"] = n_pass
+            # keep the path so `review --read` can reread a document that
+            # does not happen to sit in the current working directory
+            stats[-1]["path"] = os.path.abspath(path)
+            if self.mem.log["files"]:
+                self.mem.log["files"][-1]["path"] = os.path.abspath(path)
         if save:
             self.save()
         return stats
@@ -487,25 +519,9 @@ class Sillage:
                 sS = None
                 if mem.sem2_layer is not None and mem.semantic:
                     if pooled is None:
-                        # paper 8: pool the tier over every prompt
-                        # position (no anchor heuristic survives a bare
-                        # prompt), then suppress the echo -- recall
-                        # never pays for what the window already holds
-                        H2 = (out.hidden_states[mem.sem2_layer][0]
-                              .float().cpu().numpy())
-                        for k in range(0, len(H2), 64):
-                            Q = np.stack([mem.sem2_key(H2[p_])
-                                          for p_ in
-                                          range(k, min(k + 64,
-                                                       len(H2)))])
-                            U = Q @ mem.MS
-                            S = (U / (np.linalg.norm(U, axis=1,
-                                                     keepdims=True)
-                                      + 1e-8)) @ mem.V.T
-                            mx_ = S.max(axis=0)
-                            pooled = (mx_ if pooled is None
-                                      else np.maximum(pooled, mx_))
-                        pooled[list(set(int(t) for t in ids))] = -1e9
+                        pooled = mem.sem2_pooled(
+                            out.hidden_states[mem.sem2_layer][0]
+                            .float().cpu().numpy(), ids)
                     # the v2 tier gives ONE impulse: it recalls the
                     # value's head, and the frozen model finishes the
                     # word from there. Sustained mixing recalls no more
@@ -537,27 +553,25 @@ class Sillage:
         What is left out, and why it has to be: the COLD STORE is a
         table of 4-grams to their successors, in plain token ids, and
         the INDEX keeps whole passages verbatim -- either one hands the
-        reader your text back. What is kept are the matrices, which are
-        superpositions: measured on GPT-2, dropping both costs 2% of
-        the perplexity gain and one canonical recall in ten, so a
-        cartridge is worth sharing.
+        reader your text back. What are kept are the matrices, which are
+        superpositions: measured on the state paper 8 was written from,
+        dropping both costs no perplexity (1.20 -> 1.19) and two
+        canonical recalls in ten (9/10 -> 7/10), and leaves paraphrased
+        recall untouched at 8/10 -- so a cartridge is worth sharing.
 
         This is *no plain text*, which is not the same claim as
         *anonymous*: inverting a superposition is hard, not proven
         impossible, and no attack has been run against it yet. The
         manifest says so, in the file.
         """
-        import shutil
-        from .core import RESERVOIR
         os.makedirs(out_dir, exist_ok=True)
         # A cartridge speaks through the matrices alone, and a tier that
         # has not seen 500 scored positions abstains by design (core._thr
         # will not guess a quantile from less). Say so before writing a
         # silent file: measured, a state with ~1.9k tokens read fast
         # recalls nothing without its cold store, while one with ~7k
-        # recalls 9 facts in 10.
+        # recalls 10 facts in 10 -- the same as the full state.
         thin = len(self.mem.res_G) < 500
-        del RESERVOIR
         keep = self.mem.cold
         self.mem.cold = {}                 # not written, not pruned
         try:
@@ -651,9 +665,12 @@ class Sillage:
                 for f in self.CARTRIDGE_FILES[1:]:
                     try:
                         hf_hub_download(source, f, repo_type=kind)
-                    except Exception:                   # log.json optional
+                    except Exception as e:              # log.json optional
                         if f == "state.npz":
-                            raise
+                            raise RuntimeError(
+                                "%s has a cartridge.json but its "
+                                "state.npz could not be fetched (%s)"
+                                % (source, e))
                 break
             if src is None:
                 raise RuntimeError(
@@ -773,12 +790,15 @@ class Sillage:
     def status(self):
         """Everything `sillage status` prints, as a dictionary."""
         mem = self.mem
+        # everything in the directory, not a hand-kept list: watch.json and
+        # a pulled cartridge.json live here too, and this figure should
+        # equal what `forget --all` would remove
         disk = 0
-        for f in ("state.npz", "cold.npz", "index.json", "log.json",
-                  "calib.npz"):
-            p = os.path.join(self.state_dir, f)
-            if os.path.exists(p):
-                disk += os.path.getsize(p)
+        if self.state_dir and os.path.isdir(self.state_dir):
+            for f in os.listdir(self.state_dir):
+                p = os.path.join(self.state_dir, f)
+                if os.path.isfile(p):
+                    disk += os.path.getsize(p)
         return {"model": mem.hub, "state_dir": self.state_dir,
                 "tokens": mem.tokens,
                 "documents": len({f["file"] for f in mem.log["files"]}),

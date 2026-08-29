@@ -4,9 +4,12 @@ Le kit s'assemble depuis le dépôt :
 `python spec/kaggle/make_kit.py --docs <doc1> <doc2>` produit
 `kaggle_kit.zip` (code + états en lecture seule + vos documents).
 
-Objectif : convertir les acceptations mesurées sur CPU (75–76 %) en speedup
-réel sur GPU, et étendre à Qwen3-4B — les chiffres qui manquent au papier 5.
-Tout est en lecture seule : l'état mémoire n'est jamais modifié.
+Objectif : reproduire les bancs GPU du papier 5 — convertir les acceptations
+mesurées sur CPU (75–76 %) en speedup réel, et l'étendre à Qwen3-4B. Ces
+chiffres sont mesurés et commités (`results/drafter_gpu_*.json`, table
+`tab:speed` du papier) ; ce kit sert à les refaire, pas à les produire pour
+la première fois. Tout est en lecture seule : l'état mémoire n'est jamais
+modifié.
 
 ## 1. Préparer le compte (une fois)
 
@@ -26,8 +29,14 @@ Tout est en lecture seule : l'état mémoire n'est jamais modifié.
 1. **Code → New Notebook**.
 2. Panneau de droite : **Add Input** → votre dataset `sillage-spec-kit`.
 3. **Settings** :
-   - Accelerator : **GPU P100** (recommandé : décodage batch 1 = bande
-     passante ; les T4 ×2 ne servent que pour tenter un 8B shardé)
+   - Accelerator : **GPU T4 ×2** — c'est le matériel des chiffres commités
+     du papier 5 (Kaggle T4, fp16 ; le microbenchmark y donne 45,7 → 43,1 ms,
+     soit c(16)/c(1) = 0,94). Les scripts n'utilisent qu'une seule des deux
+     cartes (`--device cuda`) ; la seconde ne sert qu'à tenter un 8B shardé.
+     Le P100 tourne aussi, mais ses chiffres ne sont alors plus comparables
+     aux fichiers commités : déposez le microbenchmark sous
+     `drafter_micro_p100.json` et non `drafter_micro_t4.json`, dont le nom
+     désigne le matériel.
    - Internet : **ON** (téléchargement des modèles depuis Hugging Face)
 4. Cellules, dans l'ordre :
 
@@ -51,6 +60,11 @@ Tout est en lecture seule : l'état mémoire n'est jamais modifié.
 !python bench_gpu.py --config C --device cuda --dtype float16 \
     --target Qwen/Qwen3-1.7B --beta 40 --lam 0.85 --thrq 0.5
 
+# cellule 5b — OBLIGATOIRE : bench_gpu.py écrit results_gpu_C.json pour les
+# deux runs C, donc la cellule 6 écrase la cellule 5 si on ne met pas le
+# 1.7B à l'abri d'abord (ou téléchargez le fichier avant de lancer la 6)
+!mv results_gpu_C.json results_gpu_C_17b.json
+
 # cellule 6 — C sur 4B, avec recalibration lecture seule pour CETTE cible
 # (~8 Go à télécharger la première fois : patience)
 !python bench_gpu.py --config C --device cuda --dtype float16 \
@@ -65,16 +79,30 @@ Tout est en lecture seule : l'état mémoire n'est jamais modifié.
 
 5. Les résultats (`results_gpu_*.json`) apparaissent dans
    `/kaggle/working/kit` → onglet **Output** du notebook → téléchargez-les
-   et déposez-les dans `spec_drafter/results/` du projet.
+   et renommez-les dans `results/` du dépôt avec le préfixe `drafter_`.
+   La règle générale — `results_gpu_*.json` → `results/drafter_gpu_*.json` —
+   est énoncée dans `REPRODUCE.md` à la racine du dépôt (l'annexe de
+   reproduction du papier 5, dans `papers/drafter/drafter.tex`, liste les
+   fichiers commités mais pas cette convention de renommage) :
+   `results_gpu_A.json` → `results/drafter_gpu_A.json`, de même pour B et
+   gpt2. Le microbenchmark sort sous `results_gpu_micro.json` (`--config
+   micro`). Les deux runs C se distinguent par leur cible, d'où le renommage de
+   la cellule 5b : `results_gpu_C_17b.json` → `results/drafter_gpu_C_17b.json`
+   et le `results_gpu_C.json` de la cellule 6 →
+   `results/drafter_gpu_C_4b.json`. Le microbenchmark est la seule exception
+   à la règle : il est commité sous `results/drafter_micro_t4.json`, qui
+   nomme le matériel, et non `drafter_gpu_micro.json` — exception que
+   `REPRODUCE.md` ne mentionne pas.
 
 ## 4. Lecture des résultats
 
-- **micro** : si « 16 tokens / 1 token » ≈ 1,0–1,5, le GPU est bien en
+- **micro** : si « 16 tokens / 1 token » ≈ 0,9–1,5 (0,94 sur le T4 commité),
+  le GPU est bien en
   régime de latence — chaque token accepté est quasi gratuit, et
-  l'acceptation de 75 % doit se traduire en ×2+ sur les configs A/C.
+  l'acceptation de 75 % se traduit en ×1,6–2,0 sur les configs A/C.
   (Sur CPU ce ratio est ~16 : c'est le plafond qu'on a mesuré.)
-- **A** : attendu speedup ×2+ à acceptation ~76 % ; l'ablation PLD doit
-  rester derrière (~50 %).
+- **A** : mesuré ×1,63 à acceptation 76 % ; l'ablation PLD doit rester
+  derrière (~50 %).
 - **C 1.7B calibré** : attendu acc ~75 %, rappel verbatim ~5 mots ;
   le speedup dépend du micro.
 - **C 4B --calibrate** : la nouveauté — si la calibration lecture seule

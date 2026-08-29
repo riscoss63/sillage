@@ -13,11 +13,15 @@ verification of k tokens costs nearly k times one token, so the gain there
 is bounded by per-call overhead -- x1.4 measured at best, and ~x1.0 with a
 small overhead on text the memory never read, where the drafter abstains).
 
-Exactness has one moving part worth naming: the semantic tier's centering
-mean `mu` advances at every scored position. The fast path therefore
-snapshots it per round and replays it over the accepted prefix, so the
-state trajectory -- and hence every score -- matches plain decoding
-exactly. fp16 targets can still resolve argmax near-ties differently
+Exactness has two moving parts worth naming, one per semantic tier. The
+v1 tier's centering mean `mu` advances at every scored position: the fast
+path snapshots it per round and replays it over the accepted prefix, so
+the state trajectory -- and hence every score -- matches plain decoding
+exactly. Paper 8's tier instead queries ONCE, pooled over the whole
+prompt, at the first scored position; the fast path collects the same
+early-layer states across its prefill and the first round, pools them
+through the same `SillageMemory.sem2_pooled`, and applies the impulse at
+the same position. fp16 targets can still resolve argmax near-ties differently
 between chunked and one-token forwards (paper 5, negative result 3); in
 float32, the default everywhere in this tool, outputs are identical.
 """
@@ -112,17 +116,27 @@ def complete_fast(rt, prompt, n=40, gamma=GAMMA):
         mem.step_key(int(t))
     thrG, thrS = mem.thresholds()
     need_h = mem.semantic or mem.fastweights
+    sem2 = mem.sem2_layer is not None and mem.semantic
     drafter = _Drafter(mem, gamma)
     stats = {"forwards": 0, "rounds": 0, "drafted": 0, "accepted": 0}
     past = None
+    # paper 8's tier queries once, pooled over every prompt position, so
+    # the prefill has to hand back its early-layer states too -- plain
+    # decoding gets them from its first forward, which covers the whole
+    # prompt.
+    prompt_H2 = []
     if len(ids) > 1:
         with torch.no_grad():
             out = model(torch.tensor([ids[:-1]], device=rt.device),
-                        use_cache=True)
+                        use_cache=True, output_hidden_states=sem2)
         past = out.past_key_values
         stats["forwards"] += 1
+        if sem2:
+            prompt_H2.append(out.hidden_states[mem.sem2_layer][0]
+                             .float().cpu().numpy())
     out_ids = []
     last = ids[-1]
+    pooled = None            # one impulse, at the first scored position
     while len(out_ids) < n:
         mem.step_key(int(last))
         snap = drafter.snapshot()
@@ -134,13 +148,21 @@ def complete_fast(rt, prompt, n=40, gamma=GAMMA):
         with torch.no_grad():
             out = model(torch.tensor([chunk], device=rt.device),
                         past_key_values=past, use_cache=True,
-                        output_hidden_states=need_h)
+                        output_hidden_states=need_h or sem2)
         past = out.past_key_values
         stats["forwards"] += 1
         logits = out.logits[0].float().cpu().numpy()
         mem.set_vocab(logits.shape[-1])
         hs = (out.hidden_states[-1][0].float().cpu().numpy()
               if need_h else None)
+        if sem2 and pooled is None:
+            # the prompt's last token arrives here, at position 0 of this
+            # chunk: with the prefill's states that is the whole prompt,
+            # exactly what plain decoding pools over
+            prompt_H2.append(out.hidden_states[mem.sem2_layer][0]
+                             .float().cpu().numpy()[:1])
+            pooled = mem.sem2_pooled(np.concatenate(prompt_H2, axis=0),
+                                     ids)
         # the semantic mean advances per scored position: snapshot it, and
         # replay only the accepted prefix afterwards, so state == plain
         mu_snap = (None if mem.mu is None else mem.mu.copy(), mem.mu_n)
@@ -154,7 +176,11 @@ def complete_fast(rt, prompt, n=40, gamma=GAMMA):
             p_base /= p_base.sum()
             sG, pc = readouts[i]
             sS = None
-            if mem.semantic:
+            if sem2:
+                # one impulse at the first scored position of the whole
+                # generation -- plain decoding's `step == 0`
+                sS = pooled if not out_ids and i == 0 else None
+            elif mem.semantic:
                 qS = mem.sem_key(h)
                 _, sS = mem.scores(mem.MS, qS)
             p = mem.mix_full(p_base, sG, sS, pc, thrG, thrS)
@@ -170,7 +196,7 @@ def complete_fast(rt, prompt, n=40, gamma=GAMMA):
         drafter.restore(snap)
         for t in drafts[:accepted]:
             mem.step_key(int(t))
-        if mem.semantic and hs is not None:
+        if mem.semantic and not sem2 and hs is not None:
             mem.mu = mu_snap[0]
             mem.mu_n = mu_snap[1]
             for i in range(accepted + 1):

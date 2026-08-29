@@ -8,7 +8,8 @@ Checks per file:
     "runaway math" error)
   * $...$ inline math delimiters even in number
   * macros used but never defined (beyond a known LaTeX/package set)
-  * \\cite{key} without a matching \\bibitem{key}
+  * \\cite{key} without a matching \\bibitem{key} (error), and \\bibitem{key}
+    that nothing cites (warning: it typesets, but no reader can reach it)
   * \\ref{label} without a matching \\label{label}
   * \\includegraphics files that do not exist on disk
 
@@ -145,6 +146,9 @@ def check(path):
         cited |= {k.strip() for k in grp.split(",")}
     for k in sorted(cited - keys):
         errors.append(f"\\cite{{{k}}} has no \\bibitem")
+    for k in sorted(keys - cited):
+        warnings.append(f"\\bibitem{{{k}}} is never cited (pdfLaTeX still "
+                        f"typesets it, unreachable from the text)")
     labels = set(re.findall(BS + BS + r"label\{([^}]*)\}", src))
     refs = set(re.findall(BS + BS + r"ref\{([^}]*)\}", src))
     for r in sorted(refs - labels):

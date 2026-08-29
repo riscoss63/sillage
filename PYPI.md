@@ -2,7 +2,7 @@
 
 **Your language model forgets everything. Sillage gives it a memory — and a
 way to keep learning — in a fixed handful of megabytes, with no gradients and
-no index that grows.**
+no datastore of hidden states that grows.**
 
 > *sillage* (n., French) — the trace left behind by something that has passed:
 > a ship's wake, a scent in a room. What a model keeps of what it read.
@@ -32,7 +32,7 @@ sillage index notes.md                # instant: no model, already queryable
 sillage ask "what did the report say?"
 
 sillage read notes.md                 # memorize it (CPU: ~8 min per 10k tokens)
-sillage read big_corpus.md --fast     # writes only, ~40x on long documents (paper 7)
+sillage read big_corpus.md --fast     # writes only, ~40x (half with --sem2)
 sillage complete "The report said"    # generate WITH the memory
 sillage complete "The report said" --fast   # same output, speculative (paper 5)
 sillage complete "..." --cold-mass    # weight recalls by surprise, not counts (paper 6)
@@ -45,6 +45,7 @@ sillage pull user/cartridge           # open somebody else's, from the Hub
 sillage read notes.md --dtype bfloat16  # quantise so a bigger model fits (not for speed)
 sillage status                        # what it knows, tier by tier
 sillage chat                          # ask and generate in one session
+sillage demo notes.md                 # two sessions on one document, start to finish
 sillage forget --all
 ```
 
@@ -58,11 +59,20 @@ read preprint_v2.md: 11041 tokens in 9.5 min | PPL 10.68 -> 9.82 (adapter) -> 5.
 
 Three numbers per file: what the frozen model alone predicts, what the
 rank-16 adapter adds, and what the memory of everything read so far adds on
-top. The state lives in `./.sillage`, survives restarts, and never grows:
-7.4 MB with GPT-2, 25 MB with Qwen3 (plus 12.6 MB with the semantic tier
-on, and 2-4 MB more with `--sem2-whiten`), the same after one document or ten
-thousand. It never learns from its own generations — only from what you give
-it to read.
+top. The state lives in `./.sillage` and survives restarts. Its size is fixed
+the day you start, because the shape of the matrices is: **7.4 MB with GPT-2**
+and **26.5 MB with Qwen3** (25 MiB — the figure paper 5 quotes) — 4.2 MB of
+n-gram matrix, 12.6 MB of semantic tier (on by default with `--model qwen`,
+opt-in elsewhere) and a `vocab x 16` adapter that is 3.2 MB at GPT-2's
+vocabulary and 9.7 MB at Qwen3's; `--sem2-whiten` adds 2-4 MB. The file on
+disk is compressed, so it starts smaller and grows toward that ceiling as the
+matrices fill — the same after one document or ten thousand. It never learns
+from its own generations — only from what you give it to read.
+
+The grounded-retrieval index (`index.json` — the verbatim passages
+`sillage ask` quotes) sits beside the memory and *does* grow with what you
+read. It is not what the model predicts from, and `sillage forget --all`
+clears both.
 
 From Python:
 
@@ -90,7 +100,8 @@ every system tuned identically on a held-out prefix, 95 % bootstrap CIs):
 | \+ memory **and** fast weights | **16.8** | **−46 %** | 7.4 MB, constant |
 
 (The last row is the rank-16 adapter the tool ships. Paper 4's +0.633-nat
-headline, PPL 16.6, uses a rank-256 adapter — 51 MB for the last 0.2 nats.)
+headline uses a rank-256 adapter — 51 MB of adapter for the last 0.015 nats
+(perplexity 16.8 -> 16.6).)
 
 The fixed 4.2 MB memory beats the unbounded datastore it was designed to
 approximate — paired bootstrap **P = 1.000**, replicated over 5 random
@@ -128,7 +139,8 @@ worth knowing before pointing it at a new model:
   is one.
 
 Requires Python 3.10+, `numpy`, `torch` and `transformers`. Nothing else, and
-no network at all once the frozen model is cached.
+no network at all for reading, asking or generating once the frozen model is
+cached — `sillage pull` is the one command that goes to the Hub, by design.
 
 ## The eight preprints
 
@@ -139,7 +151,7 @@ no network at all once the frozen model is cached.
 | 3 | One Signal, Three Tiers | [10.5281/zenodo.22079471](https://doi.org/10.5281/zenodo.22079471) |
 | 4 | Memory Remembers, Fast Weights Adapt | [10.5281/zenodo.22079481](https://doi.org/10.5281/zenodo.22079481) |
 | 5 | The Memory Pays for Itself | [10.5281/zenodo.22109220](https://doi.org/10.5281/zenodo.22109220) |
-| 6 | Stored Is Not Recalled (v2) | [10.5281/zenodo.22125859](https://doi.org/10.5281/zenodo.22125859) |
+| 6 | Stored Is Not Recalled | [10.5281/zenodo.22125859](https://doi.org/10.5281/zenodo.22125859) |
 | 7 | Found Is Not Formulated | DOI pending |
 | 8 | The Key Was in the Wrong Layer | DOI pending |
 

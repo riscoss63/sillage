@@ -32,6 +32,10 @@ import time
 
 SKIP_DIRS = {".git", ".obsidian", "node_modules", "__pycache__",
              ".venv", "venv", ".sillage"}
+# What a folder of notes is made of. Everything else is skipped, because
+# index.read_text decodes with errors="replace": a PDF or a PNG would go
+# into the matrices as replacement characters, irreversibly.
+DEFAULT_EXTS = (".md", ".txt", ".markdown")
 
 
 def scan(root, exts):
@@ -56,11 +60,14 @@ def scan(root, exts):
 
 
 class Watcher:
-    def __init__(self, assistant, root, exts=(".md", ".txt", ".markdown"),
+    def __init__(self, assistant, root, exts=None,
                  fast=True, quiet=False):
         self.s = assistant
-        self.root = os.path.abspath(root)
-        self.exts = {e.lower() for e in exts} if exts else None
+        self.root = os.path.abspath(os.path.expanduser(root))
+        # None means "the default set", never "read anything": the CLI
+        # passes None whenever --ext is absent, and a shadowed default
+        # would have this walk swallow binaries.
+        self.exts = {e.lower() for e in (exts or DEFAULT_EXTS)}
         self.fast = fast
         self.quiet = quiet
         self.path = (None if assistant.state_dir is None else
@@ -94,10 +101,14 @@ class Watcher:
         made = []
         for path in todo:
             g_before = (self.s.mem.g_sum, self.s.mem.g_cnt)
-            rec = self.s.read(path, fast=self.fast)[0]
+            # keyed by the path relative to the walk, not the basename:
+            # two notes.md in two subfolders must not evict each other
+            rec = self.s.read(
+                path, fast=self.fast,
+                name=os.path.relpath(path, self.root).replace(os.sep, "/"))[0]
             dg = self.s.mem.g_sum - g_before[0]
             dn = self.s.mem.g_cnt - g_before[1]
-            entry = {"file": os.path.relpath(path, self.root),
+            entry = {"file": rec["file"],
                      "when": time.strftime("%Y-%m-%d %H:%M"),
                      "tokens": rec["tokens"],
                      # the free signal: mean surprise over what was
@@ -127,9 +138,10 @@ class Watcher:
 
 def watch(assistant, root, interval=60, once=False, exts=None,
           fast=True, quiet=False):
-    w = Watcher(assistant, root, exts=exts, fast=fast, quiet=quiet)
+    root = os.path.expanduser(root)
     if not os.path.isdir(root):
         raise SystemExit(f"not a folder: {root}")
+    w = Watcher(assistant, root, exts=exts, fast=fast, quiet=quiet)
     cadence = "one pass" if once else f"every {interval}s"
     print(f"watching {w.root} ({cadence})")
     first = True

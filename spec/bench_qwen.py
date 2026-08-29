@@ -135,7 +135,10 @@ def main():
             "your own that the state has read")
     seen = seen_prompts(a.prompts)
     unseen = [(p, None) for p in UNSEEN]
-    report = {"n": a.n, "gamma": a.gamma, "state": STATE, "target": TARGET}
+    # Record the state repo-relative: the report is committed under results/,
+    # and an absolute path would publish the author's local directory layout.
+    report = {"n": a.n, "gamma": a.gamma,
+              "state": os.path.relpath(STATE, REPO), "target": TARGET}
 
     print("=== A. Qwen3-0.6B, cible augmentee (reference intra-modele) ===")
     eng = SpeculativeSillage(STATE)

@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "sillage"
-version = "1.8.0"
+version = "1.8.1"
 description = "Gradient-free test-time memory and learning for frozen language models"
 readme = "PYPI.md"          # the GitHub README uses repo-relative links
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Abderrahmane Sghairi", email = "sghairipro63@gmail.com" }]
 keywords = ["language-models", "associative-memory", "hebbian", "test-time-learning",
             "fast-weights", "gradient-free", "continual-learning", "vsa", "hyperdimensional"]
@@ -16,7 +17,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
@@ -24,6 +24,7 @@ dependencies = [
     "numpy>=1.24",
     "torch>=2.0",
     "transformers>=4.51",
+    "huggingface_hub>=0.30",
 ]
 
 [project.optional-dependencies]
