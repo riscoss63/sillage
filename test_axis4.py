@@ -1,4 +1,4 @@
-"""The axis-4 commands, end to end: review, export, watch.
+"""The axis-4 commands, end to end: review, export, pull, watch.
 
 Each one exists because a paper measured something, so each test checks
 the measured behaviour rather than just the plumbing:
@@ -7,6 +7,9 @@ the measured behaviour rather than just the plumbing:
           come out visibly more consolidated than one read once
   export  a cartridge must carry NO plain text, must still answer, and
           must refuse to pretend when the state is too thin to speak
+  pull    the same cartridge, opened by somebody else: same answers, and
+          three refusals -- never overwrite a memory, never open one
+          written for another model, never unpickle a stranger's file
   watch   incremental reads, and a salience journal that ranks a note
           full of new facts above routine prose
 
@@ -100,7 +103,50 @@ check("B3 a cartridge still answers", cart > 0 and not info["thin"],
       f"(full state {full}/10, cartridge alone {cart}/10, "
       f"{len(s2.mem.cold)} cold grams and {len(s2.index.passages)} "
       f"passages shipped)")
-clean("_a4_state", "_a4_out", "_a4_load", "_a4_real.md", "_a4_facts.md")
+
+# the other half of the trip: someone else opens it
+clean("_a4_pull", "_a4_pull2", "_a4_pull3")
+s3 = Sillage(model="gpt2", state="_a4_pull", quiet=True)
+got = s3.pull_cartridge("_a4_out")
+pulled = sum(v.split()[0] in s3.complete(A_PREFIX.format(e=e), n=8)
+             for e, v in facts)
+check("B5 a pulled cartridge answers like the one exported",
+      pulled == cart and got["manifest"]["hub"] == s.mem.hub,
+      f"(pulled {pulled}/10 against {cart}/10 read from the same files, "
+      f"written by sillage {got['manifest']['sillage']})")
+check("B6 pull copies the cartridge and nothing else",
+      sorted(got["files"]) == sorted(f for f in os.listdir("_a4_out")
+                                     if f in Sillage.CARTRIDGE_FILES),
+      f"(by name: {', '.join(sorted(got['files']))})")
+try:
+    Sillage(model="gpt2", state="_a4_pull", quiet=True).pull_cartridge(
+        "_a4_out")
+    refused = False
+except RuntimeError as e:
+    refused = "already holds a memory" in str(e)
+check("B7 pull never silently replaces a memory", refused,
+      "(--force is required, and --state DIR keeps both)")
+try:
+    Sillage(model="qwen", state="_a4_pull3", quiet=True).pull_cartridge(
+        "_a4_out")
+    refused3 = False
+except RuntimeError as e:
+    refused3 = "token space" in str(e)
+check("B9 pull refuses a cartridge from another model", refused3
+      and not os.path.isdir("_a4_pull3"),
+      "(and says so before writing anything)")
+open(os.path.join("_a4_out", "cold.pkl"), "wb").write(b"not really a pickle")
+try:
+    Sillage(model="gpt2", state="_a4_pull2", quiet=True).pull_cartridge(
+        "_a4_out")
+    refused2 = False
+except RuntimeError as e:
+    refused2 = "pre-1.5 pickle" in str(e)
+check("B8 pull refuses a stranger's pickle", refused2,
+      "(our own states migrate with a warning; a downloaded one is not "
+      "ours to unpickle)")
+clean("_a4_state", "_a4_out", "_a4_load", "_a4_pull", "_a4_pull2",
+      "_a4_pull3", "_a4_real.md", "_a4_facts.md")
 
 # a state too thin to speak must say so rather than ship a silent file
 clean("_a4_state", "_a4_out", "_a4_small.md")

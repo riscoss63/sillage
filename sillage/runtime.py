@@ -54,6 +54,10 @@ class Sillage:
             # paper 5: a state serves any same-tokenizer sibling, but the
             # adapter is a function of the READING model's hidden geometry
             fastweights = False
+        # kept so `pull` can rebuild the memory for the model a cartridge
+        # declares, exactly as if it had been opened that way
+        self._mem_arg = (model, (semantic, fastweights, half_life,
+                                 calibrate, cold_mass, sem2, sem2_whiten))
         self.mem = SillageMemory(self.state_dir, model, semantic,
                                  fastweights, half_life, calibrate,
                                  cold_mass, sem2, sem2_whiten)
@@ -567,9 +571,9 @@ class Sillage:
             p = os.path.join(out_dir, stray)
             if os.path.exists(p):
                 os.remove(p)
-        st = self.status()
+        from . import __version__
         manifest = {
-            "sillage": st["version"] if "version" in st else None,
+            "sillage": __version__,
             "model": self.mem.which, "hub": self.mem.hub,
             "vocab": int(self.mem.vocab),
             "tokens_read": int(self.mem.tokens),
@@ -594,6 +598,113 @@ class Sillage:
         return {"dir": out_dir, "bytes": total, "manifest": manifest,
                 "files": sorted(os.listdir(out_dir)),
                 "thin": thin, "scored": len(self.mem.res_G)}
+
+    # ------------------------------------------------------------- pull ----
+    CARTRIDGE_FILES = ("cartridge.json", "state.npz", "log.json")
+
+    def pull_cartridge(self, source, force=False):
+        """Open somebody else's cartridge as this state directory.
+
+        The other half of `export_shareable`. Three rules, and each one
+        is a refusal rather than a warning, because what arrives here
+        came from a stranger:
+
+        * only the three files a cartridge is made of are ever copied,
+          by name -- never a whole repository, so nothing else rides in;
+        * a pre-1.5 pickle is refused outright. Our own states migrate
+          with a warning, but unpickling executes code, and a downloaded
+          state is not one you created;
+        * an existing memory is never silently overwritten.
+
+        `source` is a local directory or a Hugging Face repo id
+        (`user/name`, model repo first, then dataset).
+        """
+        import shutil
+        dest = self.state_dir
+        if os.path.isdir(dest) and not force:
+            busy = [f for f in os.listdir(dest)
+                    if f.endswith((".npz", ".json", ".pkl"))]
+            if busy:
+                raise RuntimeError(
+                    "%s already holds a memory (%s). Pulling would "
+                    "replace it: pass --force, or --state DIR to keep "
+                    "both." % (dest, ", ".join(sorted(busy)[:4])))
+
+        if os.path.isdir(source):
+            src, origin, listing = source, "directory", os.listdir(source)
+        else:
+            from huggingface_hub import HfApi, hf_hub_download
+            src, origin, listing, err = None, None, [], None
+            for kind in ("model", "dataset"):
+                try:
+                    p = hf_hub_download(source, "cartridge.json",
+                                        repo_type=kind)
+                except Exception as e:                  # 404, auth, network
+                    err = e
+                    continue
+                try:
+                    listing = HfApi().list_repo_files(source,
+                                                      repo_type=kind)
+                except Exception:                       # listing is a
+                    listing = []                        # courtesy, not a gate
+                src, origin = os.path.dirname(p), "%s repo" % kind
+                for f in self.CARTRIDGE_FILES[1:]:
+                    try:
+                        hf_hub_download(source, f, repo_type=kind)
+                    except Exception:                   # log.json optional
+                        if f == "state.npz":
+                            raise
+                break
+            if src is None:
+                raise RuntimeError(
+                    "no cartridge at %r: it needs a cartridge.json at the "
+                    "root of a Hugging Face repo, or a local directory "
+                    "written by `sillage export` (%s)" % (source, err))
+
+        man = os.path.join(src, "cartridge.json")
+        if not os.path.exists(man):
+            raise RuntimeError("%s has no cartridge.json, so it is not a "
+                               "sillage cartridge" % src)
+        stale = [f for f in listing if f.endswith(".pkl")]
+        if stale:
+            raise RuntimeError(
+                "%s ships %s: a pre-1.5 pickle. Opening one executes "
+                "code, and this cartridge is not yours -- refusing. Ask "
+                "for it re-exported with sillage >= 1.5."
+                % (src, ", ".join(sorted(stale))))
+        with open(man, encoding="utf-8") as f:
+            manifest = json.load(f)
+        # a memory is written in one model's token space. If you pinned a
+        # model, say so now rather than after the files are on disk.
+        pinned, kw = self._mem_arg
+        want = manifest.get("model")
+        if want and pinned is not None and want != self.mem.which:
+            raise RuntimeError(
+                "this cartridge is a %s memory and you asked for --model "
+                "%s. A memory is written in one model's token space: drop "
+                "--model to open it as %s." % (want, self.mem.which, want))
+
+        os.makedirs(dest, exist_ok=True)
+        for f in ("cold.npz", "cold.pkl", "index.json", "index.pkl",
+                  "calib.npz", "calib.pkl"):
+            p = os.path.join(dest, f)
+            if os.path.exists(p) and force:
+                os.remove(p)          # a cartridge has none of these, and
+        copied = []                   # ours must not answer for its matrices
+        for f in self.CARTRIDGE_FILES:
+            p = os.path.join(src, f)
+            if os.path.exists(p):
+                shutil.copy2(p, os.path.join(dest, f))
+                copied.append(f)
+        if want and want != self.mem.which:      # adopt what it declares,
+            self.mem = SillageMemory(dest, None, *kw)   # exactly as opening
+        else:                                    # this directory would
+            self.mem.load()           # this process is holding the old one
+        self.index = Index(os.path.join(dest, "index.json"))
+        return {"dir": dest, "from": source, "origin": origin,
+                "files": copied, "manifest": manifest,
+                "bytes": sum(os.path.getsize(os.path.join(dest, f))
+                             for f in copied)}
 
     # ------------------------------------------------------------ review ----
     def review(self):

@@ -10,6 +10,7 @@
     sillage watch ~/notes            read a folder as it changes
     sillage review                   what is about to be forgotten
     sillage export out/              a state you can share, without your text
+    sillage pull user/cartridge      open somebody else's, from the Hub
     sillage demo notes.md            watch the memory work in one sitting
     sillage forget --all
 
@@ -224,6 +225,35 @@ def cmd_export(a):
           f"impossible, and no\n  inversion attack has been run against "
           f"this format yet. Share it\n  the way you would share a "
           f"model you fine-tuned on your own data.")
+
+
+def cmd_pull(a):
+    """pull: somebody else's matrices, opened as this state."""
+    s = make(a)
+    try:
+        info = s.pull_cartridge(a.source, force=a.force)
+    except RuntimeError as e:
+        sys.exit(str(e))
+    m = info["manifest"]
+    print(f"pulled {info['from']} ({info['origin']}) into {info['dir']} "
+          f"({info['bytes']/1e6:.1f} MB)")
+    print(f"  written by sillage {m.get('sillage') or '?'} for "
+          f"{m.get('model')} ({m.get('hub')})")
+    docs = m.get("documents") or []
+    print(f"  {m.get('tokens_read', 0)} tokens read from "
+          f"{len(docs)} document(s)"
+          + (": " + ", ".join(docs[:3]) + ("..." if len(docs) > 3 else "")
+             if docs else ""))
+    print(f"  left out by design: {'; '.join(m.get('left_out', []))}")
+    print(f"\n  A cartridge speaks through its matrices alone. Measured "
+          f"on the state\n  paper 8 was written from, that costs about "
+          f"two canonical recalls in ten\n  and no perplexity -- and "
+          f"paraphrased recall is untouched. Nothing here\n  is durable "
+          f"the way your own reading is: the cold store, which carries\n"
+          f"  long retention, cannot be shared.")
+    print(f"\n  Read your own documents on top with `sillage read` -- "
+          f"they will be\n  consolidated normally, in this state, next to "
+          f"what you pulled.")
 
 
 def cmd_review(a):
@@ -607,6 +637,15 @@ def build_parser():
                             "without the cold store or the index")
     p.add_argument("out", help="directory to write the cartridge to")
     p.set_defaults(fn=cmd_export)
+
+    p = sub.add_parser("pull", parents=[common],
+                       help="open somebody else's cartridge (a directory "
+                            "or a Hugging Face repo id)")
+    p.add_argument("source", help="user/name on the Hub, or a local "
+                                  "directory written by `sillage export`")
+    p.add_argument("--force", action="store_true",
+                   help="replace the memory already in --state")
+    p.set_defaults(fn=cmd_pull)
 
     p = sub.add_parser("review", parents=[common],
                        help="what is about to be forgotten (paper 6's "

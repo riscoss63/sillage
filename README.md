@@ -184,6 +184,7 @@ if you want to wire it into your own generation loop.
 | `sillage watch DIR` | read a folder as it changes, with a salience journal |
 | `sillage review` | what is about to be forgotten, and rereading it |
 | `sillage export DIR` | a shareable state: the matrices, not your text |
+| `sillage pull SRC` | open somebody else's, from a folder or the Hub |
 | `sillage status` / `forget --all` | inspect / wipe |
 
 Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
@@ -319,7 +320,7 @@ It binds to `127.0.0.1`. **This memory contains the text you fed it** —
 `--host 0.0.0.0` is possible, says so out loud, and `--token` adds a
 bearer check.
 
-## Three commands only this mechanism can offer, and one honest negative
+## Four commands only this mechanism can offer, and one honest negative
 
 **`sillage watch ~/notes`** reads a folder as it changes, and keeps a
 **salience journal**: every write is already scaled by the frozen model's
@@ -351,6 +352,16 @@ scored positions, and the cartridge would be silent), and its manifest
 states plainly that *no plain text* is not the same claim as
 *anonymous* — inverting a superposition is hard, not proven impossible,
 and no inversion attack has been run against this format yet.
+
+**`sillage pull user/cartridge`** is the other end of that trip: a
+folder, or any Hugging Face repo with a `cartridge.json` at its root,
+opened as your state — then read your own documents on top and they
+consolidate normally, next to what you pulled. It fetches the three
+files a cartridge is made of *by name*, never a whole repository, and
+refuses twice rather than warning: it will not replace a memory you
+already have without `--force`, and it will not open a pre-1.5 pickle at
+all. Your own states migrate from pickle with a warning; unpickling
+executes code, and a downloaded state is not one you created.
 
 **`--dtype int8|bfloat16`** quantises the frozen model so a bigger one
 fits in the same RAM. It is not a speed knob, and the tool says so
@@ -509,7 +520,7 @@ pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
 test_serve.py    the HTTP service, over real sockets
-test_axis4.py    watch, review and export, with the laws they rest on
+test_axis4.py    watch, review, export and pull, with the laws they rest on
 .github/         CI: the unit tests and a LaTeX check on every push
 papers/          the eight preprints (LaTeX + figures)
 results/         every number in every paper (JSON)

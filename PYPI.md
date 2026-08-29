@@ -41,6 +41,7 @@ sillage serve                         # OpenAI endpoint for any client (paper 7)
 sillage watch ~/notes                 # read a folder as it changes + salience journal
 sillage review                        # what is about to be forgotten (paper 6)
 sillage export cartridge/             # share the matrices, not your text
+sillage pull user/cartridge           # open somebody else's, from the Hub
 sillage read notes.md --dtype bfloat16  # quantise so a bigger model fits (not for speed)
 sillage status                        # what it knows, tier by tier
 sillage chat                          # ask and generate in one session
