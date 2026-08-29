@@ -12,8 +12,8 @@ jobs:
     # round-trip, the readout tuner and the passage splitter all run in a few
     # seconds. Windows is in the matrix because the tool claims to work there
     # (it expands its own globs, and writes its state with explicit
-    # encodings). The end-to-end suite (test_sillage.py) downloads GPT-2 and
-    # is run locally.
+    # encodings). The suites that download GPT-2 (test_sillage.py for the
+    # tool, test_serve.py for the HTTP service) are run locally.
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

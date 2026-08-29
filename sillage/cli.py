@@ -6,6 +6,7 @@
     sillage chat                     both of the above, interactively
     sillage status                   what it knows, tier by tier
     sillage papers                   index the eight preprints and ask them
+    sillage serve                    OpenAI-compatible endpoint, any client
     sillage demo notes.md            watch the memory work in one sitting
     sillage forget --all
 
@@ -182,6 +183,15 @@ def cmd_complete(a):
     prompt = " ".join(a.prompt)
     print(prompt + s.complete(prompt, n=a.n, temp=a.temp,
                               fast=getattr(a, "fast", False)))
+
+
+def cmd_serve(a):
+    """serve: the memory behind an OpenAI-compatible endpoint."""
+    from .serve import serve
+    s = make(a)
+    s.load_model()          # pay the load now, not on the first request
+    serve(s, host=a.host, port=a.port, context=not a.no_context,
+          k=a.k, token=a.token, quiet=a.quiet)
 
 
 def cmd_status(a):
@@ -482,6 +492,25 @@ def build_parser():
     p = sub.add_parser("status", parents=[common],
                        help="what it knows, tier by tier")
     p.set_defaults(fn=cmd_status)
+
+    p = sub.add_parser("serve", parents=[common],
+                       help="OpenAI-compatible endpoint for any client")
+    p.add_argument("--host", default="127.0.0.1",
+                   help="127.0.0.1 by default: this memory holds the "
+                        "text you fed it, so it stays on this machine "
+                        "unless you say otherwise")
+    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("-k", type=int, default=3,
+                   help="passages injected into each prompt (paper 7: "
+                        "formulation happens in the window)")
+    p.add_argument("--no-context", action="store_true",
+                   help="do not inject retrieved passages; the memory "
+                        "then only speaks through the readout")
+    p.add_argument("--token", default=None,
+                   help="require `Authorization: Bearer TOKEN`")
+    p.add_argument("--quiet", action="store_true",
+                   help="do not log one line per request")
+    p.set_defaults(fn=cmd_serve)
 
     p = sub.add_parser("forget", parents=[common],
                        help="wipe the memory (--all) or drop one document")

@@ -71,7 +71,7 @@ def blocked_write(mem, Qg, Qs, toks, g_vec, grams):
 
 
 def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
-                quiet=True):
+                quiet=True, between_windows=None):
     """Stream one text through the memory, writes only. ~40x read_text
     on long documents. The state is NOT saved -- call s.save() after
     the stream, like read_text."""
@@ -203,6 +203,11 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
                     rate = cnt / max(1e-6, time.time() - t0)
                     print(f"  ... {cnt}/{n} tokens ({rate:.0f} tok/s)",
                           flush=True)
+            if between_windows is not None:
+                # a server holds the state's lock while ingesting; this
+                # is where it lets a waiting generation through, so the
+                # longest anyone waits is one window
+                between_windows()
             if a + w >= len(ids):
                 break
             a += STRIDE

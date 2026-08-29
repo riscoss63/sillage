@@ -180,6 +180,7 @@ if you want to wire it into your own generation loop.
 | `sillage chat` | both, interactively (`/say`, `/read`, `/status`) |
 | `sillage papers` | index the eight preprints shipped here, then ask them |
 | `sillage demo FILE` | two sessions on one document, start to finish |
+| `sillage serve` | OpenAI-compatible endpoint: any client gains the memory |
 | `sillage status` / `forget --all` | inspect / wipe |
 
 Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
@@ -270,6 +271,48 @@ rephrased recall goes from **0% to 80% on Qwen3-0.6B and 30% on GPT-2**
 in this tool -- paired control, held-out facts, witness locality 0-1/10.
 That is `--sem2 auto` below (or `--sem2 LAYER` to name the layer
 yourself).
+
+## Put it behind your usual client — `sillage serve`
+
+```bash
+sillage read ~/notes/*.md --fast      # memorize a folder
+sillage serve                         # http://127.0.0.1:8000/v1
+```
+
+Point any OpenAI-compatible client at it (Open WebUI, continue.dev, the
+`openai` package, plain `curl`) and it gains the memory of what you read —
+no plugin, no integration, and **no dependency beyond the three above**:
+this is the standard library's HTTP server, because a local single-user
+service does not need a web framework.
+
+```console
+$ curl -s localhost:8000/v1/chat/completions -d \
+    '{"messages":[{"role":"user","content":"What does the Zylkorb protocol require?"}]}'
+{"choices":[{"message":{"content":" seventeen turquoise brackets ..."}}],
+ "sillage":{"sources":[{"source":"field-notes.md","score":0.61}], "seconds":1.3}}
+```
+
+Two mechanisms are on, and each is there because paper 7 measured what it
+is worth. **The passages your question matches are put in the prompt**,
+with their source — on LongMemEval the memory answering alone reached 5%
+where the same evidence in the window reached 25%, so that is where the
+evidence goes. **The memory also mixes into the model's own next-token
+distribution**, which is what recalls your exact wording; the same paper
+measured that this never hurts when the evidence is already in the window
+(identical answers on 40 of 40 questions). Every reply names the sources
+it used, in the `sillage` field and in the `X-Sillage-Sources` header — a
+service that rewrites your prompt in silence would not be auditable.
+
+Reading a folder does not block the conversation: `POST /read` returns a
+task id and the ingestion releases the state's lock between windows, so
+answers keep coming while it works (measured: a reply in 3.3 s during an
+ingestion). Other endpoints: `/status`, `/ask` (grounded passages, no
+model), `/tasks/<id>`, `/v1/models`, `/v1/completions`, and `stream: true`
+where clients expect it.
+
+It binds to `127.0.0.1`. **This memory contains the text you fed it** —
+`--host 0.0.0.0` is possible, says so out loud, and `--token` adds a
+bearer check.
 
 ## Should you use this?
 
@@ -394,18 +437,23 @@ are committed as JSON in [`results/`](results/) (including per-seed values).
 `python test_unit.py` checks the mechanisms themselves in five seconds
 (numpy only, no model: retrieval, the square-root rule, forgetting, the delta
 rule, consolidation, the state round-trip, the readout tuner, the multi-model
-paths); `python test_sillage.py` runs 13 end-to-end tests of the tool (each
-command in its own process, invented facts the base model cannot know).
+paths); `python test_sillage.py` runs 14 end-to-end tests of the tool (each
+command in its own process, invented facts the base model cannot know);
+and `python test_serve.py` starts the HTTP service and talks to it over
+real sockets (an OpenAI client, a background ingestion answering
+mid-read, refusals, and the bearer token).
 
 <details>
 <summary><b>Repository layout</b></summary>
 
 ```
 sillage/         the tool: core.py (the four mechanisms), runtime.py,
-                 index.py (grounded retrieval), cli.py
+                 index.py (grounded retrieval), ingest.py (fast reads),
+                 drafting.py (speculative), serve.py (HTTP), cli.py
 pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
+test_serve.py    the HTTP service, over real sockets
 .github/         CI: the unit tests and a LaTeX check on every push
 papers/          the eight preprints (LaTeX + figures)
 results/         every number in every paper (JSON)

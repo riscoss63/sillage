@@ -105,7 +105,7 @@ class Sillage:
             print(msg, flush=True)
 
     # -------------------------------------------------------------- read ----
-    def read(self, *paths, save=True, fast=False):
+    def read(self, *paths, save=True, fast=False, between_windows=None):
         """Read documents: memorize them and index them for grounded quotes.
 
         fast=True is paper 7's blocked ingestion: writes only, ~40x on
@@ -127,10 +127,12 @@ class Sillage:
             n_pass = self.index.add(text, name)
             if fast:
                 from .ingest import ingest_text
-                stats.append(ingest_text(self, text, name,
-                                         quiet=self.quiet))
+                stats.append(ingest_text(
+                    self, text, name, quiet=self.quiet,
+                    between_windows=between_windows))
             else:
-                stats.append(self.read_text(text, name))
+                stats.append(self.read_text(
+                    text, name, between_windows=between_windows))
             stats[-1]["passages"] = n_pass
         if save:
             self.save()
@@ -234,7 +236,7 @@ class Sillage:
                      f" ({why}; --sem2-whiten / --no-sem2-whiten "
                      f"overrides)") + ".")
 
-    def read_text(self, text, name="<text>"):
+    def read_text(self, text, name="<text>", between_windows=None):
         """Stream one text through the frozen model and every memory tier.
 
         With the paper-8 semantic keys on (`sem2`), that tier writes at
@@ -364,6 +366,8 @@ class Sillage:
                         rate = cnt / max(1e-6, time.time() - t0)
                         self._say(f"  ... {cnt}/{n} tokens "
                                   f"({(n - cnt) / rate / 60:.1f} min left)")
+                if between_windows is not None:
+                    between_windows()   # a server yields its lock here
                 if a + w >= len(ids):
                     break
                 a += STRIDE

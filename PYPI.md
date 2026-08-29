@@ -37,6 +37,7 @@ sillage complete "The report said"    # generate WITH the memory
 sillage complete "The report said" --fast   # same output, speculative (paper 5)
 sillage complete "..." --cold-mass    # weight recalls by surprise, not counts (paper 6)
 sillage read notes.md --sem2 auto     # keys from an early layer: paraphrases recall too (paper 8)
+sillage serve                         # OpenAI endpoint for any client (paper 7)
 sillage status                        # what it knows, tier by tier
 sillage chat                          # ask and generate in one session
 sillage forget --all
