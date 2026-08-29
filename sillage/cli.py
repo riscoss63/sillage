@@ -375,6 +375,18 @@ def cmd_status(a):
             print(f"                       SILENT so far: {st['scored_S']} "
                   f"scored positions of the 500 it needs before it stops "
                   f"abstaining. Read more, or read the same again.")
+    elif st["semantic"]:
+        # two real-world trials measured "rephrased recall 0/10" against
+        # paper 8's published 80% on a state where this tier had simply
+        # never been switched on. Saying nothing here is what let that
+        # happen twice.
+        print("  semantic keys      : paper 2's, not paper 8's -- rephrased "
+              "recall stays near 0 here.")
+        print("                       `--sem2 auto` AT READ TIME is what "
+              "buys it (measured 0% -> 80%);")
+        print("                       the keys are written while reading, "
+              "so a state read without")
+        print("                       it has to be read again.")
     hl = (f"half-life {int(st['half_life'])} tokens" if st["half_life"]
           else "off")
     print(f"  forgetting         : {hl}")
