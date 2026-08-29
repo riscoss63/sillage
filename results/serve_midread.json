@@ -1,0 +1,12 @@
+{
+ "model": "gpt2",
+ "idle_s": 1.9,
+ "midread_s": [
+  4.35,
+  2.72,
+  2.74
+ ],
+ "worst_ratio": 2.3,
+ "read_wall_s": 17.0,
+ "tokens": 907
+}

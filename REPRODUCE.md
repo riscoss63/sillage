@@ -3,11 +3,11 @@
 This file is for the *research* scripts. If you only want to use the system,
 `pip install -e .` and `sillage read yourfile.md` is the whole story
 (see [README.md](README.md)); `python test_unit.py` checks the mechanisms
-themselves in five seconds (17 checks), `python test_sillage.py` runs 14
+themselves in five seconds (18 checks), `python test_sillage.py` runs 14
 end-to-end tests of the tool in about twenty minutes, `python test_serve.py`
-starts the HTTP service and talks to it over real sockets (14 checks), and
+starts the HTTP service and talks to it over real sockets (15 checks), and
 `python test_axis4.py` covers watch, review, export and pull, and the same
-commands through the command line (23 checks).
+commands through the command line (24 checks).
 
 Sections 0–4 (papers 1–4) run entirely on CPU with fixed seeds. Total: roughly
 2 h for the corpora and frozen-LM passes, then 3–6 h for the experiments (most
@@ -215,7 +215,7 @@ are in `behav/JOURNAL.md`, written before each run.
 
 ## Shipping probes
 
-Four probes under `behav/` measure what the *shipped* tool does rather than
+Seven probes under `behav/` measure what the *shipped* tool does rather than
 what a paper claims; the README's `--dtype` table is one of their outputs.
 Three of them write into `behav/results/` like the rest of `behav/`, and the
 committed copies under `results/` keep the same names; the fourth
@@ -228,6 +228,9 @@ python behav/probe_shareable_state.py [gpt2|qwen]
 python behav/probe_quantised_gate.py [qwen|gpt2] [int8|bfloat16]
 python behav/probe_ship_readout.py [gpt2|qwen]
 python behav/probe_ship_threshold.py [qwen|gpt2]
+python behav/probe_heading_index.py
+python behav/probe_ask_french.py
+python behav/probe_serve_midread.py [--model gpt2]
 ```
 
 `probe_shareable_state.py` asks what a state is worth without its cold store
@@ -255,3 +258,36 @@ sets the abstention threshold, and reports paraphrase recall against locality
 (witnesses whose greedy completion changes) at each one. Declared criterion:
 the smallest quantile whose locality stays at or below 1/10. It writes no
 JSON -- the sweep is printed, and the verdict is in `behav/JOURNAL.md`.
+
+`probe_heading_index.py` was written after using the tool rather than after
+reading it: on a notebook whose subject sits in the section headings, a
+question naming that subject found nothing, because `Index._rebuild`
+tokenised the passage text alone. It scores eleven questions against the
+same notebook with and without heading and filename tokens
+(`results/heading_index.json`): heading-only questions go from **1/5 to
+5/5**, the six that already worked stay at 6/6, and no body answer loses
+its rank. Needs no model.
+
+`probe_ask_french.py` is the same notebook, wider: 23 questions in four
+groups -- the subject in the heading, the subject in the body, the same
+questions typed *without accents* as people actually type them, and six
+questions the notebook cannot answer, where the only right reply is
+silence. It found two more defects (`results/ask_french.json`). The STOP
+list is written unaccented while French is not, so `etait`, `meme` and
+`apres` carried full idf and any question containing "c'etait" could be
+answered by any passage containing "etait"; and nothing floored the score,
+so one shared word of the filename matched every passage of a document.
+Folding accents in the search key took unaccented questions from 4/6 to
+6/6 -- but on its own it did **not** restore silence, which is a
+registered prediction refuted in the file. The floor is what does: the
+lowest genuine hit scores 0.161, the highest accidental one 0.024, and
+`MIN_SCORE` sits between them. Needs no model.
+
+`probe_serve_midread.py` times a chat completion sent *during* an
+ingestion, against the same completion sent to an idle server
+(`results/serve_midread.json`). It exists because the 1.6.0 release
+claimed "a reply in 3.3 s during an ingestion" and a real-world trial
+measured 113 s: the lock was handed back only at 1024-token window
+boundaries, so a document that fitted in one window had no yield point at
+all. Yielding every 32 tokens brings it to **4.35 s at worst against a
+1.90 s idle baseline**. Runs on gpt2 in under a minute.

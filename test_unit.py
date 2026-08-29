@@ -174,6 +174,28 @@ check("T9 passage splitting", ps and hits and "Ilvress" in hits[0][1]["text"]
       and hits[0][1]["source"] == "notes.md",
       f"({len(ps)} passages, short facts merged and retrievable)")
 
+# --- 9b. a question that names only the HEADING must still find the section
+# People put the subject in the heading and the detail underneath, so a
+# question naming the subject has to reach a paragraph that never repeats it.
+doc9b = ("# Peugeot 208 de Mme Fournier\n\nFacture 94 euros pieces et main "
+         "d'oeuvre comprises.\n\n# Renault Kangoo de l'entreprise Delorme\n\n"
+         "Compression relevee a froid : 12,1 / 12,4 / 8,9 / 12,2 bars, le "
+         "troisieme cylindre est nettement en dessous.\n")
+ix9b = Index(None)
+ix9b.add(doc9b, "carnet-atelier.md")
+ix9b.add("# Divers\n\nRien de notable cette semaine, hormis la pluie qui "
+         "n'a pas cesse de tomber sur le parking de l'entreprise.\n",
+         "journal-personnel.md")
+h_head = ix9b.search("combien pour la 208 de Mme Fournier", k=1)
+h_body = ix9b.search("quelle compression sur le troisieme cylindre", k=1)
+h_file = ix9b.search("journal personnel", k=1)
+check("T9b headings and filenames are searchable",
+      h_head and "94 euros" in h_head[0][1]["text"]
+      and h_body and "12,1" in h_body[0][1]["text"]
+      and h_file and h_file[0][1]["source"] == "journal-personnel.md",
+      "(the subject lives in the heading and in the filename; the paragraph "
+      "under it repeats neither)")
+
 # --- 10. the readout tuner tells an informative tier from a useless one ----
 def dev_window(rng, informative, n=1200, vocab=200, true_tok=7):
     """Synthetic dev statistics: does the tier's confidence mean anything?"""

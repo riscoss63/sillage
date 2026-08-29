@@ -26,6 +26,7 @@ state while still claiming identical output.
     python test_axis4.py
 """
 
+import json
 import os
 import shutil
 import subprocess
@@ -142,6 +143,17 @@ try:
           and "index.json" not in info["files"]
           and info["manifest"]["left_out"],
           "(the two parts that hold text verbatim)")
+    # the log keeps the absolute path each document was read from, so that
+    # `review --read` can reread it. That is nobody else's business.
+    log = json.load(open(at("_a4_out", "log.json"), encoding="utf-8"))
+    m = info["manifest"]
+    check("B3b a cartridge ships no filesystem paths",
+          all("path" not in rec for rec in log.get("files", []))
+          and HERE not in open(at("_a4_out", "log.json"),
+                               encoding="utf-8").read()
+          and len(m["documents"]) == len(set(m["documents"])),
+          f"(log carries {sorted(log['files'][0])} and no path; "
+          f"{len(m['documents'])} documents for {m['reads']} reads)")
     shutil.copytree(at("_a4_out"), at("_a4_load"), dirs_exist_ok=True)
     s2 = Sillage(model="gpt2", state=at("_a4_load"), quiet=True)
     cart = sum(v.split()[0] in s2.complete(A_PREFIX.format(e=e), n=8)

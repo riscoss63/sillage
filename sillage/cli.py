@@ -331,10 +331,19 @@ def cmd_status(a):
             extra = f"   {st['writes_per_parameter']:.3f} writes/parameter"
         if tier.startswith("fast"):
             extra = f"   rank {R_FEAT}, eta {ETA}, uniform step"
+            if not st.get("adapter_written"):
+                # `watch` reads fast by default and a fast read does not
+                # train the adapter, so a whole week of watching leaves
+                # these megabytes at exactly zero. Say so.
+                extra += ("   EMPTY: every read so far was a fast one, "
+                          "which does not train it")
         if tier.startswith("cold"):
             extra = f"   {st['cold_grams']} grams"
         print(f"  {tier:19s}: {nbytes/1e6:6.1f} MB{extra}")
-    print(f"  lexical index      : {st['passages']} passages")
+    print(f"  lexical index      : {st['passages']} passages"
+          + ("" if st["passages"] else
+             "   (a pulled cartridge ships none: `ask` needs your own "
+             "documents)"))
     sem = ("on" if st["semantic"] else
            "off  (raw hidden states would need whitening on this model)")
     print(f"  semantic tier      : {sem}")
@@ -342,6 +351,13 @@ def cmd_status(a):
         wtxt = " + ZCA whitening" if st.get("sem2_whiten") else ""
         print(f"  semantic keys      : layer {st['sem2_layer']}, "
               f"surprise-anchored, query pooling (paper 8){wtxt}")
+        if st.get("scored_S", 0) < 500:
+            # the tier abstains until its own null has 500 observations,
+            # and it only observes SURPRISING positions -- so a short
+            # document can leave it on and silent with nothing said
+            print(f"                       SILENT so far: {st['scored_S']} "
+                  f"scored positions of the 500 it needs before it stops "
+                  f"abstaining. Read more, or read the same again.")
     hl = (f"half-life {int(st['half_life'])} tokens" if st["half_life"]
           else "off")
     print(f"  forgetting         : {hl}")

@@ -1,0 +1,559 @@
+{
+ "arms": {
+  "shipped 1.8.0 (text only, accents kept)": {
+   "totals": {
+    "heading": 1,
+    "body": 6,
+    "unaccented": 4,
+    "silent": 5
+   },
+   "detail": [
+    {
+     "group": "heading",
+     "q": "combien a coûté la réparation de la 208",
+     "got": null,
+     "score": 0.0,
+     "ok": false
+    },
+    {
+     "group": "heading",
+     "q": "qu'est-ce qui a été fait sur la Kangoo",
+     "got": null,
+     "score": 0.0,
+     "ok": false
+    },
+    {
+     "group": "heading",
+     "q": "le dossier de M. Bardet, c'était quoi",
+     "got": null,
+     "score": 0.0,
+     "ok": false
+    },
+    {
+     "group": "heading",
+     "q": "qu'a-t-on facturé à Mme Fournier",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3953,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "que s'est-il passé le mercredi 5 mars",
+     "got": null,
+     "score": 0.0,
+     "ok": false
+    },
+    {
+     "group": "body",
+     "q": "quel couple de serrage pour l'écrou de moyeu",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3749,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle référence de roulement",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3315,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "pourquoi la clé dynamométrique part en étalonnage",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.488,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quel est le prix facturé",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3953,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle compression sur le troisième cylindre",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.3444,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle bougie a été remplacée",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3136,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "combien a coute la reparation de la 208",
+     "got": null,
+     "score": 0.0,
+     "ok": false
+    },
+    {
+     "group": "unaccented",
+     "q": "quelle reference de roulement pour la C3",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3174,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "pourquoi la cle dynamometrique part en etalonnage",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.244,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quelle compression sur le troisieme cylindre",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.3051,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quel couple de serrage pour l'ecrou de moyeu",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3247,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "qu'a-t-on facture a Mme Fournier",
+     "got": null,
+     "score": 0.0,
+     "ok": false
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce qu'on a réparé une moto, et c'était quoi le problème ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce que le carnet parle des pneus hiver ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "a-t-on changé un pare-brise cette semaine ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "quel est le tarif horaire de l'atelier ?",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.244,
+     "ok": false
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce que la Tesla est passée au contrôle technique ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "combien de vidanges ont été faites en février ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    }
+   ]
+  },
+  "1.8.1 (+ heading + filename)": {
+   "totals": {
+    "heading": 5,
+    "body": 6,
+    "unaccented": 6,
+    "silent": 4
+   },
+   "detail": [
+    {
+     "group": "heading",
+     "q": "combien a coûté la réparation de la 208",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.2178,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "qu'est-ce qui a été fait sur la Kangoo",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.1609,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "le dossier de M. Bardet, c'était quoi",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.1755,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "qu'a-t-on facturé à Mme Fournier",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.4625,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "que s'est-il passé le mercredi 5 mars",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.2251,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quel couple de serrage pour l'écrou de moyeu",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.351,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle référence de roulement",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3104,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "pourquoi la clé dynamométrique part en étalonnage",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.4493,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quel est le prix facturé",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3449,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle compression sur le troisième cylindre",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.3213,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle bougie a été remplacée",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3054,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "combien a coute la reparation de la 208",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.2178,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quelle reference de roulement pour la C3",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3342,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "pourquoi la cle dynamometrique part en etalonnage",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.2246,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quelle compression sur le troisieme cylindre",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.2847,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quel couple de serrage pour l'ecrou de moyeu",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3039,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "qu'a-t-on facture a Mme Fournier",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3081,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce qu'on a réparé une moto, et c'était quoi le problème ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce que le carnet parle des pneus hiver ?",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.0217,
+     "ok": false
+    },
+    {
+     "group": "unanswerable",
+     "q": "a-t-on changé un pare-brise cette semaine ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "quel est le tarif horaire de l'atelier ?",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.0239,
+     "ok": false
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce que la Tesla est passée au contrôle technique ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "combien de vidanges ont été faites en février ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    }
+   ]
+  },
+  "shipped 1.8.2 (+ folded accents, floor 0.05)": {
+   "totals": {
+    "heading": 5,
+    "body": 6,
+    "unaccented": 6,
+    "silent": 6
+   },
+   "detail": [
+    {
+     "group": "heading",
+     "q": "combien a coûté la réparation de la 208",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.2178,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "qu'est-ce qui a été fait sur la Kangoo",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.1609,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "le dossier de M. Bardet, c'était quoi",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.1755,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "qu'a-t-on facturé à Mme Fournier",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.4625,
+     "ok": true
+    },
+    {
+     "group": "heading",
+     "q": "que s'est-il passé le mercredi 5 mars",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.2251,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quel couple de serrage pour l'écrou de moyeu",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.351,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle référence de roulement",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3104,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "pourquoi la clé dynamométrique part en étalonnage",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.4493,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quel est le prix facturé",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3449,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle compression sur le troisième cylindre",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.3213,
+     "ok": true
+    },
+    {
+     "group": "body",
+     "q": "quelle bougie a été remplacée",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.3054,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "combien a coute la reparation de la 208",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.2178,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quelle reference de roulement pour la C3",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.3503,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "pourquoi la cle dynamometrique part en etalonnage",
+     "got": "Mercredi 5 mars - remarque générale sur l'outillage",
+     "score": 0.4493,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quelle compression sur le troisieme cylindre",
+     "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+     "score": 0.3213,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "quel couple de serrage pour l'ecrou de moyeu",
+     "got": "Jeudi 6 mars - Citroën C3 de M. Bardet",
+     "score": 0.351,
+     "ok": true
+    },
+    {
+     "group": "unaccented",
+     "q": "qu'a-t-on facture a Mme Fournier",
+     "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+     "score": 0.4625,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce qu'on a réparé une moto, et c'était quoi le problème ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce que le carnet parle des pneus hiver ?",
+     "got": null,
+     "score": 0.0217,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "a-t-on changé un pare-brise cette semaine ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "quel est le tarif horaire de l'atelier ?",
+     "got": null,
+     "score": 0.0239,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "est-ce que la Tesla est passée au contrôle technique ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    },
+    {
+     "group": "unanswerable",
+     "q": "combien de vidanges ont été faites en février ?",
+     "got": null,
+     "score": 0.0,
+     "ok": true
+    }
+   ]
+  }
+ },
+ "floor_sweep": [
+  {
+   "floor": 0.0,
+   "answered": 17,
+   "silent": 4
+  },
+  {
+   "floor": 0.005,
+   "answered": 17,
+   "silent": 4
+  },
+  {
+   "floor": 0.01,
+   "answered": 17,
+   "silent": 4
+  },
+  {
+   "floor": 0.02,
+   "answered": 17,
+   "silent": 4
+  },
+  {
+   "floor": 0.03,
+   "answered": 17,
+   "silent": 6
+  },
+  {
+   "floor": 0.05,
+   "answered": 17,
+   "silent": 6
+  },
+  {
+   "floor": 0.08,
+   "answered": 17,
+   "silent": 6
+  },
+  {
+   "floor": 0.12,
+   "answered": 17,
+   "silent": 6
+  }
+ ]
+}

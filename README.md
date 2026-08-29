@@ -188,7 +188,7 @@ if you want to wire it into your own generation loop.
 |---|---|
 | `sillage read FILE...` | read + memorize + index (all four mechanisms) |
 | `sillage index FILE...` | index only — instant, no model needed |
-| `sillage ask "..."` | grounded excerpts with their source and section |
+| `sillage ask "..."` | grounded excerpts with their source and section (a question can name either) |
 | `sillage complete "..."` | generate with the memory and the adapter |
 | `sillage chat` | both, interactively (`/say`, `/read`, `/status`) |
 | `sillage papers` | index the eight preprints shipped here, then ask them |
@@ -324,9 +324,14 @@ it used, in the `sillage` field and in the `X-Sillage-Sources` header — a
 service that rewrites your prompt in silence would not be auditable.
 
 Reading a folder does not block the conversation: `POST /read` returns a
-task id and the ingestion releases the state's lock between windows, so
-answers keep coming while it works (measured: a reply in 3.3 s during an
-ingestion). Other endpoints: `/status`, `/ask` (grounded passages, no
+task id and the ingestion hands the state's lock back every 32 tokens, so
+answers keep coming while it works. Measured on a single-window document
+(gpt2, `behav/probe_serve_midread.py`): replies in **4.35 / 2.72 / 2.74 s
+during the read against a 1.90 s idle baseline** — 2.3x at worst. Until
+1.8.2 the lock was only released at 1024-token window boundaries, so a
+document that fitted in one window offered no yield point at all and a
+real conversation stalled for the whole read; that is what the number
+above replaces. Other endpoints: `/status`, `/ask` (grounded passages, no
 model), `/tasks/<id>`, `/v1/models`, `/v1/completions`, and `stream: true`
 where clients expect it.
 
@@ -340,11 +345,18 @@ bearer check.
 **salience journal**: every write is already scaled by the frozen model's
 own surprise, so "what did I write this week that was actually new?" is
 free here — a note-taking app answers it by paying an LLM call per
-decision. Measured on a folder holding one page of routine prose and one
-of invented facts: **1.48 nats against 0.17**, a factor of nine, for no
-extra compute. And because paper 6 showed that a document read twice is
-what crosses the durability threshold, watching a folder *is* the
-mechanism, not a convenience around it.
+decision. On a folder holding one page of invented facts and one of a
+single sentence repeated forty times, the separation is **1.48 nats
+against 0.17**, a factor of nine — but that control is as easy as a
+control gets, and on real French notes the same comparison gave 2.56
+against 2.14, a factor of 1.20. Read the number for what it is: the
+frozen model's surprise, measured before the memory speaks, averaged per
+token. It ranks unusual, dense prose. It cannot say "new to *this*
+memory" (re-reading a file the memory already holds scores identically),
+and because it is a mean, appending new material to a long note *lowers*
+its score. And because paper 6 showed that a document read twice is what
+crosses the durability threshold, watching a folder *is* the mechanism,
+not a convenience around it.
 
 **`sillage review`** turns that law into a command: for every document,
 how many of its 4-grams are consolidated (seen twice, so the memory can
@@ -484,6 +496,20 @@ This is the part most repositories leave out.
   over a normal read's 7 — but the ~40x headline holds *without* `--sem2`, not
   with it. Registered before the run in `behav/JOURNAL.md` (experiment C2),
   and refuted by it.
+- **A revised document does not supersede the one it revises.** Read a note
+  saying the alert threshold is 40 degrees, then a note saying it was raised
+  to 55, each twice: `ask` still ranks the old one first (the two passages
+  tie at 0.043 and insertion order breaks it) and `complete` still says 40.
+  Paper 6's conflict curve measured how many rereads flip a *generation*;
+  nothing in the retrieval layer knows that one document withdraws another.
+  If you keep a value that changes, edit the note rather than adding one.
+- **The paper-8 tier can be on and silent, and short documents are where.**
+  `--sem2 auto` keys on surprising positions only, and the tier abstains
+  until it has 500 scored ones. On a 1.2k-token document that left 12, so
+  the tier contributed exactly nothing while `status` reported it on. It now
+  says "SILENT so far" with the count — but the honest summary is that
+  paper 8's 0 % -> 80 % was measured on a state fed thousands of tokens, and
+  a quickstart that reads one short file will not see it.
 - **Self-calibration loses to a proper tuning, where one exists.** Fitting the
   readout on your own stream sounds strictly better than using someone else's
   constants. It is not: the window is read by a memory that is *colder* than
@@ -523,7 +549,7 @@ retrieved values with random tokens; any surviving gain is an artifact), a
 Every number in every paper regenerates from these scripts with fixed seeds,
 on CPU. See **[REPRODUCE.md](REPRODUCE.md)** for the full pipeline; results
 are committed as JSON in [`results/`](results/) (including per-seed values).
-`python test_unit.py` checks the mechanisms themselves in five seconds (17
+`python test_unit.py` checks the mechanisms themselves in five seconds (18
 checks, numpy only, no model: retrieval, the square-root rule, forgetting, the
 delta rule, consolidation, blocked ingestion, the semantic keys and their
 automatic layer choice, the pickle-free state round-trip, the JSON index, the
@@ -532,7 +558,7 @@ end-to-end tests of the tool (each command in its own process, invented facts
 the base model cannot know); `python test_serve.py` starts the HTTP service and
 talks to it over real sockets (14 checks: an OpenAI client, a background
 ingestion answering mid-read, refusals, and the bearer token); and
-`python test_axis4.py` covers watch, review, export and pull (23 checks,
+`python test_axis4.py` covers watch, review, export and pull (24 checks,
 including the cartridge round-trip and its refusals). All four are green on the
 shipped 1.8.0.
 

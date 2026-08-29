@@ -24,6 +24,10 @@ from .index import Index, read_text
 
 WINDOW, STRIDE = 1024, 512
 PROGRESS_EVERY = 2000
+# how often an ingestion offers its lock back to a server: a
+# reader gives up its turn every this many tokens, so a chat
+# request waits for a few tokens of writing, not a whole window
+YIELD_EVERY = 32
 
 
 def default_state():
@@ -87,7 +91,11 @@ class Sillage:
             if self.device is None:
                 self.device = ("cuda" if torch.cuda.is_available()
                                else "cpu")
-            torch.set_num_threads(os.cpu_count() or 4)
+            # every core by default, but not against the user's wishes:
+            # a read runs for minutes, and `OMP_NUM_THREADS=4 sillage read`
+            # is how you keep the rest of the machine usable.
+            torch.set_num_threads(int(os.environ.get("OMP_NUM_THREADS")
+                                      or os.cpu_count() or 4))
             self._say(f"loading {name} (frozen, {self.device}) ...")
             # A bigger model on modest hardware, without giving up the
             # hidden states the memory keys on (paper 8) -- which is why
@@ -163,6 +171,16 @@ class Sillage:
                     f"reading measured 4x slower. Worth it when memory "
                     f"is the constraint, not when time is.")
         return self._tok, self._model
+
+    def load_tokenizer(self):
+        """The tokenizer alone. `review` counts n-grams and `export` copies
+        matrices: neither runs a forward pass, and loading half a gigabyte
+        of weights to do it cost twelve seconds and a progress bar."""
+        if self._tok is None:
+            from transformers import AutoTokenizer
+            self._tok = AutoTokenizer.from_pretrained(
+                self.target_hub or self.mem.hub)
+        return self._tok
 
     def _say(self, msg):
         if not self.quiet:
@@ -446,8 +464,16 @@ class Sillage:
                         rate = cnt / max(1e-6, time.time() - t0)
                         self._say(f"  ... {cnt}/{n} tokens "
                                   f"({(n - cnt) / rate / 60:.1f} min left)")
+                    if between_windows is not None and cnt % YIELD_EVERY == 0:
+                        # a server yields its lock HERE too, not only at
+                        # the window boundary: a document that fits in one
+                        # 1024-token window has no boundary at all, so a
+                        # conversation used to stall for the whole read.
+                        # The state is consistent at every token boundary
+                        # -- the write for this token is already done.
+                        between_windows()
                 if between_windows is not None:
-                    between_windows()   # a server yields its lock here
+                    between_windows()   # and once per window, as before
                 if a + w >= len(ids):
                     break
                 a += STRIDE
@@ -585,20 +611,40 @@ class Sillage:
             p = os.path.join(out_dir, stray)
             if os.path.exists(p):
                 os.remove(p)
+        # the log records the absolute path each document was read from --
+        # useful locally for `review --read`, and nobody else's business.
+        # Strip it: a cartridge that ships someone's home directory and
+        # their filenames is not "no plain text".
+        log_p = os.path.join(out_dir, "log.json")
+        if os.path.exists(log_p):
+            with open(log_p, encoding="utf-8") as f:
+                log = json.load(f)
+            for rec in log.get("files", []):
+                rec.pop("path", None)
+            with open(log_p, "w", encoding="utf-8") as f:
+                json.dump(log, f)
         from . import __version__
         manifest = {
             "sillage": __version__,
             "model": self.mem.which, "hub": self.mem.hub,
             "vocab": int(self.mem.vocab),
             "tokens_read": int(self.mem.tokens),
-            "documents": [f["file"] for f in self.mem.log["files"]],
+            # documents, not read events: a file read twice is one document
+            "documents": sorted({f["file"] for f in self.mem.log["files"]}),
+            "reads": len(self.mem.log["files"]),
             "semantic": bool(self.mem.semantic),
             "sem2_layer": self.mem.sem2_layer,
             "sem2_whiten": bool(self.mem.sem2_whiten),
+            # declared on, and separately whether it holds anything: a
+            # state built by `watch` (fast reads) ships this tier empty
             "fastweights": bool(self.mem.fastweights),
+            "fastweights_written": bool(self.mem.fastweights
+                                        and float(np.abs(self.mem.A).max())
+                                        > 0),
             "left_out": ["cold store (plain token n-grams)",
                          "index (verbatim passages)",
-                         "readout calibration window"],
+                         "readout calibration window",
+                         "the paths the documents were read from"],
             "caveat": ("no plain text is included; that is not the same "
                        "as anonymous -- inverting the matrices is hard, "
                        "not proven impossible, and no inversion attack "
@@ -747,8 +793,7 @@ class Sillage:
             by_source.setdefault(p["source"], []).append(p["text"])
         if not by_source:
             return []
-        tok, _ = (self.load_model() if self._tok is None
-                  else (self._tok, self._model))
+        tok = self.load_tokenizer()
         out = []
         for source, texts in by_source.items():
             ids = tok.encode("\n\n".join(texts))
@@ -813,6 +858,12 @@ class Sillage:
                 "readout": {"ngram": (mem.beta_G, mem.lam_G, mem.thr_qG),
                             "semantic": (mem.beta_S, mem.lam_S, mem.thr_qS)},
                 "calib_seen": 0 if not mem.cal else len(mem.cal["p"]),
+                # a fast read never trains the adapter, and the v2 tier
+                # abstains under 500 observations: both look "on" in the
+                # size table while contributing nothing
+                "adapter_written": bool(mem.fastweights
+                                        and float(np.abs(mem.A).max()) > 0),
+                "scored_S": len(mem.res_S),
                 "writes_per_parameter": mem.writes_per_parameter(),
                 "sizes": mem.sizes(), "disk": disk,
                 "files": mem.log["files"]}

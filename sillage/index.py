@@ -22,9 +22,17 @@ import math
 import os
 import re
 import sys
+import unicodedata
 from collections import Counter
 
 MIN_CHARS = 140
+# Below this a match is an accident, not an answer: one shared word of the
+# filename, or a stop word the list missed. Measured over 23 questions on a
+# French notebook (behav/probe_ask_french.py): the lowest genuine hit scored
+# 0.161, the highest accidental one 0.024 -- a factor of 6.7, with this
+# floor sitting between them. One notebook is a small denominator; the point
+# of the floor is that "nothing matched" stays an answer the tool can give.
+MIN_SCORE = 0.05
 STOP = set("""a an the of to in and or is are was were be been being for on
 with as by at from that this these those it its we our us they their he she
 which who whom what when where how why not no nor but if then than so such
@@ -146,8 +154,23 @@ def paragraphs(text, source):
 # ------------------------------------------------------------- retrieval ----
 
 def tokens(s):
-    """Words and numbers. Unicode-aware, so accented text indexes properly."""
-    return [w for w in re.findall(r"[^\W\d_][\w\-]*|\d+\.?\d*", s.lower())
+    """Words and numbers, lowercased and stripped of their accents.
+
+    Folding accents in the KEY does two things at once, both measured on a
+    French notebook (behav/probe_ask_french.py). It lets someone type the
+    way people actually type -- "combien a coute la reparation" reaches an
+    accented passage, 4/6 unaccented questions answered before, 6/6 after.
+    And it makes the STOP list bite: that list is written unaccented, so
+    before this `etait`, `meme`, `apres` and `ca` sailed past it carrying
+    full idf, and any question containing "c'etait" could be answered by
+    any short passage containing "etait".
+
+    Only the search key is folded. The passage text that comes back is
+    untouched, accents and all.
+    """
+    s = "".join(c for c in unicodedata.normalize("NFKD", s.lower())
+                if not unicodedata.combining(c))
+    return [w for w in re.findall(r"[^\W\d_][\w\-]*|\d+\.?\d*", s)
             if w not in STOP and len(w) > 1]
 
 
@@ -193,10 +216,24 @@ class Index:
         return len(got)
 
     def _rebuild(self):
+        # A passage is searchable by its heading and its filename as well as
+        # by its own words, because that is where people put the subject:
+        # "combien a coute la reparation de la 208" has to reach the section
+        # titled "Peugeot 208 de Mme Fournier" even though the paragraph
+        # under it says only "Facture 94 euros". Measured on a notebook of
+        # this shape: heading-only questions went from 1/5 to 5/5 answered,
+        # with the six that already worked unchanged. Only the SEARCH sees
+        # them -- `text` stays the verbatim quote that comes back.
         df = Counter()
         docs = []
         for p in self.passages:
-            tf = Counter(tokens(p["text"]))
+            # the separators a filename uses are word boundaries to a
+            # reader, so `peugeot-208.md` has to answer to "peugeot"
+            stem = os.path.splitext(p.get("source") or "")[0]
+            stem = re.sub(r"[-_/\\.]+", " ", stem)
+            tf = Counter(tokens(p["text"])
+                         + tokens(p.get("section") or "")
+                         + tokens(stem))
             docs.append(tf)
             df.update(tf.keys())
         n = len(docs)
@@ -221,7 +258,7 @@ class Index:
                                               self.passages[i]["text"]):
                 continue
             s = sum(x * v.get(w, 0.0) for w, x in qv.items())
-            if s > 0:
+            if s > MIN_SCORE:
                 scored.append((s, i))
         scored.sort(reverse=True)
         return [(s, self.passages[i]) for s, i in scored[:k]]

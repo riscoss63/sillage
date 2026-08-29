@@ -112,6 +112,20 @@ try:
     check("S5 sources are declared", DOC in srcs
           and hdr.get("X-Sillage-Sources", "").startswith(DOC),
           f"(header X-Sillage-Sources: {hdr.get('X-Sillage-Sources')})")
+    # the shape a real client parses: no template token in the content, a
+    # finish_reason that distinguishes a finished answer from a cut one,
+    # and the usage object several clients require
+    stops = [s for s in ("<|im_end|>", "<|endoftext|>", "</s>")
+             if s in content]
+    usage = out.get("usage") or {}
+    check("S5b the OpenAI response shape a client can parse",
+          not stops and out["choices"][0]["finish_reason"] in
+          ("stop", "length")
+          and usage.get("total_tokens") ==
+          usage.get("prompt_tokens", 0) + usage.get("completion_tokens", -1),
+          f"(finish_reason {out['choices'][0]['finish_reason']}, "
+          f"usage {usage.get('total_tokens')} tokens, no template token "
+          f"in the content)")
 
     # ------------------------------------------------------------ UC2
     code, out, _ = call("/v1/completions", {

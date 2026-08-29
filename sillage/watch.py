@@ -7,10 +7,21 @@ from a product wish:
 
   * The SALIENCE JOURNAL. Every write is scaled by the frozen model's
     own surprise, a scalar it computes anyway at inference. Averaged per
-    document, that is a free answer to "what did I actually write that
-    was new this week?" -- the question note-taking apps answer by
-    paying an LLM call per decision. Here it costs nothing extra: the
-    number was already on its way through.
+    document it is a free measure of how unexpected a note's prose is to
+    the model -- the kind of number a note-taking app pays an LLM call
+    per decision for. Here it costs nothing extra: it was already on its
+    way through.
+
+    Read what it is, not what one would like it to be. It is the
+    FROZEN MODEL's surprise, measured before the memory speaks, so:
+    re-reading a file the memory already holds returns the same number
+    (measured: byte-identical), it cannot say "new to me", only "unusual
+    prose"; and it is a per-token MEAN, so a short dense note outranks a
+    long one and appending new material to a note LOWERS its score by
+    dilution (measured: 2.56 -> 2.42 nats after appending two genuinely
+    new decisions, the appended block alone scoring 2.67). It ranks
+    jargon and density, which correlates with novelty on technical notes
+    and does not on prose.
   * REREADING CONSOLIDATES (paper 6). A file you edit and save twice
     crosses the cold store's two-occurrence threshold on its own, which
     is exactly what makes it durable. Watching a folder is therefore not
@@ -112,8 +123,10 @@ class Watcher:
                      "when": time.strftime("%Y-%m-%d %H:%M"),
                      "tokens": rec["tokens"],
                      # the free signal: mean surprise over what was
-                     # written, in nats. High = this was new to the model
-                     # AND to the memory.
+                     # written, in nats. This is the FROZEN model's
+                     # surprise only -- it is computed before the memory
+                     # speaks, so it says "unusual prose", never "new to
+                     # this memory".
                      "salience": round(dg / max(1, dn), 3),
                      "reread": path in self.seen}
             self.journal.append(entry)

@@ -1,0 +1,193 @@
+{
+ "before": [
+  {
+   "group": "heading-only",
+   "q": "combien a coute la reparation de la 208",
+   "want": "208",
+   "got": null,
+   "score": 0.0,
+   "ok": false
+  },
+  {
+   "group": "heading-only",
+   "q": "qu'est-ce qui a ete fait sur la Kangoo",
+   "want": "Kangoo",
+   "got": null,
+   "score": 0.0,
+   "ok": false
+  },
+  {
+   "group": "heading-only",
+   "q": "le dossier de M. Bardet, c'etait quoi",
+   "want": "Bardet",
+   "got": null,
+   "score": 0.0,
+   "ok": false
+  },
+  {
+   "group": "heading-only",
+   "q": "qu'a-t-on facture a Mme Fournier",
+   "want": "Fournier",
+   "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+   "score": 0.395,
+   "ok": true
+  },
+  {
+   "group": "heading-only",
+   "q": "que s'est-il passe le mercredi 5 mars",
+   "want": "Mercredi",
+   "got": null,
+   "score": 0.0,
+   "ok": false
+  },
+  {
+   "group": "body",
+   "q": "quel couple de serrage pour l'ecrou de moyeu",
+   "want": "Bardet",
+   "got": "Jeudi 6 mars - Citroen C3 de M. Bardet",
+   "score": 0.375,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quelle reference de roulement",
+   "want": "Bardet",
+   "got": "Jeudi 6 mars - Citroen C3 de M. Bardet",
+   "score": 0.332,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "pourquoi la cle dynamometrique part en etalonnage",
+   "want": "Mercredi",
+   "got": "Mercredi 5 mars - remarque generale sur l'outillage",
+   "score": 0.488,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quel est le prix facture",
+   "want": "Fournier",
+   "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+   "score": 0.395,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quelle compression sur le troisieme cylindre",
+   "want": "Kangoo",
+   "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+   "score": 0.344,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quelle bougie a ete remplacee",
+   "want": "Fournier",
+   "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+   "score": 0.314,
+   "ok": true
+  }
+ ],
+ "after": [
+  {
+   "group": "heading-only",
+   "q": "combien a coute la reparation de la 208",
+   "want": "208",
+   "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+   "score": 0.218,
+   "ok": true
+  },
+  {
+   "group": "heading-only",
+   "q": "qu'est-ce qui a ete fait sur la Kangoo",
+   "want": "Kangoo",
+   "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+   "score": 0.161,
+   "ok": true
+  },
+  {
+   "group": "heading-only",
+   "q": "le dossier de M. Bardet, c'etait quoi",
+   "want": "Bardet",
+   "got": "Jeudi 6 mars - Citroen C3 de M. Bardet",
+   "score": 0.175,
+   "ok": true
+  },
+  {
+   "group": "heading-only",
+   "q": "qu'a-t-on facture a Mme Fournier",
+   "want": "Fournier",
+   "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+   "score": 0.462,
+   "ok": true
+  },
+  {
+   "group": "heading-only",
+   "q": "que s'est-il passe le mercredi 5 mars",
+   "want": "Mercredi",
+   "got": "Mercredi 5 mars - remarque generale sur l'outillage",
+   "score": 0.225,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quel couple de serrage pour l'ecrou de moyeu",
+   "want": "Bardet",
+   "got": "Jeudi 6 mars - Citroen C3 de M. Bardet",
+   "score": 0.351,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quelle reference de roulement",
+   "want": "Bardet",
+   "got": "Jeudi 6 mars - Citroen C3 de M. Bardet",
+   "score": 0.31,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "pourquoi la cle dynamometrique part en etalonnage",
+   "want": "Mercredi",
+   "got": "Mercredi 5 mars - remarque generale sur l'outillage",
+   "score": 0.449,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quel est le prix facture",
+   "want": "Fournier",
+   "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+   "score": 0.345,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quelle compression sur le troisieme cylindre",
+   "want": "Kangoo",
+   "got": "Mardi 4 mars - Renault Kangoo de l'entreprise Delorme",
+   "score": 0.321,
+   "ok": true
+  },
+  {
+   "group": "body",
+   "q": "quelle bougie a ete remplacee",
+   "want": "Fournier",
+   "got": "Lundi 3 mars - Peugeot 208 de Mme Fournier",
+   "score": 0.305,
+   "ok": true
+  }
+ ],
+ "heading_only": {
+  "before": 1,
+  "after": 5,
+  "n": 5
+ },
+ "body": {
+  "before": 6,
+  "after": 6,
+  "n": 6
+ },
+ "largest_body_score_move": 0.05
+}

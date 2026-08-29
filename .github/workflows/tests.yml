@@ -12,7 +12,7 @@ jobs:
     # round-trip, the readout tuner, the passage splitter, the cold
     # surprise-mass weighting, the blocked ingestion writes, the paper-8
     # semantic keys, the pickle-free state, the JSON index and the automatic
-    # layer choice -- seventeen checks in all, and all of them in a few
+    # layer choice -- eighteen checks in all, and all of them in a few
     # seconds. Windows is
     # in the matrix because the tool claims to work there (it expands its own
     # globs, and writes its state with explicit encodings). The suites that

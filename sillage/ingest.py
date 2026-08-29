@@ -203,11 +203,14 @@ def ingest_text(s, text, name="<ingest>", block=64, res_every=8,
                     rate = cnt / max(1e-6, time.time() - t0)
                     print(f"  ... {cnt}/{n} tokens ({rate:.0f} tok/s)",
                           flush=True)
+                if between_windows is not None:
+                    # a server holds the state's lock while ingesting;
+                    # yielding after each 64-token block, not only at the
+                    # window boundary, is what keeps a conversation alive
+                    # during a read that fits in a single window
+                    between_windows()
             if between_windows is not None:
-                # a server holds the state's lock while ingesting; this
-                # is where it lets a waiting generation through, so the
-                # longest anyone waits is one window
-                between_windows()
+                between_windows()          # and once per window, as before
             if a + w >= len(ids):
                 break
             a += STRIDE

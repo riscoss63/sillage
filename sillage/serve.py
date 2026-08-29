@@ -36,10 +36,14 @@ Endpoints:
 
 Concurrency, and the one thing that matters: a Sillage state is not
 thread-safe -- reading mutates the matrices in place. Generation and
-ingestion therefore share one lock, and the ingestion RELEASES it
-between windows (see `between_windows` in runtime.read_text). So a
-conversation stays answerable while a folder is being read; the longest
-it ever waits is one window.
+ingestion therefore share one lock, and the ingestion RELEASES it every
+32 tokens of a normal read and after every 64-token block of a fast one
+(see `between_windows` in runtime.read_text and ingest.ingest_text). So
+a conversation stays answerable while a folder is being read: measured
+4.35 s at worst against a 1.90 s idle baseline on a single-window
+document. Before 1.8.2 the yield happened only at window boundaries,
+which meant a document short enough to be ONE window had no yield point
+and held the lock for the entire read.
 
 Binding: 127.0.0.1 by default. `--host 0.0.0.0` exposes a memory that
 contains the text you fed it -- the server says so out loud, and
@@ -79,13 +83,26 @@ class Service:
             self.lock.acquire()
 
     def generate(self, prompt, n, temp, seed):
-        """Take the lock only for the generation itself."""
+        """Take the lock only for the generation itself.
+
+        Returns (text, finish_reason). The chat template's own stop token
+        is generation's natural end, not content: leaving it in put a
+        literal `<|im_end|>` on the client's screen, and reporting
+        "length" for every answer left a client unable to tell a complete
+        reply from a truncated one.
+        """
         self.waiting += 1
         try:
             with self.lock:
-                return self.s.complete(prompt, n=n, temp=temp, seed=seed)
+                text = self.s.complete(prompt, n=n, temp=temp, seed=seed)
         finally:
             self.waiting -= 1
+        finish = "length"
+        for stop in ("<|im_end|>", "<|endoftext|>", "</s>"):
+            if stop in text:
+                text = text.split(stop, 1)[0]
+                finish = "stop"
+        return text.rstrip(), finish
 
     def ask(self, query, k=None):
         self.waiting += 1
@@ -224,7 +241,10 @@ class Handler(BaseHTTPRequestHandler):
     service = None                     # set by serve()
 
     def log_message(self, fmt, *args):        # one tidy line per call
-        if not self.server.quiet:
+        # `quiet` is set by serve(); anyone embedding this Handler in
+        # their own HTTPServer has not set it, and used to get an
+        # AttributeError on every single request
+        if not getattr(self.server, "quiet", False):
             print(f"  {self.command} {self.path} -> {args[1]}",
                   flush=True)
 
@@ -316,29 +336,38 @@ class Handler(BaseHTTPRequestHandler):
         seed = int(payload.get("seed") or 0)
         prompt, sources = self.service.build_prompt(src, chat)
         t0 = time.time()
-        text = self.service.generate(prompt, n, temp, seed)
+        text, finish = self.service.generate(prompt, n, temp, seed)
         took = time.time() - t0
         hdr = {"X-Sillage-Sources":
                ", ".join(s["source"] for s in sources) or "none"}
         made = int(time.time())
         model = self.service.s.mem.which
+        # a token count clients require, from the model's own tokenizer
+        tok = self.service.s._tok
+        n_in = len(tok.encode(prompt)) if tok else 0
+        n_out = len(tok.encode(text)) if tok else 0
+        usage = {"prompt_tokens": n_in, "completion_tokens": n_out,
+                 "total_tokens": n_in + n_out}
         if payload.get("stream"):
-            return self._stream(text, model, made, hdr, chat)
+            return self._stream(text, model, made, hdr, chat, finish,
+                                usage, sources, took)
         body = {
             "id": "cmpl-" + uuid.uuid4().hex[:16],
             "object": "chat.completion" if chat else "text_completion",
             "created": made, "model": model,
             "choices": [
-                {"index": 0, "finish_reason": "length",
+                {"index": 0, "finish_reason": finish,
                  **({"message": {"role": "assistant", "content": text}}
                     if chat else {"text": text})}],
+            "usage": usage,
             # what the memory did, in the open
             "sillage": {"sources": sources, "seconds": round(took, 2),
                         "context_injection": self.service.context},
         }
         return _json(self, 200, body, hdr)
 
-    def _stream(self, text, model, made, hdr, chat):
+    def _stream(self, text, model, made, hdr, chat, finish="stop",
+                usage=None, sources=(), took=0.0):
         """Server-sent events, the shape OpenAI clients expect."""
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
@@ -349,12 +378,13 @@ class Handler(BaseHTTPRequestHandler):
         cid = "cmpl-" + uuid.uuid4().hex[:16]
         obj = "chat.completion.chunk" if chat else "text_completion"
 
-        def send(delta, finish=None):
-            choice = {"index": 0, "finish_reason": finish}
+        def send(delta, done=None, extra=None):
+            choice = {"index": 0, "finish_reason": done}
             choice.update({"delta": {"content": delta}} if chat
                           else {"text": delta})
             frame = {"id": cid, "object": obj, "created": made,
                      "model": model, "choices": [choice]}
+            frame.update(extra or {})
             self.wfile.write(f"data: {json.dumps(frame)}\n\n"
                              .encode("utf-8"))
             self.wfile.flush()
@@ -364,7 +394,13 @@ class Handler(BaseHTTPRequestHandler):
         parts = text.split(" ")
         for i, part in enumerate(parts):
             send(part if i == 0 else " " + part)
-        send("", finish="length")
+        # the last frame carries what the non-streaming reply carries, so a
+        # streaming client is not the one client that loses the attribution
+        send("", done=finish,
+             extra={"usage": usage or {},
+                    "sillage": {"sources": list(sources),
+                                "seconds": round(took, 2),
+                                "context_injection": self.service.context}})
         self.wfile.write(b"data: [DONE]\n\n")
         self.wfile.flush()
 
