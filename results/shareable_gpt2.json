@@ -1,0 +1,37 @@
+{
+ "model": "gpt2",
+ "configs": {
+  "A complet": {
+   "ppl_base": 1.71,
+   "ppl_mem": 1.28,
+   "canonical": 1.0,
+   "paraphrase": 0.0
+  },
+  "B sans cold": {
+   "ppl_base": 1.71,
+   "ppl_mem": 1.31,
+   "canonical": 0.9,
+   "paraphrase": 0.0
+  },
+  "C sans semantique": {
+   "ppl_base": 1.71,
+   "ppl_mem": 1.28,
+   "canonical": 1.0,
+   "paraphrase": 0.0
+  },
+  "D matrices seules": {
+   "ppl_base": 1.71,
+   "ppl_mem": 1.31,
+   "canonical": 0.9,
+   "paraphrase": 0.0
+  }
+ },
+ "sizes_bytes": {
+  "cold.npz": 45512,
+  "index.json": 34599,
+  "log.json": 417,
+  "state.npz": 15521571
+ },
+ "shareable_bytes": 15521571,
+ "full_bytes": 15602099
+}

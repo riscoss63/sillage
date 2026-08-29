@@ -1,0 +1,22 @@
+{
+ "model": "qwen",
+ "mode": "bfloat16",
+ "arms": {
+  "float32": {
+   "forward_s": 7.63,
+   "read_s": 48.4,
+   "cold_grams": 483,
+   "recall": 0.7142857142857143
+  },
+  "bfloat16": {
+   "forward_s": 49.21,
+   "read_s": 236.9,
+   "cold_grams": 483,
+   "recall": 0.7142857142857143
+  }
+ },
+ "gate_corr": 1.0,
+ "gate_mad_nats": 0.0045,
+ "admissions_jaccard": 1.0,
+ "verdict": "faithful"
+}

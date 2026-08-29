@@ -1,0 +1,37 @@
+{
+ "model": "qwen",
+ "configs": {
+  "A complet": {
+   "ppl_base": 1.45,
+   "ppl_mem": 1.2,
+   "canonical": 0.9,
+   "paraphrase": 0.8
+  },
+  "B sans cold": {
+   "ppl_base": 1.45,
+   "ppl_mem": 1.19,
+   "canonical": 0.7,
+   "paraphrase": 0.8
+  },
+  "C sans semantique": {
+   "ppl_base": 1.45,
+   "ppl_mem": 1.2,
+   "canonical": 0.9,
+   "paraphrase": 0.0
+  },
+  "D matrices seules": {
+   "ppl_base": 1.45,
+   "ppl_mem": 1.19,
+   "canonical": 0.7,
+   "paraphrase": 0.8
+  }
+ },
+ "sizes_bytes": {
+  "cold.npz": 40076,
+  "index.json": 34599,
+  "log.json": 417,
+  "state.npz": 15499839
+ },
+ "shareable_bytes": 15499839,
+ "full_bytes": 15574931
+}

@@ -7,6 +7,9 @@
     sillage status                   what it knows, tier by tier
     sillage papers                   index the eight preprints and ask them
     sillage serve                    OpenAI-compatible endpoint, any client
+    sillage watch ~/notes            read a folder as it changes
+    sillage review                   what is about to be forgotten
+    sillage export out/              a state you can share, without your text
     sillage demo notes.md            watch the memory work in one sitting
     sillage forget --all
 
@@ -88,7 +91,8 @@ def make(a, **over):
           "target": getattr(a, "target", None),
           "cold_mass": getattr(a, "cold_mass", None),
           "sem2": getattr(a, "sem2", None),
-          "sem2_whiten": getattr(a, "sem2_whiten", None)}
+          "sem2_whiten": getattr(a, "sem2_whiten", None),
+          "dtype": getattr(a, "dtype", None)}
     kw.update(over)
     return Sillage(**kw)
 
@@ -183,6 +187,86 @@ def cmd_complete(a):
     prompt = " ".join(a.prompt)
     print(prompt + s.complete(prompt, n=a.n, temp=a.temp,
                               fast=getattr(a, "fast", False)))
+
+
+def cmd_watch(a):
+    """watch: read a folder as it changes, and say what was new."""
+    from .watch import watch
+    s = make(a)
+    exts = ([e if e.startswith(".") else "." + e
+             for e in a.ext.split(",")] if a.ext else None)
+    watch(s, a.folder, interval=a.interval, once=a.once, exts=exts,
+          fast=not a.full, quiet=False)
+
+
+def cmd_export(a):
+    """export: a state someone else can open, without your documents."""
+    s = make(a)
+    if not s.mem.tokens:
+        sys.exit("nothing has been read yet: sillage read <file>")
+    info = s.export_shareable(a.out)
+    m = info["manifest"]
+    print(f"cartridge written to {info['dir']} "
+          f"({info['bytes']/1e6:.1f} MB)")
+    print(f"  {m['model']} ({m['hub']}), {m['tokens_read']} tokens read "
+          f"from {len(m['documents'])} document(s)")
+    print(f"  files: {', '.join(info['files'])}")
+    print(f"  left out: {'; '.join(m['left_out'])}")
+    if info["thin"]:
+        print(f"\n  WARNING: this memory has only {info['scored']} "
+              f"scored positions, under the 500 a tier needs before it\n"
+              f"  stops abstaining -- so this cartridge will stay "
+              f"SILENT: everything it recalled\n  came from the cold "
+              f"store, which cannot be shared. Read more into it first "
+              f"(a few\n  thousand tokens), then export again.")
+    print(f"\n  This carries no plain text -- which is NOT the same as "
+          f"anonymous.\n  Inverting the matrices is hard, not proven "
+          f"impossible, and no\n  inversion attack has been run against "
+          f"this format yet. Share it\n  the way you would share a "
+          f"model you fine-tuned on your own data.")
+
+
+def cmd_review(a):
+    """review: what is about to be forgotten, and what fixes it."""
+    s = make(a)
+    rows = s.review()
+    if not rows:
+        sys.exit("nothing has been read yet: sillage read <file>")
+    print("consolidation, document by document (paper 6: this memory "
+          "durably keeps what it has seen twice)\n")
+    print(f"  {'document':34s} {'kept':>6s} {'fragile':>8s} "
+          f"{'gone':>6s}   share")
+    for r in rows:
+        bar = "#" * int(round(r["share"] * 20))
+        print(f"  {r['source'][:34]:34s} {r['consolidated']:6d} "
+              f"{r['fragile']:8d} {r['gone']:6d}   "
+              f"{r['share']:5.0%} {bar}")
+    weakest = rows[0]
+    print(f"\n  'fragile' means stored once: present, but under the "
+          f"admission threshold, so the memory never speaks it. "
+          f"Reading a document again is what consolidates it.")
+    if a.read:
+        n = max(1, a.read)
+        todo = [r["source"] for r in rows[:n]]
+        found = [p for p in expand(todo) if os.path.exists(p)]
+        missing = [p for p in todo if p not in found]
+        if missing:
+            print(f"\n  cannot reread (not at this path): "
+                  f"{', '.join(missing)}")
+        for path in found:
+            r = s.read(path, fast=True)[0]
+            print(f"  reread {r['file']}: {r['tokens']} tokens")
+        if found:
+            after = {x["source"]: x for x in s.review()}
+            for path in found:
+                name = os.path.basename(path)
+                if name in after:
+                    print(f"  {name}: {after[name]['share']:.0%} "
+                          f"consolidated now")
+    else:
+        print(f"  least consolidated: {weakest['source']} "
+              f"({weakest['share']:.0%}) -- `sillage review --read 1` "
+              f"rereads it.")
 
 
 def cmd_serve(a):
@@ -420,6 +504,16 @@ def build_parser():
                              "surprise mass instead of raw counts (paper "
                              "6's adversarial fix; off by default -- "
                              "counts reproduce the papers' numbers)")
+    common.add_argument("--dtype", default=None,
+                        choices=["float32", "bfloat16", "float16",
+                                 "int8"],
+                        help="how to load the frozen model: float32 "
+                             "(default), bfloat16/float16 (half the "
+                             "memory), or int8 (torch's dynamic "
+                             "quantisation, CPU, no extra dependency). "
+                             "A bigger model on modest hardware, "
+                             "without losing the hidden states the "
+                             "memory keys on")
     common.add_argument("--device", default=None, metavar="DEV",
                         help="where the frozen forward passes run: cpu, "
                              "cuda, mps (default: cuda when there is one)")
@@ -492,6 +586,34 @@ def build_parser():
     p = sub.add_parser("status", parents=[common],
                        help="what it knows, tier by tier")
     p.set_defaults(fn=cmd_status)
+
+    p = sub.add_parser("watch", parents=[common],
+                       help="read a folder as it changes, with a "
+                            "salience journal of what was new")
+    p.add_argument("folder")
+    p.add_argument("--interval", type=int, default=60,
+                   help="seconds between passes (default 60)")
+    p.add_argument("--once", action="store_true",
+                   help="one pass and exit -- for a cron job")
+    p.add_argument("--ext", default=None, metavar="LIST",
+                   help="extensions to read (default: md,txt,markdown)")
+    p.add_argument("--full", action="store_true",
+                   help="normal reads instead of fast ones (slower, "
+                        "reports perplexity)")
+    p.set_defaults(fn=cmd_watch)
+
+    p = sub.add_parser("export", parents=[common],
+                       help="write a shareable state: the matrices, "
+                            "without the cold store or the index")
+    p.add_argument("out", help="directory to write the cartridge to")
+    p.set_defaults(fn=cmd_export)
+
+    p = sub.add_parser("review", parents=[common],
+                       help="what is about to be forgotten (paper 6's "
+                            "two-occurrence rule, as a command)")
+    p.add_argument("--read", type=int, default=0, metavar="N",
+                   help="reread the N least consolidated documents")
+    p.set_defaults(fn=cmd_review)
 
     p = sub.add_parser("serve", parents=[common],
                        help="OpenAI-compatible endpoint for any client")

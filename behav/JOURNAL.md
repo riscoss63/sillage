@@ -1169,3 +1169,95 @@ blanchiment y est activé par défaut, règle du papier 2). Résultat :
 auto → gpt2 3/10, qwen 8/10, sans qu'on donne un numéro de couche.
 Deux heuristiques inventées puis RETIRÉES parce qu'elles ne prédisaient
 pas — elles ne sont pas dans le code livré.
+
+---
+
+## 29/08/2026 — AXE 4, étape 2 : que vaut un état SANS cold store ?
+## (la mesure qui décide si les cartridges existent) — PRÉDICTIONS
+
+Un état partagé ne peut contenir ni le cold store (table 4-grammes →
+successeurs en tokens clairs) ni l'index (passages en clair). Reste les
+matrices. La question, jamais posée : **que perd-on ?**
+
+Protocole (probe_shareable_state.py) : un état lu une fois sur un vrai
+document (papier 6, texte naturel) + le dossier de faits inventés ;
+quatre configurations à la GÉNÉRATION, même état, rien de réécrit :
+  A. complet (M_G + cold + sémantique)
+  B. sans cold store
+  C. sans index (pas d'injection de contexte — le régime `complete`)
+  D. sans cold ni index = **ce qu'un cartridge publiable contiendrait**
+Mesures : rappel canonique, rappel paraphrasé, PPL sur un extrait connu
+du document (la métrique historique de la série), et taille sur disque.
+
+**Prédictions (avant le run) :**
+- P-C1 : la PPL sur texte connu se dégrade peu sans cold (< +15 %) — la
+  matrice M_G porte l'essentiel de la vraisemblance ; c'est la rétention
+  LONGUE qui dépendait du cold (papier 6), pas la lecture immédiate.
+- P-C2 : le rappel canonique chute nettement sans cold (≥ 30 points) —
+  le rappel exact d'un fait est précisément ce que le cold porte.
+- P-C3 : le rappel paraphrasé (tier v2) est INDÉPENDANT du cold —
+  il vient de M_S, donc un cartridge garde la capacité que le papier 8
+  a débloquée.
+- **DÉCISION liée : si P-C1 tient et P-C3 tient, un cartridge
+  « matrices seules » a un intérêt réel (gain de vraisemblance +
+  paraphrase) et l'item continue. Si les trois chutent, l'item devient
+  une note négative.**
+
+**VERDICT étape 2 — état partageable (results/shareable_{gpt2,qwen}.json) :
+L'ITEM CARTRIDGES EST VIABLE.** Même état, tiers coupés à la génération
+(comparaison appariée) :
+
+| config (qwen) | PPL | canonique | paraphrase |
+|---|---|---|---|
+| A complet | 1.20 | 9/10 | 8/10 |
+| B sans cold | 1.19 | 7/10 | **8/10** |
+| C sans sémantique | 1.20 | 9/10 | **0/10** |
+| D matrices seules (= cartridge) | **1.19** | **7/10** | **8/10** |
+
+- P-C1 **confirmée au-delà** : la vraisemblance ne perd RIEN sans cold
+  (1.20 → 1.19) — la matrice M_G la porte entièrement.
+- P-C2 **RÉFUTÉE** : le canonique ne chute que de 9 à 7/10 (je prédisais
+  ≥ 30 points de perte). GPT-2 : 10/10 → 9/10.
+- P-C3 **confirmée** : le rappel paraphrasé est INDÉPENDANT du cold
+  (8/10 des deux côtés) et vient entièrement du tier v2 (ligne C : 0/10
+  sans lui). **Le cartridge conserve donc la capacité que le papier 8 a
+  débloquée.**
+
+**Piège découvert en implémentant `export`** : sur un état trop peu lu
+(1,9k tokens, 237 positions notées < le plancher de 500), les tiers
+matriciels S'ABSTIENNENT et le cartridge est MUET (0/8 alors que l'état
+complet fait 8/8 — tout venait du cold). Diagnostic par diff : M, MS, A,
+réservoirs, réglages tous identiques ; seul le cold manquait, et le
+seuil valait inf. `export` avertit désormais quand `res_G` < 500 au lieu
+de livrer un fichier silencieux. Les mesures ci-dessus (7k tokens) sont
+au-dessus du plancher, d'où l'écart apparent entre les deux tests.
+
+**VERDICT étape 4 — quantification (results/quantised_qwen_int8.json) :
+NÉGATIF SUR CPU, et livré comme tel.** int8 dynamique de torch (197
+couches linéaires quantifiées sur qwen, zéro dépendance ajoutée) :
+- admissions du cold store **identiques** (467 vs 467, Jaccard 1.000) —
+  la règle des deux occurrences survit intacte ;
+- MAIS corrélation des portes **0.9735** < le seuil 0.98 déclaré
+  d'avance → **prédiction réfutée, verdict « approximatif »** ; écart
+  moyen 0.127 nat ;
+- rappel **5/7 → 1/7** ;
+- et **aucun gain de vitesse en lecture** (55,7 s → 60,9 s) : le goulot
+  n'est pas le forward mais les écritures numpy.
+Donc `--dtype int8` sert à FAIRE TENIR un plus gros modèle en mémoire,
+pas à aller plus vite ni à lire quelque chose d'important — et l'outil
+le dit lui-même à l'écran quand on l'active. bfloat16 en cours de
+mesure (le mode réellement utile : moitié mémoire, perte attendue
+faible).
+
+**bfloat16 (results/quantised_qwen_bfloat16.json) : FIDÈLE mais LENT
+sur ce CPU.** Portes corrélées **1.0000** (écart 0.0045 nat),
+admissions identiques (Jaccard 1.000), rappel identique (5/7) →
+verdict « faithful » selon les seuils déclarés. MAIS forward 7,7 s →
+49,2 s et lecture 55,7 s → 236,9 s (×4) : sans support natif, le CPU
+émule. **Conclusion des deux mesures : float32 reste le bon défaut sur
+CPU ; bfloat16 sert quand la MÉMOIRE est la contrainte (moitié des
+poids, fidélité intacte), int8 quand il faut juste faire tenir un plus
+gros modèle (fidélité approximative, rappel dégradé).** Les deux
+messages de l'outil disent exactement ça à l'écran. Le remplacement de
+llama.cpp est donc livré avec son mode d'emploi honnête, pas comme une
+accélération.

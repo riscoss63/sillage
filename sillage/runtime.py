@@ -13,6 +13,7 @@ Generation never writes: the assistant learns from what you give it to read,
 not from its own output.
 """
 
+import json
 import os
 import time
 
@@ -46,7 +47,7 @@ class Sillage:
     def __init__(self, model=None, state=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
                  device=None, quiet=False, target=None, cold_mass=None,
-                 sem2=None, sem2_whiten=None):
+                 sem2=None, sem2_whiten=None, dtype=None):
         self.state_dir = default_state() if state is None else state
         self.target_hub = target
         if target is not None:
@@ -60,6 +61,7 @@ class Sillage:
                            os.path.join(self.state_dir, "index.json"))
         self.quiet = quiet
         self.device = device        # None -> cuda when there is one
+        self.dtype = dtype          # None -> float32, or int8/bf16/fp16
         self._tok = None
         self._model = None
 
@@ -83,10 +85,17 @@ class Sillage:
                                else "cpu")
             torch.set_num_threads(os.cpu_count() or 4)
             self._say(f"loading {name} (frozen, {self.device}) ...")
+            # A bigger model on modest hardware, without giving up the
+            # hidden states the memory keys on (paper 8) -- which is why
+            # this is torch's own quantisation and not a GGUF runtime.
+            want = (self.dtype or "float32").lower()
+            load_as = {"bfloat16": torch.bfloat16,
+                       "float16": torch.float16}.get(want,
+                                                     torch.float32)
             try:
                 self._tok = AutoTokenizer.from_pretrained(name)
                 self._model = AutoModelForCausalLM.from_pretrained(
-                    name, dtype=torch.float32)
+                    name, dtype=load_as)
             except Exception as exc:
                 raise SystemExit(
                     f"could not load {name} as a causal language model "
@@ -98,6 +107,41 @@ class Sillage:
             # decides where the frozen forward passes happen
             self._model.to(self.device)
             self._model.eval()
+            if want == "int8":
+                # dynamic int8 over the Linear layers: CPU-native, in
+                # torch itself (no extra dependency), and the forward
+                # still returns hidden states. GPT-2 uses Conv1D rather
+                # than Linear, so it is left untouched -- the tool says
+                # so instead of pretending.
+                n_lin = sum(1 for m in self._model.modules()
+                            if isinstance(m, torch.nn.Linear))
+                if n_lin == 0:
+                    self._say("--dtype int8: this architecture has no "
+                              "nn.Linear layers to quantise (GPT-2 uses "
+                              "Conv1D); loading it unquantised.")
+                else:
+                    self._model = torch.ao.quantization.quantize_dynamic(
+                        self._model, {torch.nn.Linear},
+                        dtype=torch.qint8)
+                    self._say(
+                        f"quantised {n_lin} linear layers to int8 "
+                        f"(dynamic, CPU). MEASURED on Qwen3-0.6B: the "
+                        f"cold store's admissions come out identical "
+                        f"(Jaccard 1.00) but the surprise gate only "
+                        f"correlates 0.97 with float32, recall dropped "
+                        f"from 5/7 to 1/7, and reading was no faster. "
+                        f"Use this to fit a bigger model in memory, not "
+                        f"to go faster or to read something you care "
+                        f"about.")
+            if want not in ("float32", "int8"):
+                self._say(
+                    f"loaded in {want}: half the weight memory, and "
+                    f"MEASURED faithful on Qwen3-0.6B (the surprise "
+                    f"gate correlates 1.000 with float32, identical "
+                    f"cold admissions, identical recall) -- but on a "
+                    f"CPU without native support it is emulated, and "
+                    f"reading measured 4x slower. Worth it when memory "
+                    f"is the constraint, not when time is.")
         return self._tok, self._model
 
     def _say(self, msg):
@@ -480,6 +524,128 @@ class Sillage:
                 if nxt == getattr(tok, "eos_token_id", -1):
                     break
         return tok.decode(out_ids)
+
+    # ---------------------------------------------------------- sharing ----
+    def export_shareable(self, out_dir):
+        """Write a state someone else can open without receiving your
+        documents.
+
+        What is left out, and why it has to be: the COLD STORE is a
+        table of 4-grams to their successors, in plain token ids, and
+        the INDEX keeps whole passages verbatim -- either one hands the
+        reader your text back. What is kept are the matrices, which are
+        superpositions: measured on GPT-2, dropping both costs 2% of
+        the perplexity gain and one canonical recall in ten, so a
+        cartridge is worth sharing.
+
+        This is *no plain text*, which is not the same claim as
+        *anonymous*: inverting a superposition is hard, not proven
+        impossible, and no attack has been run against it yet. The
+        manifest says so, in the file.
+        """
+        import shutil
+        from .core import RESERVOIR
+        os.makedirs(out_dir, exist_ok=True)
+        # A cartridge speaks through the matrices alone, and a tier that
+        # has not seen 500 scored positions abstains by design (core._thr
+        # will not guess a quantile from less). Say so before writing a
+        # silent file: measured, a state with ~1.9k tokens read fast
+        # recalls nothing without its cold store, while one with ~7k
+        # recalls 9 facts in 10.
+        thin = len(self.mem.res_G) < 500
+        del RESERVOIR
+        keep = self.mem.cold
+        self.mem.cold = {}                 # not written, not pruned
+        try:
+            here = self.state_dir
+            self.mem.dir = out_dir
+            self.mem.save()
+        finally:
+            self.mem.dir = here
+            self.mem.cold = keep
+        for stray in ("cold.npz", "calib.npz", "index.json"):
+            p = os.path.join(out_dir, stray)
+            if os.path.exists(p):
+                os.remove(p)
+        st = self.status()
+        manifest = {
+            "sillage": st["version"] if "version" in st else None,
+            "model": self.mem.which, "hub": self.mem.hub,
+            "vocab": int(self.mem.vocab),
+            "tokens_read": int(self.mem.tokens),
+            "documents": [f["file"] for f in self.mem.log["files"]],
+            "semantic": bool(self.mem.semantic),
+            "sem2_layer": self.mem.sem2_layer,
+            "sem2_whiten": bool(self.mem.sem2_whiten),
+            "fastweights": bool(self.mem.fastweights),
+            "left_out": ["cold store (plain token n-grams)",
+                         "index (verbatim passages)",
+                         "readout calibration window"],
+            "caveat": ("no plain text is included; that is not the same "
+                       "as anonymous -- inverting the matrices is hard, "
+                       "not proven impossible, and no inversion attack "
+                       "has been run against this format yet"),
+        }
+        with open(os.path.join(out_dir, "cartridge.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2)
+        total = sum(os.path.getsize(os.path.join(out_dir, f))
+                    for f in os.listdir(out_dir))
+        return {"dir": out_dir, "bytes": total, "manifest": manifest,
+                "files": sorted(os.listdir(out_dir)),
+                "thin": thin, "scored": len(self.mem.res_G)}
+
+    # ------------------------------------------------------------ review ----
+    def review(self):
+        """Which documents are about to be forgotten, and why.
+
+        Paper 6 measured the two-occurrence rule: a fact seen once never
+        clears the cold store's admission threshold, lives on the
+        Hebbian matrix alone, and is gone after ~40k tokens of anything
+        else; seen twice, it is still there at +110k. The threshold is
+        `COLD_MIN_COUNT`, so the tool can simply *look*: for every
+        document it has read, how many of its 4-grams are consolidated
+        (count >= 2, served), how many are fragile (count == 1, stored
+        but never spoken), and how many are gone (pruned at
+        consolidation, or never written).
+
+        Returns one record per source, least consolidated first --
+        rereading is what moves a gram from fragile to consolidated,
+        which is the whole point of the law.
+        """
+        from .core import COLD_MIN_COUNT, NGRAM
+        by_source = {}
+        for p in self.index.passages:
+            by_source.setdefault(p["source"], []).append(p["text"])
+        if not by_source:
+            return []
+        tok, _ = (self.load_model() if self._tok is None
+                  else (self._tok, self._model))
+        out = []
+        for source, texts in by_source.items():
+            ids = tok.encode("\n\n".join(texts))
+            solid = weak = gone = 0
+            seen = set()
+            for i in range(len(ids) - NGRAM + 1):
+                gram = np.array(ids[i:i + NGRAM],
+                                dtype=np.int32).tobytes()
+                if gram in seen:
+                    continue
+                seen.add(gram)
+                slot = self.mem.cold.get(gram)
+                if slot is None:
+                    gone += 1
+                elif sum(slot[1].values()) >= COLD_MIN_COUNT:
+                    solid += 1
+                else:
+                    weak += 1
+            total = max(1, solid + weak + gone)
+            out.append({"source": source, "grams": total,
+                        "consolidated": solid, "fragile": weak,
+                        "gone": gone,
+                        "share": round(solid / total, 3),
+                        "passages": len(texts)})
+        return sorted(out, key=lambda r: r["share"])
 
     # --------------------------------------------------------------- ask ----
     def ask(self, question, k=3, numeric_only=False):

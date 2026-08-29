@@ -181,6 +181,9 @@ if you want to wire it into your own generation loop.
 | `sillage papers` | index the eight preprints shipped here, then ask them |
 | `sillage demo FILE` | two sessions on one document, start to finish |
 | `sillage serve` | OpenAI-compatible endpoint: any client gains the memory |
+| `sillage watch DIR` | read a folder as it changes, with a salience journal |
+| `sillage review` | what is about to be forgotten, and rereading it |
+| `sillage export DIR` | a shareable state: the matrices, not your text |
 | `sillage status` / `forget --all` | inspect / wipe |
 
 Flags: `--model NAME` (see below), `--state DIR` (or `$SILLAGE_STATE`),
@@ -198,7 +201,9 @@ measured for a model they measured (qwen 1, gpt2 5) and sweeps the
 network for any other, choosing the layer where a rare repeated token
 still looks like itself, `--cold-mass` (weight the cold store's successors by
 surprise mass -- paper 6's adversarial fix; counts stay the default and
-reproduce the papers' numbers), `-n`, `--temp`, `-k`, and on
+reproduce the papers' numbers), `--dtype float32|bfloat16|float16|int8`
+(quantise the frozen model so a bigger one fits -- the tool prints what
+each one was measured to cost, see below), `-n`, `--temp`, `-k`, and on
 `complete`/`chat`: `--fast` (speculative decoding from the memory --
 identical output, greedy only) and `--target NAME` (a bigger
 same-tokenizer sibling reads the state; adapter off). Globs are expanded by the tool
@@ -313,6 +318,56 @@ where clients expect it.
 It binds to `127.0.0.1`. **This memory contains the text you fed it** —
 `--host 0.0.0.0` is possible, says so out loud, and `--token` adds a
 bearer check.
+
+## Three commands only this mechanism can offer, and one honest negative
+
+**`sillage watch ~/notes`** reads a folder as it changes, and keeps a
+**salience journal**: every write is already scaled by the frozen model's
+own surprise, so "what did I write this week that was actually new?" is
+free here — a note-taking app answers it by paying an LLM call per
+decision. Measured on a folder holding one page of routine prose and one
+of invented facts: **1.48 nats against 0.17**, a factor of nine, for no
+extra compute. And because paper 6 showed that a document read twice is
+what crosses the durability threshold, watching a folder *is* the
+mechanism, not a convenience around it.
+
+**`sillage review`** turns that law into a command: for every document,
+how many of its 4-grams are consolidated (seen twice, so the memory can
+speak them), fragile (seen once — stored, but under the threshold, so
+silent), or gone. Read a document once and it comes out ~52% consolidated
+with a hundred-odd fragile grams; read it twice and it is 94% with none.
+`--read N` rereads the weakest.
+
+**`sillage export cartridge/`** writes a state you can hand to someone
+else. The cold store (4-grams to successors, in plain token ids) and the
+index (verbatim passages) are left out, because either one hands your
+text back; what ships is the matrices, which are superpositions.
+Measured cost of leaving them out, on the same state: perplexity
+unchanged (1.20 → 1.19), canonical recall 9/10 → 7/10, and **paraphrased
+recall untouched at 8/10** — the capability paper 8 unlocked survives
+sharing. The command refuses to be quiet about two things: it warns when
+a state is too thin for its tiers to speak at all (they abstain below 500
+scored positions, and the cartridge would be silent), and its manifest
+states plainly that *no plain text* is not the same claim as
+*anonymous* — inverting a superposition is hard, not proven impossible,
+and no inversion attack has been run against this format yet.
+
+**`--dtype int8|bfloat16`** quantises the frozen model so a bigger one
+fits in the same RAM. It is not a speed knob, and the tool says so
+itself at load time, because both halves were measured on Qwen3-0.6B
+against float32 with the thresholds declared before the run:
+
+| dtype | surprise gate | cold admissions | recall | reading |
+|---|---|---|---|---|
+| `bfloat16` | r = **1.0000** (0.0045 nats apart) | 467 vs 467, Jaccard 1.00 | identical | **4x slower** (emulated on this CPU) |
+| `int8` | r = **0.9735** — under the 0.98 declared | 467 vs 467, Jaccard 1.00 | **5/7 -> 1/7** | no faster |
+
+So: float32 stays the default on CPU, `bfloat16` is faithful and is for
+when *memory* is the constraint, `int8` is for making a bigger model fit
+at all — not for anything you care about recalling. This is what replaced
+the llama.cpp backend the roadmap had planned: paper 8 made that
+untenable, since the semantic tier now keys on an *early hidden layer*
+and GGUF runtimes do not expose intermediate layers.
 
 ## Should you use this?
 
@@ -454,6 +509,7 @@ pyproject.toml   packaging: pip install -e . gives you the `sillage` command
 test_unit.py     the mechanisms, in five seconds, numpy only
 test_sillage.py  the tool, end to end, in its own processes
 test_serve.py    the HTTP service, over real sockets
+test_axis4.py    watch, review and export, with the laws they rest on
 .github/         CI: the unit tests and a LaTeX check on every push
 papers/          the eight preprints (LaTeX + figures)
 results/         every number in every paper (JSON)
