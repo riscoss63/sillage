@@ -1521,3 +1521,53 @@ aucun gabarit ne change ça. C'est exactement ce que vise le premier point
 de l'axe 5 (clés d'encodeur gelé externe, invariant à la paraphrase par
 construction). Pour poser une question aujourd'hui, la bonne porte reste
 `ask` : 12/12 à l'entrée, verbatim, sourcé, rien de généré.
+
+### 2026-08-30, très tard — la reformulation était DÉJÀ résolue, par la composition
+
+Les deux sondes précédentes isolaient le canal READOUT. `serve` en a
+deux : il injecte aussi les passages que `ask` retrouve — et **ce
+canal-là est robuste à la reformulation**, parce que c'est du TF-IDF sur
+les mots du demandeur, pas une clé de quatre tokens. Mesure sur le vrai
+endpoint, vraies sockets, avec `--no-context` en ablation
+(`results/serve_rephrase.json`) :
+
+| | reformulées justes | questions sans réponse |
+|---|---|---|
+| 0,6B, **passages injectés** | **8/8** | **7/8 fabriquées, sources nommées** |
+| 0,6B, `--no-context` (readout seul) | **0/8** | refus fréquents |
+
+**S1 et S2 confirmées.** Le 0,6B répond à **huit questions reformulées
+sur huit**, en français correct, le fait exact en gras : « Le compte
+rendu a été rédigé par **monsieur Ovide Trenchard** », « La reine a été
+vue en ponte sur le **quatrième cadre** ». Sans injection : 0/8, et des
+fabrications (« M. Jean-Luc », « Roi d'Angleterre », « 16 mai »). Le
+papier 7 rejoue exactement : 5 % pour la mémoire seule contre 25 % pour
+la preuve dans la fenêtre.
+
+**Donc la reformulation n'a jamais été un problème de clé pour l'outil
+complet — seulement pour `complete`.** Les clés d'encodeur externe de
+l'axe 5 ne sont PAS nécessaires à ça. Mes trois sondes précédentes
+mesuraient un canal, pas le produit. (Correction du scorer au passage :
+« 38 kilogrammes » et « quatrième » étaient comptés faux parce que je
+cherchais « trente-huit » et « quatrieme » sans accent — 6/8 affiché
+était en réalité 8/8. Repli d'accents + alias numériques ajoutés.)
+
+**S3 FALSIFIÉE, et c'est le prix.** Sur les 8 questions auxquelles le
+document ne répond pas, l'injection fait fabriquer **7 fois sur 8**, avec
+aplomb, en gras, et `X-Sillage-Sources` nomme la source : « compte
+**huit ruches** au total » (le document dit huit CADRES DE COUVAIN),
+« **2,50 €** le kilo », « la reine a **12 ans** », « production totale
+**14 kilogrammes** » (c'est le rendement colza par ruche). Et le bras
+`--no-context` REFUSE plus souvent (« Je ne peux pas fournir le prix
+exact ») : **mettre des passages dans la fenêtre pousse le modèle à
+répondre à tout**, y compris à ce que les passages ne soutiennent pas.
+
+C'est le problème d'ancrage classique du RAG, et l'outil n'instruit
+actuellement pas le modèle de s'abstenir. Piste bon marché non testée :
+une ligne de consigne système « si les passages ne contiennent pas la
+réponse, dis-le ».
+
+**Défaut trouvé en passant** : `serve` n'accepte pas `--target` — le
+drapeau est déclaré dans le groupe `gen`, dont le sous-parseur `serve`
+n'hérite pas. L'endpoint ne peut donc pas être pointé sur un lecteur plus
+gros, alors que l'état le permet (papier 5). S4 non mesurable.
