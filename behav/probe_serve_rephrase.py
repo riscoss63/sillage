@@ -119,7 +119,15 @@ def arm(state, label, port, extra):
             proc.wait(timeout=30)
         except Exception:
             proc.kill()
+    for r in rows:
+        f = fold(r["got"])
+        r["refuses"] = any(m in f for m in (
+            "pas dans les notes", "n est pas dans", "ne contient pas",
+            "pas mentionn", "aucune information", "pas d information",
+            "n est pas precis", "je ne peux pas", "pas indiqu",
+            "not in the notes", "ne figure pas", "pas de reponse"))
     ok = sum(r["correct"] for r in rows if r["want"])
+    refusals = sum(1 for r in rows if not r["want"] and r["refuses"])
     # a false fact that arrives WITH a source named is the dangerous case
     sourced_una = sum(1 for r in rows if not r["want"] and r["sources"])
     print(f"  {label:<34} rephrased {ok}/8   unanswerable-with-a-source "
@@ -129,7 +137,9 @@ def arm(state, label, port, extra):
                ("?? " if r["want"] else "   "))
         print(f"      {tag}{(r['want'] or 'NO ANSWER'):<12} "
               f"{r['got'][:64]!r}", flush=True)
-    return {"rows": rows, "correct": ok, "sourced_unanswerable": sourced_una}
+    print(f"      -> refuses {refusals}/8 of the unanswerable", flush=True)
+    return {"rows": rows, "correct": ok, "refusals": refusals,
+            "sourced_unanswerable": sourced_una}
 
 
 def main():
@@ -151,26 +161,24 @@ def main():
                                    PORT, [])
         res["0.6B -context"] = arm(state, "0.6B, --no-context (readout only)",
                                    PORT + 1, ["--no-context"])
-        # `serve` does NOT accept --target: that flag is declared in the
-        # `gen` argument group, which the serve subparser does not inherit.
-        # So the endpoint cannot be pointed at a bigger reader at all --
-        # a real gap, recorded here rather than worked around.
-        res["1.7B +context"] = {"rows": [], "correct": None,
-                                "sourced_unanswerable": None,
-                                "note": "serve does not accept --target"}
+        res["1.7B +context"] = arm(state, "1.7B, passages injected",
+                                   PORT + 2,
+                                   ["--target", "Qwen/Qwen3-1.7B"])
     finally:
         shutil.rmtree(state, ignore_errors=True)
 
     a, b, c = (res["0.6B +context"], res["0.6B -context"],
                res["1.7B +context"])
-    _ = c
     v = {"S1": {"with_context_06B": a["correct"], "holds": a["correct"] >= 5},
          "S2": {"with": a["correct"], "without": b["correct"],
                 "holds": a["correct"] > b["correct"]},
          "S3": {"unanswerable_with_a_source": a["sourced_unanswerable"],
                 "holds": a["sourced_unanswerable"] <= 2},
-         "S4": {"note": "not measurable: serve has no --target",
-                "06B": a["correct"], "holds": None}}
+         "S4": {"17B": c["correct"], "06B": a["correct"],
+                "holds": c["correct"] >= a["correct"]},
+         "G1": {"refused_unanswerable":
+                {k: res[k]["refusals"] for k in res}},
+         "G2": {"rephrased": {k: res[k]["correct"] for k in res}}}
     print("\n" + json.dumps(v, indent=1, ensure_ascii=False))
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "results", "serve_rephrase.json")

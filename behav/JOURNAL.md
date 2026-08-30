@@ -1571,3 +1571,56 @@ réponse, dis-le ».
 drapeau est déclaré dans le groupe `gen`, dont le sous-parseur `serve`
 n'hérite pas. L'endpoint ne peut donc pas être pointé sur un lecteur plus
 gros, alors que l'état le permet (papier 5). S4 non mesurable.
+
+### 2026-08-31 — deux correctifs, une prédiction falsifiée, et un bug livré depuis huit versions
+
+**① Ligne d'ancrage dans `serve`.** Le message système ne disait que
+« use them if they are relevant ». Ajouté : « Answer only from these
+notes. If they do not contain the answer, say plainly that it is not in
+the notes rather than guessing. » Prédictions enregistrées avant :
+G1 fabrications ≤ 3/8, G2 reformulées ≥ 7/8.
+
+**G2 tient** (8/8, et les réponses sont plus nettes : « Monsieur Ovide
+Trenchard. », « 3 colonies. »). **G1 FALSIFIÉE** : refus 0 → 2 sur 8,
+fabrications ~8 → 6. **Une ligne de consigne ne suffit pas à un 0,6B**,
+il l'applique deux fois sur huit. Livrée quand même — 0 → 2 refus est un
+gain réel sans coût mesuré — mais son insuffisance est écrite dans le
+code à côté d'elle.
+
+**② `serve --target`, et ce qu'il a révélé.** Le drapeau était déclaré
+dans le groupe `gen` dont `serve` n'hérite pas. Une fois exposé, le
+serveur meurt à la première requête :
+
+    ValueError: operands could not be broadcast together
+                with shapes (2048,) (1024,)
+
+**`complete --target` plantait aussi.** Le tier sémantique v1 centre sur
+`mu`, dont la largeur est celle du modèle QUI A ÉCRIT (1024 pour le
+0,6B) ; un lecteur 1,7B en fournit 2048. **Livré depuis la 1.1.0, huit
+versions mineures, sur l'état qwen par défaut, et c'est la fonctionnalité
+phare du papier 5.** Jamais vu parce que toute mesure du transfert
+construisait son état AVEC le modèle cible, où les largeurs coïncident —
+mes propres sondes de cette nuit comprises. Correctif
+(`_check_hidden_width`) : les tiers indexés sur les états cachés (papier
+2 et papier 8) s'abstiennent en le disant, ceux indexés sur les TOKENS
+(n-gram, cold store) continuent — ce que le papier 5 revendique
+réellement. Test T20, qui construit deux largeurs sans charger de poids.
+
+**Résultat final, trois bras sur le vrai endpoint**
+(`results/serve_rephrase.json`) :
+
+| bras | reformulées | refus | fabrications |
+|---|---|---|---|
+| 0,6B + passages | **8/8** | 2/8 | 6/8 |
+| 0,6B sans passages | 0/8 | 1/8 | 7/8 |
+| **1,7B + passages** | 7/8 | **5/8** | **3/8** |
+
+**S4 falsifiée sur le rappel** (7/8 < 8/8) **et c'est la mauvaise
+métrique.** Le gros modèle ne se souvient pas mieux : **il ment moins.**
+Fabrications divisées par deux, refus plus que doublés. C'est ce qui
+manquait pour que `serve` soit utilisable par un tiers, et c'est le
+premier bénéfice mesuré de la capacité dans tout ce projet qui ne soit
+ni de la vitesse ni de la fluidité.
+
+Compteur de refus corrigé au passage : il ratait « ne mentionne pas » et
+sous-évaluait le 1,7B de trois. Recompté sur les textes enregistrés.

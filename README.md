@@ -348,18 +348,32 @@ measured that this never hurts when the evidence is already in the window
 it used, in the `sillage` field and in the `X-Sillage-Sources` header — a
 service that rewrites your prompt in silence would not be auditable.
 
-**One measured caveat about the second mechanism here.** A chat template
-ends every prompt with the same assistant header, so the *n*-gram tier's
-four-token key at the first generated position is identical for every
-question you could ask. Measured on eight rephrased questions and eight
-unanswerable ones, going from a raw prompt to the template makes the
-memory **speak more and discriminate less**: correct rephrased recall
-falls 3/8 → 1/8 while intrusion on unanswerable questions rises 3/8 →
-5/8, and the mean contribution on questions with no answer goes from 2.4
-to 5.8 tokens (same at 1.7B: 4/8 → 5/8, 5.6 → 7.0). The retrieval
-mechanism above is unaffected — it is lexical and keys on your words.
-So over the chat endpoint, trust the **sources** it names, not the prose
-it wraps them in ([measured](results/chattemplate.json)).
+**What this composition is worth, and what it costs**, asked of the real
+endpoint over real sockets with `--no-context` as the ablation
+([measured](results/serve_rephrase.json)):
+
+| | rephrased questions | refuses | fabricates |
+|---|---|---|---|
+| 0.6B, passages injected | **8/8** | 2/8 | 6/8 |
+| 0.6B, `--no-context` | 0/8 | 1/8 | 7/8 |
+| **1.7B** (`--target`), injected | 7/8 | **5/8** | **3/8** |
+
+Eight rephrased questions out of eight, in correct French, on a CPU, from
+a 0.6B — and **0/8 from the same model with the passages withheld**, which
+is paper 7's split replaying exactly: the memory alone does not
+formulate, the same evidence placed in the window does. That is why the
+readout's own weakness on rephrasing (see the negative results) does not
+reach you here.
+
+The cost is the row on the right. Putting passages in the window pushes
+the model to answer *everything*, including what the passages do not
+support: `--no-context` refuses far more often. The system note tells it
+to say when the notes do not contain the answer, and on a 0.6B it obeys
+twice in eight — a real gain over none, and not a fix. **The one thing
+that halves it is a bigger reader**: `--target Qwen/Qwen3-1.7B` drops
+fabrication 6/8 → 3/8 and more than doubles refusals. It does not
+remember better — 7/8 against 8/8 — it lies less. Over this endpoint,
+trust the **sources** it names, and read the prose as a draft.
 
 Reading a folder does not block the conversation: `POST /read` returns a
 task id and the ingestion hands the state's lock back every 32 tokens, so
@@ -679,7 +693,7 @@ talks to it over real sockets (16 checks: an OpenAI client, a background
 ingestion answering mid-read, a stream that arrives while it is generated,
 refusals, and the bearer token); and `python test_axis4.py` covers watch,
 review, export and pull (25 checks, including the cartridge round-trip and
-its refusals). **78 checks**, all green on the shipped 1.9.0.
+its refusals). **79 checks**, all green on the shipped 1.9.1.
 
 <details>
 <summary><b>Repository layout</b></summary>

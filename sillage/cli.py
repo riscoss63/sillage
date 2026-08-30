@@ -847,6 +847,15 @@ def build_parser():
                    help="require `Authorization: Bearer TOKEN`")
     p.add_argument("--quiet", action="store_true",
                    help="do not log one line per request")
+    # --target lives in the `gen` group, which this subparser does not
+    # inherit -- so the endpoint could not be pointed at a bigger reader
+    # at all, although the state supports one (paper 5). Declared here
+    # rather than moved into `common`, which would put it on `index` and
+    # `ask`, where no model is loaded and it would mean nothing.
+    p.add_argument("--target", default=None, metavar="NAME",
+                   help="serve with a bigger same-tokenizer sibling "
+                        "reading this state (paper 5); the adapter is "
+                        "off, as it belongs to the reading model")
     p.set_defaults(fn=cmd_serve)
 
     p = sub.add_parser("forget", parents=[common],

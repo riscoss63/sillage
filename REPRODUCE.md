@@ -3,7 +3,7 @@
 This file is for the *research* scripts. If you only want to use the system,
 `pip install -e .` and `sillage read yourfile.md` is the whole story
 (see [README.md](README.md)); `python test_unit.py` checks the mechanisms
-themselves in five seconds (20 checks), `python test_sillage.py` runs 14
+themselves in five seconds (21 checks), `python test_sillage.py` runs 14
 end-to-end tests of the tool in about twenty minutes, `python test_serve.py`
 starts the HTTP service and talks to it over real sockets (16 checks), and
 `python test_axis4.py` covers watch, review, export and pull, and the same

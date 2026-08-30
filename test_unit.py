@@ -500,5 +500,36 @@ check("T19 reflow rejoins wrapped lines without merging paragraphs",
       "a typed question form the key the document stored -- while the "
       "blank line between paragraphs survives)")
 
+# --- T20: a wider reader silences what it cannot key, instead of crashing ---
+class _Cfg:
+    def __init__(self, w):
+        self.hidden_size = w
+
+
+class _Stub:
+    def __init__(self, w):
+        self.config = _Cfg(w)
+
+
+_s = _S.__new__(_S)                      # no model, no weights, no network
+_s.quiet = True
+_s.mem = _SM(state_dir=None, which="qwen", semantic=True, fastweights=False)
+_s.mem.mu = np.zeros(1024, dtype=np.float32)
+_s.mem.mu2 = np.zeros(1024, dtype=np.float32)
+_s.mem.sem2_layer = 1
+_s._model = _Stub(1024)
+_s._check_hidden_width()
+_same = _s.mem.semantic and _s.mem.sem2_layer == 1
+_s._model = _Stub(2048)                  # a 1.7B reading a 0.6B's state
+_s._check_hidden_width()
+_wider = (not _s.mem.semantic) and _s.mem.sem2_layer is None
+check("T20 a wider reader silences the tiers it cannot key",
+      _same and _wider,
+      "(same width changes nothing; 2048d against a 1024d centre turns "
+      "paper 2's tier and paper 8's off rather than raising 'operands "
+      "could not be broadcast' from inside the decoding loop -- which "
+      "`complete --target` did from 1.1.0 to 1.9.0, on the default qwen "
+      "state, for paper 5's headline feature)")
+
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

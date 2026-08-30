@@ -74,6 +74,49 @@ class Sillage:
         self._model = None
 
     # ------------------------------------------------------------- model ----
+    def _check_hidden_width(self):
+        """Silence the tiers a different-width reader cannot key.
+
+        Paper 5's transfer -- read with the small model, serve with a
+        bigger sibling -- holds for the tiers keyed on TOKENS: the
+        n-gram matrix and the cold store are indexed by the last four
+        token ids, and the family shares a tokenizer. It does NOT hold
+        for the tiers keyed on HIDDEN STATES: the v1 semantic centre
+        `mu` and paper 8's `mu2` have the width of the model that wrote
+        them (1024 for Qwen3-0.6B), and a 1.7B hands them 2048.
+
+        Until 1.9.1 that mismatch raised `operands could not be
+        broadcast together with shapes (2048,) (1024,)` from inside a
+        decoding loop -- so `complete --target`, the headline of paper
+        5, crashed on any state with the semantic tier on, which is the
+        default for qwen. Shipped since 1.1.0 and never caught, because
+        every measurement of the transfer built its state WITH the
+        target model, where the widths agree.
+
+        The tiers that cannot transfer now abstain and say so; the ones
+        that can keep working, which is what the paper actually claims.
+        """
+        mem = self.mem
+        try:
+            width = int(self._model.config.hidden_size)
+        except Exception:
+            return
+        lost = []
+        if mem.semantic and mem.mu is not None and len(mem.mu) != width:
+            mem.semantic = False
+            lost.append(f"paper 2's semantic tier (built at "
+                        f"{len(mem.mu)}d)")
+        if (mem.sem2_layer is not None and mem.mu2 is not None
+                and len(mem.mu2) != width):
+            mem.sem2_layer = None
+            lost.append(f"paper 8's tier (built at {len(mem.mu2)}d)")
+        if lost:
+            self._say(
+                f"this reader's hidden states are {width}d, so "
+                f"{' and '.join(lost)} cannot be keyed and stay "
+                f"silent.\n  The n-gram matrix and the cold store are "
+                f"keyed on tokens and transfer normally (paper 5).")
+
     def load_model(self):
         """Load the frozen model once, lazily: `ask` never needs it."""
         if self._model is not None:
@@ -119,6 +162,7 @@ class Sillage:
             # decides where the frozen forward passes happen
             self._model.to(self.device)
             self._model.eval()
+            self._check_hidden_width()
             if want == "int8":
                 # dynamic int8 over the Linear layers: CPU-native, in
                 # torch itself (no extra dependency), and the forward

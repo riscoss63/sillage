@@ -68,6 +68,20 @@ from . import __version__
 
 MAX_BODY = 4 * 1024 * 1024
 
+#: What the retrieved passages are introduced with. The second half is
+#: not decoration. Measured on eight questions this document does not
+#: answer, injection alone made the 0.6B invent 7 of them -- confidently,
+#: in bold, with X-Sillage-Sources naming the file -- while the SAME
+#: model with no passages refused far more often. Putting evidence in the
+#: window pushes a model to answer everything, including what the
+#: evidence does not support, and that is the one failure this service
+#: must not ship in silence: a false fact arriving with a source attached
+#: is worse than no answer at all.
+GROUNDING = ("Notes from what I have read; use them if they are "
+             "relevant. Answer only from these notes. If they do not "
+             "contain the answer, say plainly that it is not in the "
+             "notes rather than guessing.\n\n")
+
 
 class Service:
     """The shared state: one assistant, one lock, a task table."""
@@ -214,14 +228,11 @@ class Service:
         if not is_chat:
             body = str(messages_or_text)
             if passages:
-                body = (f"Notes from what I have read:\n\n{passages}"
-                        f"\n\n---\n\n{body}")
+                body = f"{GROUNDING}{passages}\n\n---\n\n{body}"
             return body, sources
 
         if passages:
-            note = {"role": "system",
-                    "content": "Notes from what I have read; use them "
-                               "if they are relevant.\n\n" + passages}
+            note = {"role": "system", "content": GROUNDING + passages}
             msgs = [note] + msgs
         tok, _ = self.s.load_model()
         template = getattr(tok, "chat_template", None)

@@ -5,164 +5,182 @@
     {
      "q": "Combien d'acariens varroa par jour ont ete c",
      "want": "2,4",
-     "got": "Le taux d'infestation par varroa mesure **2,4 acariens par jour**.",
+     "got": "Le taux d'infestation par varroa mesure au lange est de 2,4 acariens par jour.",
      "correct": true,
      "sources": [
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Quel est le poids de la ruche 9 une fois la ",
      "want": "trente-huit",
-     "got": "La ruche numero 9 a eu un poids de **38 kilogrammes** après la reunion.",
+     "got": "Le poids de la ruche numero 9 apres reunion s'etablit à trente-huit kilogrammes.",
      "correct": true,
      "sources": [
       "rucher.md",
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Combien de kilos de colza par ruche sont att",
      "want": "quatorze",
-     "got": "La mielle de la ruche numero 12 est estimée à **quatorze kilogrammes par ruche** sur la pa",
+     "got": "La mielle de colza est estimée à quatorze kilogrammes par ruche sur la parcelle du bas.",
      "correct": true,
      "sources": [
       "rucher.md",
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Sur combien de cadres s'etend le couvain de ",
      "want": "huit",
-     "got": "La ruche numero 7 occupe huit cadres de couvain sur les dix que compte le corps.",
+     "got": "Sur huit cadres de couvain sur les dix que compte le corps.",
      "correct": true,
      "sources": [
       "rucher.md",
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Qui a redige ce compte rendu ?",
      "want": "Ovide",
-     "got": "Le compte rendu a été redigé par **monsieur Ovide Trenchard, carte apicole numero 6318**.",
+     "got": "Monsieur Ovide Trenchard.",
      "correct": true,
      "sources": [
       "rucher.md",
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Sur quel cadre la reine a-t-elle ete apercue",
      "want": "quatrieme",
-     "got": "La reine a été vue en ponte sur le **quatrième cadre**.",
+     "got": "Le cadre du quatrième.",
      "correct": true,
      "sources": [
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Combien de colonies ont recu du sirop ?",
      "want": "trois",
-     "got": "Le nombre de colonies recue du sirop est **trois**.",
+     "got": "3 colonies.",
      "correct": true,
      "sources": [
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "A quelle date la visite de printemps a-t-ell",
      "want": "11 avril",
-     "got": "La visite de printemps a eu lieu le **11 avril 2026**.",
+     "got": "La visite de printemps a eu lieu le 11 avril 2026.",
      "correct": true,
      "sources": [
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Combien de ruches compte le rucher de Peyrel",
      "want": null,
-     "got": "Le rucher de Peyrelonge compte **huit ruches** au total.",
+     "got": "Le rucher de Peyrelonge compte huit ruches au total.",
      "correct": false,
      "sources": [
       "rucher.md",
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Quel est le prix du kilo de miel de colza a ",
      "want": null,
-     "got": "Le prix du kilo de miel de colza à la cooperative est **2,50€**.",
+     "got": "Le prix du kilo de miel de colza à la cooperative n'est pas mentionné dans les notes fourn",
      "correct": false,
      "sources": [
       "rucher.md"
-     ]
+     ],
+     "refuses": true
     },
     {
      "q": "Quand aura lieu la prochaine visite du ruche",
      "want": null,
-     "got": "La prochaine visite du rucher de Peyrelonge s'est deroulée le 11 avril 2026, par temps cou",
+     "got": "La prochaine visite du rucher de Peyrelonge aura lieu le 11 avril 2026.",
      "correct": false,
      "sources": [
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Quel modele de ruches est utilise au rucher ",
      "want": null,
-     "got": "Le rucher de Peyrelonge utilise un modèle de ruches **d'origine de la France**.",
+     "got": "Le modèle de ruches utilisé au rucher de Peyrelonge est le modèle **Rucher de Peyrelonge**",
      "correct": false,
      "sources": [
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Quelle a ete la production totale du rucher ",
      "want": null,
-     "got": "La production totale du rucher l’an dernier est **14 kilogrammes par ruche sur la parcelle",
+     "got": "La production totale du rucher l'an dernier n'est pas mentionnée dans les notes fournies.",
      "correct": false,
      "sources": [
       "rucher.md",
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": true
     },
     {
      "q": "Dans quelle commune se trouve le rucher de P",
      "want": null,
-     "got": "Le rucher de Peyrelonge se trouve dans la commune de **Peyrelonge**.",
+     "got": "La commune du rucher de Peyrelonge est **Peyrelonge**.",
      "correct": false,
      "sources": [
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Quel age a la reine de la ruche numero 7 ?",
      "want": null,
-     "got": "La reine de la ruche numero 7 a l'âge de **12 ans**.",
+     "got": "La reine de la ruche numero 7 a l'âge de 4 ans.",
      "correct": false,
      "sources": [
       "rucher.md",
       "rucher.md",
       "rucher.md"
-     ]
+     ],
+     "refuses": false
     },
     {
      "q": "Quel traitement anti-varroa est retenu pour ",
      "want": null,
      "got": "Le traitement anti-varroa (ou anti-varroa) retenu pour l'automne est **l'application du tr",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     }
    ],
    "correct": 8,
-   "sourced_unanswerable": 7
+   "refusals": 2,
+   "sourced_unanswerable": 7,
+   "refusals_v2": 2
   },
   "0.6B -context": {
    "rows": [
@@ -171,122 +189,316 @@
      "want": "2,4",
      "got": "Il n'y a pas d'acariens varroa comptes au long par jour. Le **varroa** (Varroa destructor)",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Quel est le poids de la ruche 9 une fois la ",
      "want": "trente-huit",
      "got": "La question est ambiguë et ne contient pas d'informations précises sur la ruche, son const",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": true
     },
     {
      "q": "Combien de kilos de colza par ruche sont att",
      "want": "quatorze",
      "got": "La réponse à la question \"Combien de kilos de colza par ruche sont attendus ?\" est **100 k",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Sur combien de cadres s'etend le couvain de ",
      "want": "huit",
      "got": "La question est ambiguë et ne contient pas d'informations précises sur le contexte ou les ",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": true
     },
     {
      "q": "Qui a redige ce compte rendu ?",
      "want": "Ovide",
      "got": "Ce compte rendu a été redité par **M. Jean-Luc**.",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Sur quel cadre la reine a-t-elle ete apercue",
      "want": "quatrieme",
      "got": "La reine a été apérue dans le cadre du **Roi d'Angleterre** en 1913, lors du **Roi d'Angle",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Combien de colonies ont recu du sirop ?",
      "want": "trois",
      "got": "Il n'y a pas de réponse précise sur le nombre exact des colonies qui ont recueilli du siro",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": true
     },
     {
      "q": "A quelle date la visite de printemps a-t-ell",
      "want": "11 avril",
      "got": "La visite de printemps a eu lieu le **16 mai**.",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Combien de ruches compte le rucher de Peyrel",
      "want": null,
      "got": "Le rucher de Peyrelonge compte **1 ruche** au total.",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Quel est le prix du kilo de miel de colza a ",
      "want": null,
      "got": "Je ne peux pas fournir le prix exact du kilo de miel de colza à la cooperative sans avoir ",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": true
     },
     {
      "q": "Quand aura lieu la prochaine visite du ruche",
      "want": null,
      "got": "La prochaine visite du rucher de Peyrelonge (Peyrelonge) est **2025**.",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Quel modele de ruches est utilise au rucher ",
      "want": null,
      "got": "Le rucher de Peyrelonge utilise un **model de ruches** spécifique, qui est **un modèle de ",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Quelle a ete la production totale du rucher ",
      "want": null,
      "got": "La production totale du rucher l’an dernier est **28 millions de tonnes**.",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Dans quelle commune se trouve le rucher de P",
      "want": null,
      "got": "Le rucher de Peyrelonge se trouve dans la commune de **Peyrelonge**.",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Quel age a la reine de la ruche numero 7 ?",
      "want": null,
      "got": "La réponse à la question \"Quel age a la reine de la ruche numero 7 ?\" est **\"L'ange\"**.",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     },
     {
      "q": "Quel traitement anti-varroa est retenu pour ",
      "want": null,
      "got": "Le traitement anti-varroa (ou anti-varroa) retenu pour l'automne est **l'application du tr",
      "correct": false,
-     "sources": []
+     "sources": [],
+     "refuses": false
     }
    ],
    "correct": 0,
-   "sourced_unanswerable": 0
+   "refusals": 1,
+   "sourced_unanswerable": 0,
+   "refusals_v2": 1
   },
   "1.7B +context": {
-   "rows": [],
-   "correct": null,
-   "sourced_unanswerable": null,
-   "note": "serve does not accept --target"
+   "rows": [
+    {
+     "q": "Combien d'acariens varroa par jour ont ete c",
+     "want": "2,4",
+     "got": "2,4",
+     "correct": true,
+     "sources": [
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Quel est le poids de la ruche 9 une fois la ",
+     "want": "trente-huit",
+     "got": "Le poids de la ruche numero 9 une fois la reunion faite est de trente-huit kilogrammes.",
+     "correct": true,
+     "sources": [
+      "rucher.md",
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Combien de kilos de colza par ruche sont att",
+     "want": "quatorze",
+     "got": "14",
+     "correct": true,
+     "sources": [
+      "rucher.md",
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Sur combien de cadres s'etend le couvain de ",
+     "want": "huit",
+     "got": "Le couvain de la ruche 7 s'etend sur huit cadres.",
+     "correct": true,
+     "sources": [
+      "rucher.md",
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Qui a redige ce compte rendu ?",
+     "want": "Ovide",
+     "got": "monsieur Ovide Trenchard",
+     "correct": true,
+     "sources": [
+      "rucher.md",
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Sur quel cadre la reine a-t-elle ete apercue",
+     "want": "quatrieme",
+     "got": "La reine a été vue en ponte sur le quatrieme cadre.",
+     "correct": true,
+     "sources": [
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Combien de colonies ont recu du sirop ?",
+     "want": "trois",
+     "got": "2 colonies.",
+     "correct": false,
+     "sources": [
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "A quelle date la visite de printemps a-t-ell",
+     "want": "11 avril",
+     "got": "La visite de printemps a eu lieu le 11 avril 2026.",
+     "correct": true,
+     "sources": [
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Combien de ruches compte le rucher de Peyrel",
+     "want": null,
+     "got": "Le compte rendu ne mentionne pas le nombre total de ruches du rucher de Peyrelonge.",
+     "correct": false,
+     "sources": [
+      "rucher.md",
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Quel est le prix du kilo de miel de colza a ",
+     "want": null,
+     "got": "Le prix du kilo de miel de colza n'est pas mentionné dans les notes fournies.",
+     "correct": false,
+     "sources": [
+      "rucher.md"
+     ],
+     "refuses": true
+    },
+    {
+     "q": "Quand aura lieu la prochaine visite du ruche",
+     "want": null,
+     "got": "Le comté rendu de visite du rucher de Peyrelonge a eu lieu le 11 avril 2026. Cependant, il",
+     "correct": false,
+     "sources": [
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Quel modele de ruches est utilise au rucher ",
+     "want": null,
+     "got": "Le texte ne mentionne pas le modèle de ruches utilisé au rucher de Peyrelonge.",
+     "correct": false,
+     "sources": [
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Quelle a ete la production totale du rucher ",
+     "want": null,
+     "got": "Le notes ne contient pas d'information sur la production totale du rucher l'an dernier.",
+     "correct": false,
+     "sources": [
+      "rucher.md",
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": true
+    },
+    {
+     "q": "Dans quelle commune se trouve le rucher de P",
+     "want": null,
+     "got": "Le rucher de Peyrelonge se trouve dans la commune de Peyrelonge.",
+     "correct": false,
+     "sources": [
+      "rucher.md"
+     ],
+     "refuses": false
+    },
+    {
+     "q": "Quel age a la reine de la ruche numero 7 ?",
+     "want": null,
+     "got": "Le notes ne contient pas d'information sur l'âge de la reine de la ruche numero 7.",
+     "correct": false,
+     "sources": [
+      "rucher.md",
+      "rucher.md",
+      "rucher.md"
+     ],
+     "refuses": true
+    },
+    {
+     "q": "Quel traitement anti-varroa est retenu pour ",
+     "want": null,
+     "got": "Pour l'automne, le **traitement anti-varroa** recommandé est généralement **l'apport de va",
+     "correct": false,
+     "sources": [],
+     "refuses": false
+    }
+   ],
+   "correct": 7,
+   "refusals": 3,
+   "sourced_unanswerable": 7,
+   "refusals_v2": 5
   }
  },
  "verdict": {
@@ -304,9 +516,29 @@
    "holds": false
   },
   "S4": {
-   "note": "not measurable: serve has no --target",
+   "17B": 7,
    "06B": 8,
-   "holds": null
-  }
+   "holds": false
+  },
+  "G1": {
+   "refused_unanswerable": {
+    "0.6B +context": 2,
+    "0.6B -context": 1,
+    "1.7B +context": 3
+   }
+  },
+  "G2": {
+   "rephrased": {
+    "0.6B +context": 8,
+    "0.6B -context": 0,
+    "1.7B +context": 7
+   }
+  },
+  "G1_recounted": {
+   "0.6B +context": 2,
+   "0.6B -context": 1,
+   "1.7B +context": 5
+  },
+  "G1_note": "the first counter missed 'ne mentionne pas' and 'le texte ne mentionne pas', which under-counted the 1.7B by three"
  }
 }
