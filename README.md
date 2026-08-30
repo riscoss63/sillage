@@ -194,7 +194,7 @@ if you want to wire it into your own generation loop.
 | `sillage papers` | index the eight preprints shipped here, then ask them |
 | `sillage demo FILE` | two sessions on one document, start to finish |
 | `sillage serve` | OpenAI-compatible endpoint: any client gains the memory |
-| `sillage watch DIR` | read a folder as it changes, with a salience journal |
+| `sillage watch DIR` | read a folder as it changes, ranking what it read by how unusual it looked |
 | `sillage review` | what is about to be forgotten, and rereading it |
 | `sillage export DIR` | a shareable state: the matrices, not your text |
 | `sillage pull SRC` | open somebody else's, from a folder or the Hub |
@@ -356,13 +356,15 @@ bearer check.
 
 **`sillage watch ~/notes`** reads a folder as it changes, and keeps a
 **salience journal**: every write is already scaled by the frozen model's
-own surprise, so "what did I write this week that was actually new?" is
-free here — a note-taking app answers it by paying an LLM call per
-decision. On a folder holding one page of invented facts and one of a
-single sentence repeated forty times, the separation is **1.48 nats
-against 0.17**, a factor of nine — but that control is as easy as a
-control gets, and on real French notes the same comparison gave 2.56
-against 2.14, a factor of 1.20. Read the number for what it is: the
+own surprise, so a per-document measure of how *unusual* your prose looks
+to the model comes free — where a note-taking app pays an LLM call per
+decision. It is a real signal and it is not the one you might hope for:
+it ranks density and jargon, not novelty. On a folder holding one page of
+invented facts and one of a single sentence repeated forty times, the
+separation is **1.48 nats against 0.17**, a factor of nine — but that
+control is as easy as a control gets, and on real French notes the same
+comparison gave 2.56 against 2.14, a factor of 1.20. Read the number for
+what it is: the
 frozen model's surprise, measured before the memory speaks, averaged per
 token. It ranks unusual, dense prose. It cannot say "new to *this*
 memory" (re-reading a file the memory already holds scores identically),
