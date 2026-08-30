@@ -835,9 +835,16 @@ class Sillage:
         """Grounded passages from what has been read. Nothing is generated."""
         return self.index.search(question, k=k, numeric_only=numeric_only)
 
-    def add_to_index(self, path):
-        """Index a document without reading it into the memory (instant)."""
-        n = self.index.add(read_text(path), os.path.basename(path))
+    def add_to_index(self, path, name=None):
+        """Index a document without reading it into the memory (instant).
+
+        `name` overrides the key, exactly as in `read`: without it, two
+        `index.md` in two folders of a vault evict each other and a whole
+        note disappears without a word. `read` was fixed for this in
+        1.8.1; `index` was not, and a trial found it.
+        """
+        path = os.path.expanduser(path)
+        n = self.index.add(read_text(path), name or os.path.basename(path))
         self.index.save()
         return n
 

@@ -36,13 +36,21 @@ MIN_CHARS = 140
 # separating score depends on how much has been read, so no fixed floor is
 # right, and being wrong costs the reader an answer they had.
 #
-# So nothing is dropped. Instead, a top score under WEAK is reported AS
-# weak: the passages come back, with a line saying they share words with
-# the question and may not answer it. Being occasionally wrong about a
-# caution costs nothing; being wrong about a filter costs the answer.
-# Measured on the notebook this threshold was NOT tuned on: 10 of 14
-# unanswerable questions fall under it, and 17 of 17 answerable ones stay
-# above (behav/probe_ask_abstain.py).
+# So almost nothing is dropped. FLOOR is set where the arithmetic noise is,
+# not where the answers are: measured over three corpora, it silences the
+# passages served at 0.000 and 0.004 while both passages of the conflict
+# corpus (0.046 and 0.045 -- the ones 1.8.2's 0.05 floor destroyed) still
+# come back (behav/probe_ask_ranking.py, P3).
+#
+# Above it, a top score under WEAK is reported AS weak rather than
+# filtered: the passages come back with a line saying what a low number
+# means. Being occasionally wrong about a caution costs nothing; being
+# wrong about a filter costs the answer -- and this threshold IS
+# occasionally wrong. On the notebook it was tuned on, 17 of 17 answerable
+# questions stay above it; on the notebook it was not, 14 of 17 do, so it
+# cautions on three correct answers. That is the direction the error is
+# meant to fall in.
+FLOOR = 0.01
 WEAK_SCORE = 0.14
 STOP = set("""a an the of to in and or is are was were be been being for on
 with as by at from that this these those it its we our us they their he she
@@ -274,7 +282,7 @@ class Index:
                                               self.passages[i]["text"]):
                 continue
             s = sum(x * v.get(w, 0.0) for w, x in qv.items())
-            if s > 0:
+            if s > FLOOR:
                 scored.append((s, i))
         scored.sort(reverse=True)
         return [(s, self.passages[i]) for s, i in scored[:k]]

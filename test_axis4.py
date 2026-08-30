@@ -278,6 +278,25 @@ try:
     write("_a4_sub/deep/report.md",
           build_doc(list(zip(ENTS[:6], VALS[:6])), seed=13, reps=1,
                     block=40))
+    # two files of the same name in two folders: `read` was fixed for this
+    # in 1.8.1 and `index` was not, so a whole note vanished silently
+    write("_a4_sub/a/index.md",
+          "# Bay four\n\nThe Zylkorb regulator holds seventeen turquoise "
+          "brackets, logged every Tuesday by the duty engineer.\n")
+    write("_a4_sub/b/index.md",
+          "# Cold store\n\nCaptain Ilvress keeps the amber cipher in the "
+          "second drawer, and signs for it each month.\n")
+    rc0, _ = run("index", at("_a4_sub", "a", "index.md"),
+                 at("_a4_sub", "b", "index.md"),
+                 "--model", "gpt2", "--state", at("_a4_dt"))
+    _, a1 = run("ask", "turquoise brackets", "--model", "gpt2",
+                "--state", at("_a4_dt"))
+    _, a2 = run("ask", "amber cipher", "--model", "gpt2",
+                "--state", at("_a4_dt"))
+    check("D0 two notes of the same name both stay indexed",
+          rc0 == 0 and "Zylkorb" in a1 and "Ilvress" in a2,
+          "(a/index.md and b/index.md, keyed by their folder)")
+
     rc, out = run("index", at("_a4_sub", "deep", "report.md"),
                   "--model", "gpt2", "--state", at("_a4_state"))
     rc2, ask = run("ask", ENTS[0], "--model", "gpt2",

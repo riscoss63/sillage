@@ -173,14 +173,24 @@ def cmd_index(a):
     """index: make documents searchable without running the model."""
     paths = expand(a.files)
     s = make(a)
+    # two `index.md` in two folders must not evict each other: when more
+    # than one file is given, key each by its path relative to their
+    # common parent, which is what `watch` already does for a vault
+    root = (os.path.dirname(os.path.commonpath([os.path.abspath(p)
+                                                for p in paths]))
+            if len(paths) > 1 else None)
     total = 0
     for path in paths:
         if not os.path.exists(path):
             print(f"  skipped (not found): {path}")
             continue
-        n = s.add_to_index(path)
+        key = (os.path.relpath(os.path.abspath(path), root).replace(os.sep,
+                                                                   "/")
+               if root else None)
+        n = s.add_to_index(path, name=key)
         total += n
-        print(f"  {os.path.basename(path):40s} {n:4d} passages")
+        print(f"  {(key or os.path.basename(path))[:40]:40s} "
+              f"{n:4d} passages")
     print(f"indexed {total} passages -- `sillage ask` works now. "
           f"`sillage read` also memorizes them.")
 
@@ -217,6 +227,18 @@ def cmd_watch(a):
              for e in a.ext.split(",")] if a.ext else None)
     watch(s, a.folder, interval=a.interval, once=a.once, exts=exts,
           fast=not a.full, quiet=False, since=a.since)
+    if s.mem.sem2_layer is not None and len(s.mem.res_S) < 500:
+        # `watch --sem2 auto` is the command a vault user actually types,
+        # and it was the one path that never said the tier was still
+        # silent. Measured: the tier's null fills at roughly 1-2% of the
+        # tokens read, so a folder of notes needs tens of thousands of
+        # them -- or several passes -- before it speaks at all.
+        print(f"\nnote: the paper-8 tier is on but still SILENT -- "
+              f"{len(s.mem.res_S)} scored positions of the 500 it needs. It "
+              f"anchors only on\n  surprising tokens (about 1-2% of what is "
+              f"read), so a small vault takes several\n  passes to get "
+              f"there. Until then, rephrased recall behaves as if the flag "
+              f"were off.")
 
 
 def cmd_export(a):

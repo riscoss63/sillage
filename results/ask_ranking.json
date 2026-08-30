@@ -1,0 +1,346 @@
+{
+ "baseline": {
+  "dev_answerable": 17,
+  "test_entry_1": 12,
+  "test_para_1": 4,
+  "test_para_3": 11,
+  "test_silent": 5
+ },
+ "heading_damping": [
+  {
+   "head_w": 1.0,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.7,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.5,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.3,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.15,
+   "dev_answerable": 17,
+   "test_entry_1": 9,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  }
+ ],
+ "pivoted_normalisation": [
+  {
+   "alpha": 1.0,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "alpha": 0.9,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "alpha": 0.8,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "alpha": 0.7,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "alpha": 0.6,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "alpha": 0.5,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "alpha": 0.35,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "alpha": 0.2,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  }
+ ],
+ "grid": [
+  {
+   "head_w": 1.0,
+   "alpha": 1.0,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "head_w": 1.0,
+   "alpha": 0.8,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "head_w": 1.0,
+   "alpha": 0.6,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "head_w": 1.0,
+   "alpha": 0.5,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "head_w": 1.0,
+   "alpha": 0.35,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.7,
+   "alpha": 1.0,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.7,
+   "alpha": 0.8,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.7,
+   "alpha": 0.6,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.7,
+   "alpha": 0.5,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.7,
+   "alpha": 0.35,
+   "dev_answerable": 17,
+   "test_entry_1": 10,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.5,
+   "alpha": 1.0,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.5,
+   "alpha": 0.8,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.5,
+   "alpha": 0.6,
+   "dev_answerable": 17,
+   "test_entry_1": 10,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.5,
+   "alpha": 0.5,
+   "dev_answerable": 17,
+   "test_entry_1": 10,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.5,
+   "alpha": 0.35,
+   "dev_answerable": 17,
+   "test_entry_1": 9,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.3,
+   "alpha": 1.0,
+   "dev_answerable": 17,
+   "test_entry_1": 11,
+   "test_para_1": 4,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.3,
+   "alpha": 0.8,
+   "dev_answerable": 17,
+   "test_entry_1": 9,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.3,
+   "alpha": 0.6,
+   "dev_answerable": 17,
+   "test_entry_1": 9,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.3,
+   "alpha": 0.5,
+   "dev_answerable": 17,
+   "test_entry_1": 9,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  },
+  {
+   "head_w": 0.3,
+   "alpha": 0.35,
+   "dev_answerable": 17,
+   "test_entry_1": 9,
+   "test_para_1": 3,
+   "test_para_3": 10,
+   "test_silent": 5
+  }
+ ],
+ "floor": [
+  {
+   "floor": 0.0,
+   "conflict_hits": 2,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 5
+  },
+  {
+   "floor": 0.005,
+   "conflict_hits": 2,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 7
+  },
+  {
+   "floor": 0.01,
+   "conflict_hits": 2,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 7
+  },
+  {
+   "floor": 0.02,
+   "conflict_hits": 2,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 7
+  },
+  {
+   "floor": 0.05,
+   "conflict_hits": 1,
+   "dev_answerable": 17,
+   "test_entry_1": 12,
+   "test_para_1": 4,
+   "test_para_3": 11,
+   "test_silent": 7
+  }
+ ]
+}

@@ -7,7 +7,7 @@ themselves in five seconds (18 checks), `python test_sillage.py` runs 14
 end-to-end tests of the tool in about twenty minutes, `python test_serve.py`
 starts the HTTP service and talks to it over real sockets (16 checks), and
 `python test_axis4.py` covers watch, review, export and pull, and the same
-commands through the command line (24 checks).
+commands through the command line (25 checks).
 
 Sections 0–4 (papers 1–4) run entirely on CPU with fixed seeds. Total: roughly
 2 h for the corpora and frozen-LM passes, then 3–6 h for the experiments (most
@@ -215,7 +215,7 @@ are in `behav/JOURNAL.md`, written before each run.
 
 ## Shipping probes
 
-Nine probes under `behav/` measure what the *shipped* tool does rather than
+Eleven probes under `behav/` measure what the *shipped* tool does rather than
 what a paper claims; the README's `--dtype` table is one of their outputs.
 Three of them write into `behav/results/` like the rest of `behav/`, and the
 committed copies under `results/` keep the same names; the fourth
@@ -233,6 +233,8 @@ python behav/probe_ask_french.py
 python behav/probe_serve_midread.py [--model gpt2]
 python behav/probe_ask_abstain.py
 python behav/probe_ask_stem.py
+python behav/probe_ask_abstain.py
+python behav/probe_ask_ranking.py
 ```
 
 `probe_shareable_state.py` asks what a state is worth without its cold store

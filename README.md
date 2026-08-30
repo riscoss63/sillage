@@ -528,13 +528,24 @@ This is the part most repositories leave out.
   memory's contribution. This is the sharpest form of "never a source of
   truth": the generation is wrong in a way that *looks* sourced. Use
   `sillage ask`, which returns the passage or nothing.
-- **The paper-8 tier can be on and silent, and short documents are where.**
-  `--sem2 auto` keys on surprising positions only, and the tier abstains
-  until it has 500 scored ones. On a 1.2k-token document that left 12, so
-  the tier contributed exactly nothing while `status` reported it on. It now
-  says "SILENT so far" with the count — but the honest summary is that
-  paper 8's 0 % -> 80 % was measured on a state fed thousands of tokens, and
-  a quickstart that reads one short file will not see it.
+- **Paper 8's 0 % -> 80 % does not transfer to ordinary notes, and the tier
+  is far harder to switch on than the paper suggests.** Two things were
+  measured by replaying five real sessions. First, the cost of entry: the
+  tier anchors only on surprising positions and abstains until it has 500
+  of them, and that reservoir fills at **1–2 % of the tokens read** — six
+  positions per 576-token pass, dead linear. A 576-token note therefore
+  needs **84 rereads (48k tokens)** before the tier says anything at all,
+  and a 3.5k-token vault gets 81 of the 500 on a first pass. Until then
+  `--sem2 auto` behaves exactly as if it were off, which is why two trials
+  measured "0/10" and concluded the paper did not reproduce; `status`,
+  `read` and `watch` now all say so. Second, and this is the part that
+  matters: **once the tier is provably speaking, rephrased recall is 1/10
+  on a 576-token French note (against 0/10 for the matched control) and
+  0/10 on a vault of eight notes.** The mechanism is real and attributable —
+  the control separates — but the 80 % figure belongs to the paper's own
+  instrument (a purpose-built dossier of invented facts, its own prefixes,
+  its own dev/test split) and does not carry to arbitrary prose. Treat
+  `--sem2` as a research setting, not a feature.
 - **Self-calibration loses to a proper tuning, where one exists.** Fitting the
   readout on your own stream sounds strictly better than using someone else's
   constants. It is not: the window is read by a memory that is *colder* than
@@ -584,8 +595,8 @@ the base model cannot know); `python test_serve.py` starts the HTTP service and
 talks to it over real sockets (16 checks: an OpenAI client, a background
 ingestion answering mid-read, a stream that arrives while it is generated,
 refusals, and the bearer token); and `python test_axis4.py` covers watch,
-review, export and pull (24 checks, including the cartridge round-trip and
-its refusals). **72 checks**, all green on the shipped 1.8.3.
+review, export and pull (25 checks, including the cartridge round-trip and
+its refusals). **73 checks**, all green on the shipped 1.8.4.
 
 <details>
 <summary><b>Repository layout</b></summary>
