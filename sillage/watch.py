@@ -1,4 +1,4 @@
-"""`sillage watch`: read a folder as it changes, and say what was new.
+"""`sillage watch`: read a folder as it changes, and rank what it read.
 
 Point it at a notes folder (an Obsidian vault, a directory of Markdown)
 and it reads what changed since last time -- nothing else. Two things
@@ -150,10 +150,14 @@ class Watcher:
         return made
 
     def digest(self, n=10, since=None):
-        """What was new lately, most surprising first.
+        """What was read lately, most unusual first.
 
-        `since` is a number of DAYS: the question this feature exists for
-        is "what did I write THIS WEEK that was new", and ranking the
+        Not "what was new": the scalar is the FROZEN model's surprise,
+        so a reread scores identically and appending fresh material to
+        a note LOWERS its per-token mean. It ranks unusual, dense prose.
+
+        `since` is a number of DAYS, because the question people bring
+        to this is about a week rather than all time, and ranking the
         last 200 entries all-time cannot answer it. One row per file --
         a file read on Monday and again on Thursday used to take two of
         the five slots with the same text behind them.

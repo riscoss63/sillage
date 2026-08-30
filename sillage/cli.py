@@ -283,7 +283,7 @@ def cmd_complete(a):
 
 
 def cmd_watch(a):
-    """watch: read a folder as it changes, and say what was new."""
+    """watch: read a folder as it changes, ranking what it read."""
     from .watch import watch
     s = make(a)
     exts = ([e if e.startswith(".") else "." + e
@@ -789,8 +789,8 @@ def build_parser():
     p.set_defaults(fn=cmd_status)
 
     p = sub.add_parser("watch", parents=[common],
-                       help="read a folder as it changes, with a "
-                            "salience journal of what was new")
+                       help="read a folder as it changes, ranking "
+                            "what it read by how unusual it looked")
     p.add_argument("folder")
     p.add_argument("--interval", type=int, default=60,
                    help="seconds between passes (default 60)")
@@ -803,8 +803,8 @@ def build_parser():
                         "reports perplexity, and the only mode that "
                         "trains the rank-16 adapter)")
     p.add_argument("--since", type=float, default=None, metavar="DAYS",
-                   help="rank only what was read in the last DAYS in the "
-                        "salience journal (e.g. --since 7 for the week)")
+                   help="rank only what was read in the last DAYS "
+                        "(e.g. --since 7 for the week)")
     p.set_defaults(fn=cmd_watch)
 
     p = sub.add_parser("export", parents=[common],
