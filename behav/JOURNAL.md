@@ -1261,3 +1261,205 @@ gros modèle (fidélité approximative, rappel dégradé).** Les deux
 messages de l'outil disent exactement ça à l'écran. Le remplacement de
 llama.cpp est donc livré avec son mode d'emploi honnête, pas comme une
 accélération.
+
+---
+
+## 2026-08-30 — Pourquoi `complete` invente : ce n'est ni la taille du modèle, ni le réglage du readout
+
+Question de départ : un 0,6B est trop petit pour converser, donc mesurer
+avec de plus gros modèles. Quatre hypothèses testées dans l'ordre, trois
+réfutées, la quatrième isolée.
+
+**Nouveau dans l'outil** : `mix_full` enregistre les tiers qui ont
+franchi leur seuil, `complete` compare l'argmax avec et sans mémoire, et
+`Sillage.attribution()` rend `moved/tokens`. La CLI l'affiche **sur
+stderr** (stdout reste le texte pur : la garantie « `--fast` identique »
+du papier 5 en dépend). Nouveau drapeau `--readout
+published|family|b,l,q` : les trois constantes qui décident si la
+mémoire parle n'étaient atteignables que depuis Python.
+
+**H1 — le readout publié serait le verrou.** Vrai à 1,7B, faux à 0,6B.
+Rapport français de 430 tokens, lu deux fois, 413 grammes.
+
+| | 0,6B publié | 0,6B famille | 1,7B publié | 1,7B famille |
+|---|---|---|---|---|
+| rappel | 88 % | 88 % | **75 %** | **88 %** |
+| témoin (doc non lu) | +0,16 nat | **+2,14** | **−0,00** | **+1,25** |
+| tokens déplacés (répondables) | 55 % | 59 % | 45 % | 62 % |
+| tokens déplacés (**sans réponse**) | 6 % | **19 %** | 2 % | **27 %** |
+
+Lecture : à 0,6B la famille n'achète **rien** et coûte 13× en localité.
+À 1,7B le readout publié est trop discret (75 %) et la famille récupère
+les 13 points — mais dans les deux cas elle fait parler la mémoire **3 à
+13 fois plus sur les questions sans réponse**, où elle transplante un
+vrai passage (« le coût total s'élève à » → « débit de 118 mètres cubes
+par heure », 8 tokens déplacés). P2 falsifiée (×1,08 et ×1,37 < 1,5),
+P3/P4/P5 confirmées. **Le défaut reste `published`.**
+
+**H2 — le retour à la ligne casserait la clé.** Réfutée : verbatim 6/8 =
+rewrappé 6/8 (`results/linewrap.json`). Sonde mal conçue au passage :
+aucun témoin sans saut de ligne.
+
+**H3 — la mémoire aurait le fait mais serait outvotée.** Réfutée : le
+4-gramme manquant est **absent** du cold store, et monter `LAM_C` de 0,3
+à 0,6 ne convertit rien et ne perd rien (`results/outvoted.json`).
+Échec de **récupération**, pas d'arbitrage.
+
+**H4 — la clé est exacte au token près. CONFIRMÉE**
+(`results/tokenkey.json`). Même fait, trois formulations :
+
+| variante | clé (4 derniers tokens) | cold | sortie |
+|---|---|---|---|
+| A doc-exact | `[' responsable', ',\n', 'mad', 'ame']` | **HIT** | `Brindas Kolvec, mat` |
+| B rewrappé | `[' responsable', ',', ' mad', 'ame']` | MISS | `M. A. D.  Le` |
+| C espace final | `[',\n', 'mad', 'ame', ' ']` | MISS | `44444444` |
+
+Le saut de ligne est **absorbé dans un token** (`',\n'`). Le fait est
+donc bien en mémoire — A le récite verbatim — mais la même question
+tapée sur une ligne ne l'atteint pas, et **la mémoire se tait au lieu de
+le dire**. Le modèle gelé comble alors le vide : « M. A. D. » à 0,6B,
+« Brigitte Lefebvre » à 1,7B. Témoin en milieu de ligne (`62`) : HIT aux
+trois variantes → l'effet est bien la surface, pas le fait.
+
+**Conséquence.** Les inventions observées lors des essais réels ne
+viennent ni du modèle ni du mélange : elles viennent d'un **silence** de
+la mémoire, causé par un écart de surface entre le document et la
+question. C'est aussi pourquoi `ask` (TF-IDF, plis d'accents, tokens de
+mots) n'a pas ce défaut : sa clé n'est pas exacte au token.
+
+### Suite du 2026-08-30 — deux corrections à ce qui précède, et le correctif qui marche
+
+**Correction 1 : `reflow` FONCTIONNE. Mes T1/T2 étaient mesurées sur un
+état contaminé par ma propre sonde.** `probe_reflow` faisait passer le
+témoin de localité **avant** les questions. Or `nll_nowrite` replie
+chaque état caché dans le centre courant `mu` du tier sémantique v1
+**sans** les écritures correspondantes dans les tiers — un déséquilibre
+que seul du code de sonde produit. Bissection (`probe_bisect`) : à
+seuils identiques (thrG 0,9310) et réservoir identique (826), la seule
+passe témoin fait passer `moved` de 9/12 à 1/12 et « Brindas Kolvec »
+devient « Brigitte Lefevre ». Diff complet de l'objet
+(`probe_whatmutates`) : quatre attributs bougent, dont `mu` et `mu_n`
+(826 → 1008).
+
+Mesuré proprement, sur trois exécutions indépendantes :
+
+| document lu | rappel |
+|---|---|
+| tel quel (retours à la ligne) | **7/8** |
+| reflowé (lignes recollées) | **8/8** |
+| reflowé, tier sémantique coupé | 7/8 |
+
+Donc la chaîne complète est : recoller les lignes → la clé de la
+question existe dans le store (`' Br'`, 2/2) → **le tier sémantique
+porte le reste du nom** et `complete` sort `Brindas Kolvec, matricule
+4`. Le cold store seul ne suffit pas : il ouvre le mot et le modèle le
+finit en « Brigitte ». C'est le tier v1 qui gagne l'arbitrage, pas
+`LAM_C` (0,3 → 0,9 : aucun gain, aucune perte).
+
+**Correction 2 : lire plus de documents ne dégrade PAS le rappel.**
+C'était la crainte légitime après avoir vu `mu` dériver.
+`probe_moredocs` : après le rapport, lecture de trois documents sans
+rapport (pain, jardin, vélo), `mu_n` 826 → 1320, grammes 395 → 879 →
+rappel **8/8 à chaque étape**. X1 falsifiée. La lecture ordinaire
+déplace le centre **et** les clés stockées ensemble ; seule ma sonde
+les désolidarisait. Le passage à l'échelle n'est pas remis en cause.
+
+**Correctif livré : `sem_key(h, learn=False)` en génération.** `mix_full`
+mis à part, `complete` promettait « Writes nothing » et déplaçait `mu`
+à chaque token généré (826 → 1162 sur 240 tokens). Le tier du papier 8
+avait déjà cette discipline (`sem2_observe` : « read time only »), pas
+celui du papier 2. `drafting.py` aligné (le snapshot/restore de `mu`
+qui garantissait la sortie identique devient un invariant plutôt qu'un
+replay). **Mesuré (`probe_freeze_mu`) : W1 falsifiée** — 240 tokens
+générés ne dégradaient pas le rappel (8/8 → 8/8), donc ce n'est pas un
+gain de rappel ; **W3 : les huit réponses sont identiques** avant/après
+sur un état propre. C'est une correction d'hygiène à effet nul mesuré
+sur la sortie, pas une amélioration. Elle est livrée comme telle.
+
+**Le tableau readout 0,6B est inchangé** après remesure sans
+contamination (88 %/88 %, témoin +0,16/+2,14) : sur un document non
+reflowé « Brindas » est de toute façon hors d'atteinte, le tier
+sémantique n'avait rien à perdre.
+
+### 2026-08-30, soir — la mémoire peut-elle dire qu'elle ne sait pas ?
+
+Hypothèse issue du rapport de Vernouil (12 points, un seul document) :
+les questions auxquelles le document répond déplacent 4 à 11 tokens sur
+12, celles auxquelles il ne répond pas 0 à 2. Règle figée **avant**
+mesure : *répondre si la mémoire a déplacé ≥ 3 tokens, sinon dire
+qu'elle n'a pas atteint la question.* Corpus neuf (compte rendu de
+rucher, 376 tokens, `--reflow`), 24 questions en trois familles, dont
+une famille **reformulée** pour contrôler le confondant évident : dans
+le premier document, toute question répondable était un préfixe
+verbatim, donc `moved` pouvait ne mesurer que le recouvrement de
+surface.
+
+Fenêtre corrigée en cours de route : à 12 tokens, « Qui a rédigé ce
+compte rendu ? » était coupé à « …par le techn| » et compté comme
+erreur confiante. À 30 tokens il donne « monsieur **Ovide Trenchard**,
+carte apicole ». Une fenêtre qui tronque la réponse mesure la fenêtre.
+
+| famille | résultat |
+|---|---|
+| verbatim (8) | 7 répondues, **7 justes, 0 fausse** ; la 8ᵉ s'abstient (2/30) et se serait trompée |
+| **reformulées** (8) | 2 répondues, **2 justes** ; 6 abstentions honnêtes (0 à 2 tokens déplacés) |
+| sans réponse (8) | **7 abstentions**, 1 échec |
+
+**Y1, Y2, Y3 tiennent. Y4 est FALSIFIÉE, et c'est le résultat.** Le seul
+échec est « la prochaine visite aura lieu le » → « **11 avril 2026**,
+par temps couvert… », c'est-à-dire la visite **déjà passée**, récitée
+verbatim avec **16 tokens déplacés sur 30** — alors que la meilleure
+réponse *juste* du corpus en déplace 12. Les plages se chevauchent :
+**aucun seuil ne sépare ces deux cas.** `moved` mesure si la mémoire a
+contribué, pas si elle a répondu à la question posée.
+
+C'est le même échec que « 14 juin » sur le premier document : une
+question dont la surface appelle fortement un passage stocké tire la
+mémoire à fond, et le passage est le mauvais. C'est donc une classe
+nommée, reproductible sur deux corpus, et non corrigeable par le
+réglage — comme la normalisation de longueur l'était pour le classement
+des paragraphes.
+
+**Livré** : le garde-fou de `complete` passe de « zéro token déplacé » à
+`FAINT = 3`. Sur les deux documents réunis, 11 des 12 questions sans
+réponse tombent sous ce seuil, contre 9 en ne déclenchant qu'à zéro. Et
+aucune réponse juste des deux corpus ne descend sous 12. Le seuil n'est
+pas ajusté sur le corpus qui l'a suggéré, et sa limite est écrite dans
+le code à côté de sa valeur.
+
+### 2026-08-30, fin — les deux canaux ne peuvent pas se vérifier l'un l'autre
+
+Idée testée : `ask` (TF-IDF) sait quel passage est pertinent, `complete`
+sait quel passage la mémoire a tiré ; les faire se contrôler devait
+attraper la transplantation. Trois signaux candidats, mêmes 24
+questions : **A** `ask` s'abstient-il ? **B** le texte généré est-il
+verbatim dans le document ? **C** les deux canaux désignent-ils le même
+paragraphe ?
+
+**Les trois échouent, et la démonstration tient en deux lignes jumelles :**
+
+| question | sortie | moved | score `ask` | verbatim | juste ? |
+|---|---|---|---|---|---|
+| « La visite **de printemps**… s'est déroulée le » | `11 avril 2026, par temps couvert` | 16/30 | 0,623 | oui | **oui** |
+| « La **prochaine** visite… aura lieu le » | `11 avril 2026, par temps couvert` | 16/30 | 0,554 | oui | **non** |
+
+Sortie identique, contribution identique, présence verbatim identique,
+scores lexicaux dans la même plage (les bonnes réponses vont de 0,245 à
+0,623 ; la transplantation est à 0,554, en plein dedans). Z2 et Z3
+falsifiées frontalement. Z1 a d'abord semblé tenir : **artefact de ma
+sonde** — le localisateur de paragraphe rendait `None` pour 8 passages
+d'index sur 24, donc « désaccord » se déclenchait aussi sur 3 bonnes
+réponses sur 9. Corrigé dans le fichier de résultats.
+
+**Pourquoi c'était perdu d'avance, et pourquoi c'est utile de le
+publier :** les deux canaux sont **de surface**. La seule chose qui
+distingue les deux questions est le mot « prochaine », absent du
+document, contre « de printemps … s'est déroulée ». Séparer les deux
+demande de savoir qu'une visite prochaine n'est pas une visite passée —
+pas de comparer des sacs de mots. Deux mécanismes de surface ne
+s'auditent pas mutuellement : ils se trompent ensemble.
+
+La transplantation reste donc **une limite ouverte, nommée et bornée** :
+elle ne touche que les questions dont la formulation recouvre presque
+entièrement un passage stocké, et le garde-fou `FAINT` attrape tout le
+reste (11 des 12 questions sans réponse sur deux corpus).

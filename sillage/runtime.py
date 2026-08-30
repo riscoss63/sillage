@@ -187,8 +187,35 @@ class Sillage:
             print(msg, flush=True)
 
     # -------------------------------------------------------------- read ----
+    @staticmethod
+    def reflow(text):
+        """Join the lines inside each paragraph, keeping the breaks between.
+
+        Both fast tiers key on the last four TOKENS, and a line break is
+        absorbed INTO a token: a document that wraps `responsable,` /
+        `madame` stores the key `[' responsable', ',\\n', 'mad', 'ame']`,
+        while the same sentence typed on one line asks for
+        `[' responsable', ',', ' mad', 'ame']`. The store misses, both
+        tiers stay silent, and the frozen model fills the silence with a
+        fabrication -- which is what `Brigitte Lefevre` was.
+
+        Measured on a 430-token French report, questions typed the way a
+        person types them: 7/8 facts as the document wraps them, **8/8**
+        reflowed (and 7/8 reflowed with the semantic tier off -- the
+        cold store opens the name, that tier finishes it).
+
+        It is OPT-IN because it changes the token stream, so a reflowed
+        read is not comparable to the published perplexities: on that
+        report, frozen 22.79 -> 24.66 and with-memory 18.28 -> 19.69.
+        Recall of questions and fidelity to the document's own shape are
+        genuinely different goals; this picks the first, on request.
+        """
+        import re
+        paras = re.split(r"\n\s*\n", text)
+        return "\n\n".join(" ".join(p.split()) for p in paras if p.strip())
+
     def read(self, *paths, save=True, fast=False, between_windows=None,
-             name=None):
+             name=None, reflow=False):
         """Read documents: memorize them and index them for grounded quotes.
 
         fast=True is paper 7's blocked ingestion: writes only, ~40x on
@@ -217,6 +244,8 @@ class Sillage:
                 self._say(f"note: {key} was read before -- re-reading "
                           f"strengthens its traces.")
             text = read_text(path)
+            if reflow:
+                text = self.reflow(text)
             n_pass = self.index.add(text, key)
             if fast:
                 from .ingest import ingest_text
@@ -494,6 +523,27 @@ class Sillage:
         return rec
 
     # ---------------------------------------------------------- generate ----
+    def attribution(self):
+        """What the memory contributed to the last ``complete``.
+
+        Returns ``None`` when no trace was kept, else a dict with the
+        number of generated tokens, how many the memory *moved* (the top
+        choice differs with and without it) and which tiers spoke. A run
+        with ``moved == 0`` is the frozen model talking alone: whatever
+        it said, the memory did not say it.
+        """
+        tr = getattr(self, "last_trace", None)
+        if tr is None:
+            return None
+        tiers = {}
+        for src, _ in tr:
+            for s in src:
+                tiers[s] = tiers.get(s, 0) + 1
+        return {"tokens": len(tr),
+                "moved": sum(1 for _, m in tr if m),
+                "spoke": sum(1 for s, _ in tr if s),
+                "tiers": tiers}
+
     def complete(self, prompt, n=40, temp=0.0, seed=0, fast=False,
                  on_token=None):
         """Continue a prompt with memory and fast weights. Writes nothing.
@@ -508,6 +558,7 @@ class Sillage:
                           "implemented); falling back to plain decoding.")
             else:
                 from .drafting import complete_fast
+                self.last_trace = None   # the block verifier keeps no trace
                 text, stats = complete_fast(self, prompt, n=n)
                 acc = stats["accepted"] / max(1, stats["drafted"])
                 self._say(f"  [fast: {stats['tokens']} tokens in "
@@ -529,6 +580,8 @@ class Sillage:
         pooled = None            # paper 8: one pooled query per prompt
         inp = torch.tensor(ids, device=self.device).unsqueeze(0)
         out_ids = []
+        trace = []
+        self.last_trace = trace
         with torch.no_grad():
             for step in range(n):
                 out = model(inp, past_key_values=past, use_cache=True,
@@ -556,9 +609,17 @@ class Sillage:
                     # often. The n-gram tier continues; this one recalls.
                     sS = pooled if step == 0 else None
                 elif mem.semantic:
-                    _, sS = mem.scores(mem.MS, mem.sem_key(h))
+                    # learn=False: answering is not reading (see sem_key)
+                    _, sS = mem.scores(mem.MS, mem.sem_key(h, learn=False))
                 p = mem.mix_full(p_base, sG, sS, mem.cold_lookup(),
                                  thrG, thrS)
+                # attribution: which tiers spoke, and did they actually
+                # move the model's top choice. The second is the honest
+                # one -- a tier can clear its threshold and change
+                # nothing, and a token the memory did not move is the
+                # frozen model's invention, not a recall.
+                trace.append((list(mem.last_src),
+                              int(np.argmax(p)) != int(np.argmax(p_base))))
                 if temp and temp > 0:
                     logp = np.log(np.maximum(p, 1e-30)) / temp
                     pp = np.exp(logp - logp.max())

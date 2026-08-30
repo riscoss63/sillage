@@ -1,0 +1,112 @@
+{
+ "semantic_on": {
+  "steps": [
+   {
+    "after": "A only",
+    "recall": 8,
+    "mu_n": 826,
+    "grams": 395,
+    "miss": []
+   },
+   {
+    "after": "pain",
+    "recall": 8,
+    "mu_n": 995,
+    "grams": 561,
+    "miss": []
+   },
+   {
+    "after": "jardin",
+    "recall": 8,
+    "mu_n": 1158,
+    "grams": 721,
+    "miss": []
+   },
+   {
+    "after": "velo",
+    "recall": 8,
+    "mu_n": 1320,
+    "grams": 879,
+    "miss": []
+   }
+  ],
+  "chain_at_end": " Brindas Kolvec"
+ },
+ "semantic_off": {
+  "steps": [
+   {
+    "after": "A only",
+    "recall": 7,
+    "mu_n": 0,
+    "grams": 395,
+    "miss": [
+     [
+      "Brindas",
+      "Brigitte Lefevre, et le rapport a"
+     ]
+    ]
+   },
+   {
+    "after": "pain",
+    "recall": 7,
+    "mu_n": 0,
+    "grams": 561,
+    "miss": [
+     [
+      "Brindas",
+      "Brigitte Lefevre, et a été sign"
+     ]
+    ]
+   },
+   {
+    "after": "jardin",
+    "recall": 7,
+    "mu_n": 0,
+    "grams": 721,
+    "miss": [
+     [
+      "Brindas",
+      "Brigitte Lefevre, et a été sign"
+     ]
+    ]
+   },
+   {
+    "after": "velo",
+    "recall": 7,
+    "mu_n": 0,
+    "grams": 879,
+    "miss": [
+     [
+      "Brindas",
+      "Brigitte Lefevre, et a été sign"
+     ]
+    ]
+   }
+  ],
+  "chain_at_end": " Brindas Kolvec"
+ },
+ "verdict": {
+  "X1": {
+   "recall_curve_on": [
+    8,
+    8,
+    8,
+    8
+   ],
+   "holds": false
+  },
+  "X2": {
+   "recall_curve_off": [
+    7,
+    7,
+    7,
+    7
+   ],
+   "off_falls": false
+  },
+  "X3": {
+   "chain": " Brindas Kolvec",
+   "holds": true
+  }
+ }
+}

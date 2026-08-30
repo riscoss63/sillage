@@ -1,0 +1,246 @@
+{
+ "rows": [
+  {
+   "kind": "verbatim",
+   "prompt": "'infestation par varroa mesure au lange est de",
+   "want": "2,4",
+   "got": "2,4 acariens par jour, contre un seuil d'alert",
+   "moved": 12,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "verbatim",
+   "prompt": "de la ruche numero 9 apres reunion s'etablit a",
+   "want": "trente-huit",
+   "got": "trente-huit kilogrammes.\n\nLes hausses ont ete ",
+   "moved": 21,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "verbatim",
+   "prompt": "La miellee de colza est estimee a",
+   "want": "quatorze",
+   "got": "quatorze kilogrammes par ruche sur la parcelle",
+   "moved": 16,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "verbatim",
+   "prompt": "La colonie de la ruche numero 7 occupe",
+   "want": "huit",
+   "got": "huit cadres de couvain sur les dix que compte ",
+   "moved": 23,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "verbatim",
+   "prompt": "dige par le technicien du groupement, monsieur",
+   "want": "Ovide",
+   "got": "Ovide Trenchard, carte apicole numero 6318. Le",
+   "moved": 14,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "verbatim",
+   "prompt": "ne, marquee en vert, a ete vue en ponte sur le",
+   "want": "quatrieme",
+   "got": "quatrième de la route, et a été vue par un hom",
+   "moved": 2,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "verbatim",
+   "prompt": " sirop cinquante-cinquante a ete distribue aux",
+   "want": "trois",
+   "got": "trois colonies les plus faibles, a raison d'un",
+   "moved": 20,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "verbatim",
+   "prompt": "emps du rucher de Peyrelonge s'est deroulee le",
+   "want": "11 avril",
+   "got": "11 avril 2026, par temps couvert et douze degr",
+   "moved": 16,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "reworded",
+   "prompt": "ens varroa par jour ont ete comptes au lange ?",
+   "want": "2,4",
+   "got": "Et quels sont les principaux facteurs qui infl",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "reworded",
+   "prompt": "oids de la ruche 9 une fois la reunion faite ?",
+   "want": "trente-huit",
+   "got": "Et quels sont les éléments de la ruche numero ",
+   "moved": 2,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "reworded",
+   "prompt": "en de kilos de colza par ruche sont attendus ?",
+   "want": "quatorze",
+   "got": "Et comment se calcule la quantité de colza néc",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "reworded",
+   "prompt": "n de cadres s'etend le couvain de la ruche 7 ?",
+   "want": "huit",
+   "got": "- Le couvain de la ruche numero 7 occupe huit ",
+   "moved": 12,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "reworded",
+   "prompt": "Qui a redige ce compte rendu ?",
+   "want": "Ovide",
+   "got": "Le compte rendu a ete redige par le technicien",
+   "moved": 16,
+   "answers": true,
+   "correct": true
+  },
+  {
+   "kind": "reworded",
+   "prompt": "Sur quel cadre la reine a-t-elle ete apercue ?",
+   "want": "quatrieme",
+   "got": "Et quels sont les éléments du cadre ? Et quels",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "reworded",
+   "prompt": "Combien de colonies ont recu du sirop ?",
+   "want": "trois",
+   "got": "Le sirop est un produit de la production d'or,",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "reworded",
+   "prompt": "date la visite de printemps a-t-elle eu lieu ?",
+   "want": "11 avril",
+   "got": "Et quels sont les éléments du printemps ? Et q",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": "Le rucher de Peyrelonge compte au total",
+   "want": null,
+   "got": "12000000000000000000000000000",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": " kilo de miel de colza a la cooperative est de",
+   "want": null,
+   "got": "1200 euros par kilo. Le prix du kilo de miel d",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": "ne visite du rucher de Peyrelonge aura lieu le",
+   "want": null,
+   "got": "11 avril 2026, par temps couvert et douze degr",
+   "moved": 16,
+   "answers": true,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": "s ruches utilisees au rucher de Peyrelonge est",
+   "want": null,
+   "got": "un exemple de la technique de ruches et de ruc",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": "uction totale du rucher l'an dernier a atteint",
+   "want": null,
+   "got": "12 millions de dollars. Le rucher a généré un ",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": "e nom de la commune ou se trouve le rucher est",
+   "want": null,
+   "got": "le nom du rucher, et le rucher est le nom du r",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": "L'age de la reine de la ruche numero 7 est de",
+   "want": null,
+   "got": "12 ans, et la reine de la ruche numero 8 a 14 ",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  },
+  {
+   "kind": "no-answer",
+   "prompt": "itement anti-varroa retenu pour l'automne sera",
+   "want": null,
+   "got": "effectué sur les fruits de la saison. La saiso",
+   "moved": 0,
+   "answers": false,
+   "correct": false
+  }
+ ],
+ "verdict": {
+  "threshold": 3,
+  "Y1": {
+   "abstained_on_unanswerable": 7,
+   "of": 8,
+   "holds": true
+  },
+  "Y2": {
+   "answered": 7,
+   "of": 8,
+   "wrong_answers": [],
+   "holds": true
+  },
+  "Y3": {
+   "reworded_answered": 2,
+   "reworded_correct": 2,
+   "confident_and_wrong": [],
+   "holds": true
+  },
+  "Y4": {
+   "min_moved_when_right": 12,
+   "max_moved_unanswerable": 16,
+   "holds": false
+  },
+  "false_confidence_total": 0
+ }
+}

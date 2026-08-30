@@ -1,0 +1,236 @@
+{
+ "target": null,
+ "reflow_example": "Rapport d'intervention 2026-114 - Station de pompage de Vernouil\n\nL'intervention a ete conduite le 14 juin 2026 par l'equipe de maintenance sur la station de po",
+ "as_is": {
+  "label": "as-is (the document as written)",
+  "state": {
+   "tokens": 430,
+   "cold_grams": 413,
+   "ppl_frozen": 22.79,
+   "ppl_with_memory": 18.28
+  },
+  "answerable": [
+   {
+    "want": "62",
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa pression",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "4,7",
+    "ok": true,
+    "got": "4,7 bars\npour un debit de 1",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "0,42",
+    "ok": true,
+    "got": "0,42 millimètres de diamètre et",
+    "moved": 4,
+    "tokens": 12
+   },
+   {
+    "want": "CarbTec",
+    "ok": true,
+    "got": "CarbTec 88-R, et le couple de",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "21 480",
+    "ok": true,
+    "got": "21 480\nheures de fonction",
+    "moved": 11,
+    "tokens": 12
+   },
+   {
+    "want": "51",
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont a",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "Brindas",
+    "ok": false,
+    "got": "M. A. D. D. D. D.",
+    "moved": 0,
+    "tokens": 12
+   },
+   {
+    "want": "40",
+    "ok": true,
+    "got": "40 pour cent de\nla section utile.",
+    "moved": 6,
+    "tokens": 12
+   }
+  ],
+  "unanswerable": [
+   {
+    "prompt": "a station de Vernouil aura lieu le",
+    "got": "14 juin 2026, et le",
+    "moved": 2,
+    "tokens": 12
+   },
+   {
+    "prompt": "r la station de Vernouil s'eleve a",
+    "got": "11 000 €, et le mont",
+    "moved": 0,
+    "tokens": 12
+   },
+   {
+    "prompt": "t du groupe motopompe numero 3 est",
+    "got": "le fabricant de la marque de motopompe numero",
+    "moved": 1,
+    "tokens": 12
+   },
+   {
+    "prompt": "ernouil alimente une population de",
+    "got": "10000000000",
+    "moved": 0,
+    "tokens": 12
+   }
+  ],
+  "recall": 7,
+  "moved_unanswerable": 3,
+  "witness": {
+   "base": 37.419386255185394,
+   "mem": 37.57906828635463,
+   "delta": 0.15968203116923263
+  }
+ },
+ "reflow": {
+  "label": "reflow (paragraph lines joined)",
+  "state": {
+   "tokens": 413,
+   "cold_grams": 395,
+   "ppl_frozen": 24.66,
+   "ppl_with_memory": 19.69
+  },
+  "answerable": [
+   {
+    "want": "62",
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa pression",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "4,7",
+    "ok": true,
+    "got": "4,7 bars pour un debit de 11",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "0,42",
+    "ok": true,
+    "got": "0,42 millimètres de diamètre et",
+    "moved": 4,
+    "tokens": 12
+   },
+   {
+    "want": "CarbTec",
+    "ok": true,
+    "got": "CarbTec 88-R, et le couple de",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "21 480",
+    "ok": true,
+    "got": "21 480 heures de fonctionnement.",
+    "moved": 11,
+    "tokens": 12
+   },
+   {
+    "want": "51",
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont a",
+    "moved": 8,
+    "tokens": 12
+   },
+   {
+    "want": "Brindas",
+    "ok": true,
+    "got": "Brindas Kolvec, matricule 4",
+    "moved": 9,
+    "tokens": 12
+   },
+   {
+    "want": "40",
+    "ok": true,
+    "got": "40 pour cent de la section utile. Le",
+    "moved": 5,
+    "tokens": 12
+   }
+  ],
+  "unanswerable": [
+   {
+    "prompt": "a station de Vernouil aura lieu le",
+    "got": "14 juin 2026, et le",
+    "moved": 2,
+    "tokens": 12
+   },
+   {
+    "prompt": "r la station de Vernouil s'eleve a",
+    "got": "11 000 €, et le mont",
+    "moved": 0,
+    "tokens": 12
+   },
+   {
+    "prompt": "t du groupe motopompe numero 3 est",
+    "got": "le fabricant de la marque de motopompe numero",
+    "moved": 1,
+    "tokens": 12
+   },
+   {
+    "prompt": "ernouil alimente une population de",
+    "got": "10000000000",
+    "moved": 0,
+    "tokens": 12
+   }
+  ],
+  "recall": 8,
+  "moved_unanswerable": 3,
+  "witness": {
+   "base": 37.419386255185394,
+   "mem": 37.767800457505636,
+   "delta": 0.34841420232024234
+  }
+ },
+ "verdict": {
+  "T1": {
+   "as_is": 7,
+   "reflow": 8,
+   "holds": true
+  },
+  "T2": {
+   "brindas_before": false,
+   "brindas_after": true
+  },
+  "T3": {
+   "lost": [],
+   "holds": true
+  },
+  "T4": {
+   "delta": 0.1887321711510097,
+   "holds": true
+  },
+  "T5": {
+   "as_is": 3,
+   "reflow": 3
+  },
+  "T6": {
+   "ppl_as_is": 18.28,
+   "ppl_reflow": 19.69,
+   "tokens_as_is": 430,
+   "tokens_reflow": 413
+  },
+  "gained": [
+   "Brindas"
+  ]
+ }
+}

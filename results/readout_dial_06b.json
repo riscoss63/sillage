@@ -1,0 +1,320 @@
+{
+ "predictions": "the run, with falsification thresholds:\n\n  P1  Canonical recall rises. family >= published, and family >= 5/8.\n      FALSIFIED if family < published.\n  P2  The memory speaks far more: mean moved-token fraction at least\n      doubles, published -> family.\n      FALSIFIED if the increase is under 1.5x.\n  P3  Locality is paid for. The witness document's perplexity rises\n      more under family than under published.\n      Recorded either way; a rise over +1.00 nat is a real cost that\n      has to be reported next to the recall gain.\n  P4  Invention on unanswerable questions is NOT fixed by the dial, and\n      may get worse: family produces at least as many fabricated\n      answers as published.\n      FALSIFIED if family invents strictly less.\n  P5  Attribution is informative: on at least one unanswerable question\n      the memory moves ZERO tokens, showing the fabrication is the\n      frozen model's and not a recall.\n      FALSIFIED if the memory moves tokens everywhere.",
+ "model": "qwen",
+ "target": null,
+ "state": {
+  "tokens": 430,
+  "cold_grams": 413,
+  "ppl_frozen": 22.79,
+  "ppl_with_memory": 18.28
+ },
+ "arms": {
+  "published": [
+   160.0,
+   0.2,
+   0.75
+  ],
+  "family": [
+   40.0,
+   0.85,
+   0.5
+  ]
+ },
+ "published": {
+  "readout": [
+   160.0,
+   0.2,
+   0.75
+  ],
+  "answerable": [
+   {
+    "prompt": " applique aux huit goujons de bride est de",
+    "want": "62",
+    "got": "62 newtons-metres.\n\nLa pression",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "cold": 12,
+     "ngram": 7,
+     "sem": 1
+    }
+   },
+   {
+    "prompt": "ent mesuree apres intervention s'etablit a",
+    "want": "4,7",
+    "got": "4,7 bars\npour un debit de 1",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "cold": 12,
+     "ngram": 7
+    }
+   },
+   {
+    "prompt": "pompe numero 3 presentait un jeu radial de",
+    "want": "0,42",
+    "got": "0,42 millimètres de diamètre et",
+    "ok": true,
+    "moved": 4,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 6,
+     "cold": 8,
+     "sem": 1
+    }
+   },
+   {
+    "prompt": "ecanique a ete remplacee par une reference",
+    "want": "CarbTec",
+    "got": "CarbTec 88-R, et le couple de",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 10,
+     "cold": 12,
+     "sem": 2
+    }
+   },
+   {
+    "prompt": "ompteur horaire du groupe numero 3 affiche",
+    "want": "21 480",
+    "got": "21 480\nheures de fonction",
+    "ok": true,
+    "moved": 11,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 7,
+     "cold": 12
+    }
+   },
+   {
+    "prompt": "ier arriere est redescendue de 78 degres a",
+    "want": "51",
+    "got": "51 degres.\n\nLe filtre amont a",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "cold": 12,
+     "ngram": 7
+    }
+   },
+   {
+    "prompt": "2026 par le technicien responsable, madame",
+    "want": "Brindas",
+    "got": "M. A. D. D. D. D.",
+    "ok": false,
+    "moved": 0,
+    "tokens": 12,
+    "tiers": {}
+   },
+   {
+    "prompt": "a ete nettoye et son encrassement estime a",
+    "want": "40",
+    "got": "40 pour cent de\nla section utile.",
+    "ok": true,
+    "moved": 6,
+    "tokens": 12,
+    "tiers": {
+     "cold": 12,
+     "ngram": 7
+    }
+   }
+  ],
+  "unanswerable": [
+   {
+    "prompt": "ite de la station de Vernouil aura lieu le",
+    "got": "14 juin 2026, et le",
+    "moved": 2,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 2,
+     "sem": 1,
+     "cold": 7
+    }
+   },
+   {
+    "prompt": "ntion sur la station de Vernouil s'eleve a",
+    "got": "11 000 €, et le mont",
+    "moved": 0,
+    "tokens": 12,
+    "tiers": {}
+   },
+   {
+    "prompt": "fabricant du groupe motopompe numero 3 est",
+    "got": "le fabricant de la marque de motopompe numero",
+    "moved": 1,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 1,
+     "cold": 1
+    }
+   },
+   {
+    "prompt": "age de Vernouil alimente une population de",
+    "got": "10000000000",
+    "moved": 0,
+    "tokens": 12,
+    "tiers": {}
+   }
+  ],
+  "recall": 0.875
+ },
+ "family": {
+  "readout": [
+   40.0,
+   0.85,
+   0.5
+  ],
+  "answerable": [
+   {
+    "prompt": " applique aux huit goujons de bride est de",
+    "want": "62",
+    "got": "62 newtons-metres.\n\nLa pression",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 10,
+     "cold": 12,
+     "sem": 1
+    }
+   },
+   {
+    "prompt": "ent mesuree apres intervention s'etablit a",
+    "want": "4,7",
+    "got": "4,7 bars\npour un debit de 1",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 11,
+     "cold": 12
+    }
+   },
+   {
+    "prompt": "pompe numero 3 presentait un jeu radial de",
+    "want": "0,42",
+    "got": "0,42 millimetre\nau palier",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 11,
+     "cold": 12,
+     "sem": 1
+    }
+   },
+   {
+    "prompt": "ecanique a ete remplacee par une reference",
+    "want": "CarbTec",
+    "got": "CarbTec 88-R, et le couple de",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 12,
+     "cold": 12,
+     "sem": 2
+    }
+   },
+   {
+    "prompt": "ompteur horaire du groupe numero 3 affiche",
+    "want": "21 480",
+    "got": "21 480\nheures de fonction",
+    "ok": true,
+    "moved": 11,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 11,
+     "cold": 12
+    }
+   },
+   {
+    "prompt": "ier arriere est redescendue de 78 degres a",
+    "want": "51",
+    "got": "51 degres.\n\nLe filtre amont a",
+    "ok": true,
+    "moved": 8,
+    "tokens": 12,
+    "tiers": {
+     "cold": 12,
+     "ngram": 11
+    }
+   },
+   {
+    "prompt": "2026 par le technicien responsable, madame",
+    "want": "Brindas",
+    "got": "M. A. D. D. D. D.",
+    "ok": false,
+    "moved": 0,
+    "tokens": 12,
+    "tiers": {}
+   },
+   {
+    "prompt": "a ete nettoye et son encrassement estime a",
+    "want": "40",
+    "got": "40 pour cent de\nla section utile.",
+    "ok": true,
+    "moved": 6,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 11,
+     "cold": 12
+    }
+   }
+  ],
+  "unanswerable": [
+   {
+    "prompt": "ite de la station de Vernouil aura lieu le",
+    "got": "14 juin 2026-11",
+    "moved": 4,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 6,
+     "sem": 1,
+     "cold": 9
+    }
+   },
+   {
+    "prompt": "ntion sur la station de Vernouil s'eleve a",
+    "got": "1,4 et 1, et 1,",
+    "moved": 3,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 4
+    }
+   },
+   {
+    "prompt": "fabricant du groupe motopompe numero 3 est",
+    "got": "le fabricant de la marque de a4, et le",
+    "moved": 2,
+    "tokens": 12,
+    "tiers": {
+     "ngram": 2
+    }
+   },
+   {
+    "prompt": "age de Vernouil alimente une population de",
+    "got": "10000000000",
+    "moved": 0,
+    "tokens": 12,
+    "tiers": {}
+   }
+  ],
+  "recall": 0.875
+ },
+ "witness": {
+  "published": {
+   "base": 37.419386255185394,
+   "mem": 37.57906828635463
+  },
+  "family": {
+   "base": 37.419386255185394,
+   "mem": 39.55976498279919
+  }
+ }
+}

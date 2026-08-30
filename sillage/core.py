@@ -212,6 +212,9 @@ class SillageMemory:
     plugged into someone else's generation loop) with no transformers import.
     """
 
+    #: tiers that spoke at the last ``mix_full`` -- see that method
+    last_src = ()
+
     def __init__(self, state_dir=None, which=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
                  cold_mass=None, sem2=None, sem2_whiten=None):
@@ -601,13 +604,34 @@ class SillageMemory:
                 slot += 1
         return q
 
-    def sem_key(self, h):
-        """Banded SimHash symbols of a centred hidden state (paper 2)."""
+    def sem_key(self, h, learn=True):
+        """Banded SimHash symbols of a centred hidden state (paper 2).
+
+        `learn` folds this state into the running centre. It belongs at
+        READ time, where the centre is part of what the memory learns,
+        and nowhere else: generation is not reading, and a centre that
+        drifts while answering makes the answer depend on what the
+        model happened to look at last rather than on what was stored.
+        Paper 8's tier already had this discipline (`sem2_observe` says
+        "read time only"); this one did not, and `complete` -- whose
+        own docstring promises it writes nothing -- was moving `mu` on
+        every generated token.
+
+        Measured on a 413-token French report read twice: with a clean
+        centre the eight facts come back 8/8; after 182 tokens of
+        unrelated prose have been folded in, 7/8, and the loss is a
+        proper noun the cold store holds in full (`Brindas Kolvec`
+        becomes `Brigitte Lefevre`). The tier is what carries that
+        recall -- with the semantic tier off it is 7/8 either way -- so
+        a drifting centre does not merely add noise, it can undo a
+        recall the store had right.
+        """
         h = h / (np.linalg.norm(h) + 1e-8)
         if self.mu is None:
             self.mu = np.zeros_like(h)
-        self.mu_n += 1
-        self.mu += (h - self.mu) / self.mu_n
+        if learn:
+            self.mu_n += 1
+            self.mu += (h - self.mu) / self.mu_n
         return self._bands(h - self.mu)
 
     # ------------------------------------------- paper 8: early-layer keys --
@@ -986,21 +1010,34 @@ class SillageMemory:
         return p
 
     def mix_full(self, p_base, sG, sS=None, pc=None, thrG=None, thrS=None):
-        """Mixed full distribution (generation time)."""
+        """Mixed full distribution (generation time).
+
+        Records in ``self.last_src`` the names of the tiers that actually
+        cleared their threshold. A caller that also compares the argmax
+        before and after can then tell a token the memory *produced*
+        from one the frozen model invented on its own -- which is the
+        difference between a recall and a fabrication that merely looks
+        sourced.
+        """
         p = p_base
-        for s, beta, lam, thr in ((sG, self.beta_G, self.lam_G, thrG),
-                                  (sS, self.beta_S, self.lam_S, thrS)):
+        src = []
+        for name, s, beta, lam, thr in (
+                ("ngram", sG, self.beta_G, self.lam_G, thrG),
+                ("sem", sS, self.beta_S, self.lam_S, thrS)):
             if s is None:
                 continue
             if float(s.max()) >= (thr if thr is not None else np.inf):
+                src.append(name)
                 m = beta * s
                 pm = np.exp(m - m.max())
                 pm /= pm.sum()
                 p = lam * pm + (1 - lam) * p
         if pc is not None:
+            src.append("cold")
             p = (1 - LAM_C) * p
             for t, pv in pc.items():
                 p[t] += LAM_C * pv
+        self.last_src = src
         return p
 
     # ------------------------------------------------------- write -----------

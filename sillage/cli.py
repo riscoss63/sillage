@@ -97,7 +97,48 @@ def make(a, **over):
           "sem2_whiten": getattr(a, "sem2_whiten", None),
           "dtype": getattr(a, "dtype", None)}
     kw.update(over)
-    return Sillage(**kw)
+    s = Sillage(**kw)
+    apply_readout(s, getattr(a, "readout", None))
+    return s
+
+
+#: paper 5's family settings, measured at 0.6B, 1.7B and 4B (behav_4b.json).
+#: On its conflict protocol these turn 10% conversion into 100% at all three
+#: capacities, and stable serving 0.9 into 0.95-1.0 -- with the SAME state.
+#: The shipped qwen readout is the quiet end of the same dial.
+FAMILY_READOUT = (40.0, 0.85, 0.5)
+
+#: below this many moved tokens, treat a completion as the frozen model's
+#: own invention (results/abstain_gen.json, results/reflow.json). It is a
+#: floor on *contribution*, and contribution is not relevance: a question
+#: whose wording matches stored text pulls the memory hard and can still
+#: be answered with the wrong passage -- measured, and NOT fixable by
+#: moving this number, since that case moved 16 tokens where a correct
+#: answer moved 12.
+FAINT = 3
+
+
+def apply_readout(s, spec):
+    """Override the n-gram tier's readout: `family`, `published`, or B,L,Q.
+
+    The three numbers decide whether the memory speaks at all, and until
+    now they were reachable only from Python. Default is unchanged, so
+    every published number still reproduces with no flag.
+    """
+    if not spec:
+        return
+    if spec == "published":
+        return
+    if spec == "family":
+        b, l, q = FAMILY_READOUT
+    else:
+        try:
+            b, l, q = (float(x) for x in spec.split(","))
+        except ValueError:
+            raise SystemExit(
+                f"--readout wants 'family', 'published', or three numbers "
+                f"beta,lambda,quantile (got {spec!r})")
+    s.mem.beta_G, s.mem.lam_G, s.mem.thr_qG = b, l, q
 
 
 def fmt_readout(params):
@@ -140,7 +181,8 @@ def cmd_read(a):
         print("readout calibration reset -- it will be fitted again on the "
               "next few thousand tokens.")
     for path in paths:
-        r = s.read(path, fast=getattr(a, "fast", False))[0]
+        r = s.read(path, fast=getattr(a, "fast", False),
+                   reflow=getattr(a, "reflow", False))[0]
         if r.get("ppl_frozen") is None:
             print(f"read {r['file']}: {r['tokens']} tokens in "
                   f"{r['minutes']:.1f} min | {r['tok_per_s']:.0f} tok/s "
@@ -217,6 +259,27 @@ def cmd_complete(a):
     prompt = " ".join(a.prompt)
     print(prompt + s.complete(prompt, n=a.n, temp=a.temp,
                               fast=getattr(a, "fast", False)))
+    at = s.attribution()
+    if at is None:
+        return
+    # to stderr, not stdout: the completion IS the output of this command
+    # (paper 5's --fast guarantees it byte for byte, and a pipe should get
+    # the text and nothing else). The attribution is diagnostics, and a
+    # terminal shows it just the same.
+    if at["moved"] < FAINT:
+        # FAINT, not zero: measured on two French documents and 36
+        # questions, a memory that moved fewer than three tokens had
+        # nothing for the question 11 times out of 12, while every
+        # correct answer moved at least 12. Firing only at zero misses
+        # a third of the cases where the answer is pure invention.
+        print(f"\nnote: the memory barely spoke here ({at['moved']} of "
+              f"{at['tokens']} tokens).\n  Treat this as the frozen model "
+              f"answering alone -- what it just said is\n  most likely not "
+              f"something it read in your documents.", file=sys.stderr)
+    else:
+        tiers = ", ".join(f"{k} {v}" for k, v in sorted(at["tiers"].items()))
+        print(f"\n[memory moved {at['moved']}/{at['tokens']} tokens; "
+              f"tiers spoke: {tiers}]", file=sys.stderr)
 
 
 def cmd_watch(a):
@@ -649,6 +712,12 @@ def build_parser():
     common.add_argument("--no-calibrate", dest="calibrate",
                         action="store_false",
                         help="keep the readout settings as they are")
+    common.add_argument("--readout", default=None, metavar="SPEC",
+                        help="how loudly the memory speaks: 'published' "
+                             "(default, the papers' numbers), 'family' "
+                             "(paper 5's 40,0.85,0.5 -- louder recall, "
+                             "measured at 0.6B/1.7B/4B), or beta,lambda,"
+                             "quantile")
 
     gen = argparse.ArgumentParser(add_help=False)
     gen.add_argument("-n", type=int, default=40,
@@ -678,6 +747,13 @@ def build_parser():
     p = sub.add_parser("read", parents=[common],
                        help="read documents: memorize and index them")
     p.add_argument("files", nargs="+")
+    p.add_argument("--reflow", action="store_true",
+                   help="join the lines inside each paragraph before "
+                        "reading, so a question typed on one line forms "
+                        "the same 4-token key the document stored "
+                        "(measured 7/8 -> 8/8 facts recalled; the token "
+                        "stream changes, so the perplexity of this read "
+                        "is not comparable to the published numbers)")
     p.add_argument("--recalibrate", action="store_true",
                    help="fit the readout again, on what you read next")
     p.add_argument("--fast", action="store_true",

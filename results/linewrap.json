@@ -1,0 +1,147 @@
+{
+ "target": null,
+ "facts": [
+  {
+   "want": "62",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa press",
+    "moved": 8,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa press",
+    "moved": 8,
+    "tokens": 10
+   }
+  },
+  {
+   "want": "4,7",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": true,
+    "got": "4,7 bars\npour un debit de",
+    "moved": 8,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": true,
+    "got": "4,7 bars\npour un debit de",
+    "moved": 8,
+    "tokens": 10
+   }
+  },
+  {
+   "want": "0,42",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": true,
+    "got": "0,42 millimètres de diamètre",
+    "moved": 5,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": true,
+    "got": "0,42 millimetre\nau pal",
+    "moved": 9,
+    "tokens": 10
+   }
+  },
+  {
+   "want": "CarbTec",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": false,
+    "got": "1111, et le\nsyst",
+    "moved": 0,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": false,
+    "got": "411, et le service a ete",
+    "moved": 0,
+    "tokens": 10
+   }
+  },
+  {
+   "want": "21 480",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": true,
+    "got": "21 480\nheures de",
+    "moved": 8,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": true,
+    "got": "21 480\nheures de",
+    "moved": 7,
+    "tokens": 10
+   }
+  },
+  {
+   "want": "51",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont",
+    "moved": 7,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont",
+    "moved": 6,
+    "tokens": 10
+   }
+  },
+  {
+   "want": "Brindas",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": false,
+    "got": "14 juin 2026 par le",
+    "moved": 1,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": false,
+    "got": "4444444444",
+    "moved": 0,
+    "tokens": 10
+   }
+  },
+  {
+   "want": "40",
+   "wrapped_in_source": true,
+   "verbatim": {
+    "ok": true,
+    "got": "40 pour cent de\nla section utile",
+    "moved": 8,
+    "tokens": 10
+   },
+   "rewrapped": {
+    "ok": true,
+    "got": "40 pour cent de\nla section utile",
+    "moved": 6,
+    "tokens": 10
+   }
+  }
+ ],
+ "state": {
+  "tokens": 430,
+  "cold_grams": 413
+ },
+ "verbatim": {
+  "recall": 0.75,
+  "moved": 45,
+  "tokens": 80
+ },
+ "rewrapped": {
+  "recall": 0.75,
+  "moved": 44,
+  "tokens": 80
+ }
+}

@@ -221,7 +221,26 @@ reproduce the papers' numbers), `--dtype float32|bfloat16|float16|int8`
 each one was measured to cost, see below), `-n`, `--temp`, `-k`, and on
 `complete`/`chat`: `--fast` (speculative decoding from the memory --
 identical output, greedy only) and `--target NAME` (a bigger
-same-tokenizer sibling reads the state; adapter off). Globs are expanded by the tool
+same-tokenizer sibling reads the state; adapter off).
+
+Three flags exist because a measurement asked for them. `read --reflow`
+joins the lines inside each paragraph before reading: both fast tiers key
+on the last four **tokens**, and a line break is absorbed *into* a token,
+so a document that wraps `responsable,` / `madame` stores a key the same
+sentence typed on one line can never form. Measured on a French report,
+questions typed the way a person types them: **7/8 facts as the document
+wraps them, 8/8 reflowed** ([here](results/reflow.json)). It is opt-in
+because it changes the token stream, so a reflowed read's perplexity is
+not comparable to the published numbers. `--readout published|family|b,l,q`
+exposes the three constants that decide how loudly the memory speaks;
+`family` is paper 5's `40,0.85,0.5`. And `complete` now prints, to
+stderr, what the memory actually contributed -- `[memory moved 9/12
+tokens; tiers spoke: cold 8, ngram 7]`, or a warning when it moved fewer
+than three, which on two corpora and 36 questions caught **11 of the 12
+questions the documents could not answer** while no correct answer ever
+moved fewer than 12.
+
+Globs are expanded by the tool
 itself, so `sillage read docs/*.md` works on Windows too.
 </details>
 
@@ -530,6 +549,39 @@ This is the part most repositories leave out.
   memory's contribution. This is the sharpest form of "never a source of
   truth": the generation is wrong in a way that *looks* sourced. Use
   `sillage ask`, which returns the passage or nothing.
+- **Turning the readout up does not buy recall at 0.6B, and costs
+  locality thirteen-fold.** Paper 5's "family" settings (`40,0.85,0.5`)
+  convert 10 % of conflicts into 100 % on the paper's own synthetic
+  protocol, so they looked like the dial that would make `complete`
+  answer. On an ordinary French report they buy **nothing** at 0.6B --
+  88 % both ways -- while the perturbation on a document the memory never
+  read goes from **+0.16 to +2.14 nats**. At 1.7B the picture reverses:
+  the published readout is too quiet (75 %) and family recovers the 13
+  points at +1.25 nats. Either way it makes the memory speak **3 to 13
+  times more on questions it cannot answer**, which is the wrong
+  direction. `published` stays the default; the flag exists so the
+  trade-off is yours to make ([0.6B](results/readout_dial_06b.json),
+  [1.7B](results/readout_dial_17b.json)).
+- **And no available signal separates that case from a correct answer.**
+  A second corpus reproduced it and pinned it down with two twin
+  questions on the same document. *"La visite de printemps du rucher
+  s'est deroulee le"* is answered `11 avril 2026, par temps couvert` --
+  **correct**. *"La prochaine visite du rucher aura lieu le"* is answered
+  `11 avril 2026, par temps couvert` -- **the visit that already
+  happened**. Same output, same 16 of 30 tokens moved by the memory, both
+  verbatim from the document, and TF-IDF scores of 0.62 and 0.55 when
+  correct answers span 0.245-0.623. Three candidate guards were
+  registered and all three failed
+  ([measured](results/crosscheck.json)): the lexical channel does not
+  abstain, the text is genuinely verbatim, and making the two channels
+  audit each other does not work because **both are surface matchers and
+  they fail together**. The only thing separating the two questions is
+  the word *prochaine*, which is nowhere in the document. This is a
+  boundary, not a bug: it needs knowing that a next visit is not a past
+  one, which no bag of words can do. What the tool does instead is bound
+  it -- the class only touches questions whose wording nearly covers a
+  stored passage, and the faint-contribution guard below catches
+  everything else.
 - **Paper 8's 0 % -> 80 % does not transfer to ordinary notes, and the tier
   is far harder to switch on than the paper suggests.** Two things were
   measured by replaying five real sessions. First, the cost of entry: the
@@ -598,7 +650,7 @@ talks to it over real sockets (16 checks: an OpenAI client, a background
 ingestion answering mid-read, a stream that arrives while it is generated,
 refusals, and the bearer token); and `python test_axis4.py` covers watch,
 review, export and pull (25 checks, including the cartridge round-trip and
-its refusals). **73 checks**, all green on the shipped 1.8.4.
+its refusals). **78 checks**, all green on the shipped 1.9.0.
 
 <details>
 <summary><b>Repository layout</b></summary>

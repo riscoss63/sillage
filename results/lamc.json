@@ -1,0 +1,343 @@
+{
+ "grid": [
+  0.3,
+  0.5,
+  0.7,
+  0.9
+ ],
+ "arms": {
+  "0.3": {
+   "answerable": [
+    {
+     "want": "62",
+     "ok": true,
+     "got": "62 newtons-metres.\n\nLa pression",
+     "moved": 8
+    },
+    {
+     "want": "4,7",
+     "ok": true,
+     "got": "4,7 bars pour un debit de 11",
+     "moved": 8
+    },
+    {
+     "want": "0,42",
+     "ok": true,
+     "got": "0,42 millimètres de diamètre et",
+     "moved": 4
+    },
+    {
+     "want": "CarbTec",
+     "ok": true,
+     "got": "CarbTec 88-R, et le couple de",
+     "moved": 8
+    },
+    {
+     "want": "21 480",
+     "ok": true,
+     "got": "21 480 heures de fonctionnement.",
+     "moved": 11
+    },
+    {
+     "want": "51",
+     "ok": true,
+     "got": "51 degres.\n\nLe filtre amont a",
+     "moved": 8
+    },
+    {
+     "want": "Brindas",
+     "ok": true,
+     "got": "Brindas Kolvec, matricule 4",
+     "moved": 9
+    },
+    {
+     "want": "40",
+     "ok": true,
+     "got": "40 pour cent de la section utile. Le",
+     "moved": 5
+    }
+   ],
+   "unanswerable": [
+    {
+     "prompt": "ation de Vernouil aura lieu le",
+     "got": "14 juin 2026, et le",
+     "moved": 2
+    },
+    {
+     "prompt": " station de Vernouil s'eleve a",
+     "got": "11 000 €, et le mont",
+     "moved": 0
+    },
+    {
+     "prompt": " groupe motopompe numero 3 est",
+     "got": "le fabricant de la marque de motopompe numer",
+     "moved": 1
+    },
+    {
+     "prompt": "uil alimente une population de",
+     "got": "10000000000",
+     "moved": 0
+    }
+   ],
+   "recall": 8,
+   "moved_unanswerable": 3
+  },
+  "0.5": {
+   "answerable": [
+    {
+     "want": "62",
+     "ok": true,
+     "got": "62 newtons-metres.\n\nLa pression",
+     "moved": 8
+    },
+    {
+     "want": "4,7",
+     "ok": true,
+     "got": "4,7 bars pour un debit de 11",
+     "moved": 8
+    },
+    {
+     "want": "0,42",
+     "ok": true,
+     "got": "0,42 millimetre au palier avant",
+     "moved": 8
+    },
+    {
+     "want": "CarbTec",
+     "ok": true,
+     "got": "CarbTec 88-R, et le couple de",
+     "moved": 8
+    },
+    {
+     "want": "21 480",
+     "ok": true,
+     "got": "21 480 heures de fonctionnement.",
+     "moved": 11
+    },
+    {
+     "want": "51",
+     "ok": true,
+     "got": "51 degres.\n\nLe filtre amont a",
+     "moved": 8
+    },
+    {
+     "want": "Brindas",
+     "ok": true,
+     "got": "Brindas Kolvec, matricule 4",
+     "moved": 9
+    },
+    {
+     "want": "40",
+     "ok": true,
+     "got": "40 pour cent de la section utile. Le",
+     "moved": 5
+    }
+   ],
+   "unanswerable": [
+    {
+     "prompt": "ation de Vernouil aura lieu le",
+     "got": "14 juin 2026 par le techn",
+     "moved": 5
+    },
+    {
+     "prompt": " station de Vernouil s'eleve a",
+     "got": "11 000 €, et le mont",
+     "moved": 0
+    },
+    {
+     "prompt": " groupe motopompe numero 3 est",
+     "got": "le fabricant de la marque de motopompe numer",
+     "moved": 1
+    },
+    {
+     "prompt": "uil alimente une population de",
+     "got": "10000000000",
+     "moved": 0
+    }
+   ],
+   "recall": 8,
+   "moved_unanswerable": 6
+  },
+  "0.7": {
+   "answerable": [
+    {
+     "want": "62",
+     "ok": true,
+     "got": "62 newtons-metres.\n\nLa pression",
+     "moved": 8
+    },
+    {
+     "want": "4,7",
+     "ok": true,
+     "got": "4,7 bars pour un debit de 11",
+     "moved": 8
+    },
+    {
+     "want": "0,42",
+     "ok": true,
+     "got": "0,42 millimetre au palier avant",
+     "moved": 8
+    },
+    {
+     "want": "CarbTec",
+     "ok": true,
+     "got": "CarbTec 88-R, et le couple de",
+     "moved": 8
+    },
+    {
+     "want": "21 480",
+     "ok": true,
+     "got": "21 480 heures de fonctionnement.",
+     "moved": 11
+    },
+    {
+     "want": "51",
+     "ok": true,
+     "got": "51 degres.\n\nLe filtre amont a",
+     "moved": 8
+    },
+    {
+     "want": "Brindas",
+     "ok": true,
+     "got": "Brindas Kolvec, matricule 4",
+     "moved": 9
+    },
+    {
+     "want": "40",
+     "ok": true,
+     "got": "40 pour cent de la section utile. Le",
+     "moved": 5
+    }
+   ],
+   "unanswerable": [
+    {
+     "prompt": "ation de Vernouil aura lieu le",
+     "got": "14 juin 2026 par le techn",
+     "moved": 5
+    },
+    {
+     "prompt": " station de Vernouil s'eleve a",
+     "got": "11 000 €, et le mont",
+     "moved": 0
+    },
+    {
+     "prompt": " groupe motopompe numero 3 est",
+     "got": "le fabricant de la marque de motopompe numer",
+     "moved": 1
+    },
+    {
+     "prompt": "uil alimente une population de",
+     "got": "10000000000",
+     "moved": 0
+    }
+   ],
+   "recall": 8,
+   "moved_unanswerable": 6
+  },
+  "0.9": {
+   "answerable": [
+    {
+     "want": "62",
+     "ok": true,
+     "got": "62 newtons-metres.\n\nLa pression",
+     "moved": 8
+    },
+    {
+     "want": "4,7",
+     "ok": true,
+     "got": "4,7 bars pour un debit de 11",
+     "moved": 8
+    },
+    {
+     "want": "0,42",
+     "ok": true,
+     "got": "0,42 millimetre au palier avant",
+     "moved": 8
+    },
+    {
+     "want": "CarbTec",
+     "ok": true,
+     "got": "CarbTec 88-R, et le couple de",
+     "moved": 8
+    },
+    {
+     "want": "21 480",
+     "ok": true,
+     "got": "21 480 heures de fonctionnement.",
+     "moved": 11
+    },
+    {
+     "want": "51",
+     "ok": true,
+     "got": "51 degres.\n\nLe filtre amont a",
+     "moved": 8
+    },
+    {
+     "want": "Brindas",
+     "ok": true,
+     "got": "Brindas Kolvec, matricule 4",
+     "moved": 9
+    },
+    {
+     "want": "40",
+     "ok": true,
+     "got": "40 pour cent de la section utile. Le",
+     "moved": 5
+    }
+   ],
+   "unanswerable": [
+    {
+     "prompt": "ation de Vernouil aura lieu le",
+     "got": "14 juin 2026 par le techn",
+     "moved": 5
+    },
+    {
+     "prompt": " station de Vernouil s'eleve a",
+     "got": "11 000 €, et le mont",
+     "moved": 0
+    },
+    {
+     "prompt": " groupe motopompe numero 3 est",
+     "got": "le fabricant de la marque de motopompe numer",
+     "moved": 1
+    },
+    {
+     "prompt": "uil alimente une population de",
+     "got": "10000000000",
+     "moved": 0
+    }
+   ],
+   "recall": 8,
+   "moved_unanswerable": 6
+  }
+ },
+ "state": {
+  "tokens": 413,
+  "cold_grams": 395
+ },
+ "chain": [
+  " Br",
+  "ind",
+  "as",
+  " K",
+  "olve",
+  "c"
+ ],
+ "verdict": {
+  "U1": {
+   "chain": " Brindas Kolvec",
+   "holds": true
+  },
+  "U2": {
+   "winner": 0.3,
+   "holds": true
+  },
+  "U3": {
+   "at_0.3": 3,
+   "at_winner": 3
+  },
+  "U4": {
+   "lost": []
+  }
+ }
+}

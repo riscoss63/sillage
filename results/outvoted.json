@@ -1,0 +1,207 @@
+{
+ "target": null,
+ "lam_c_default": 0.3,
+ "lam_c_raised": 0.6,
+ "facts": [
+  {
+   "base_top": " ",
+   "base_p": 0.7163033485412598,
+   "final_top": " ",
+   "final_p": 0.8014123439788818,
+   "moved": false,
+   "cold": {
+    "token": " ",
+    "id": 220,
+    "mass": 1.0,
+    "n": 1
+   },
+   "tiers": [
+    "cold"
+   ],
+   "want": "62",
+   "recalled": true,
+   "got": "62 newtons-metres.\n\nLa"
+  },
+  {
+   "base_top": " la",
+   "base_p": 0.18128590285778046,
+   "final_top": " ",
+   "final_p": 0.33103808760643005,
+   "moved": true,
+   "cold": {
+    "token": " ",
+    "id": 220,
+    "mass": 1.0,
+    "n": 1
+   },
+   "tiers": [
+    "cold"
+   ],
+   "want": "4,7",
+   "recalled": true,
+   "got": "4,7 bars\npour un debit de"
+  },
+  {
+   "base_top": " ",
+   "base_p": 0.23224148154258728,
+   "final_top": " ",
+   "final_p": 0.5700552463531494,
+   "moved": false,
+   "cold": {
+    "token": " ",
+    "id": 220,
+    "mass": 1.0,
+    "n": 1
+   },
+   "tiers": [
+    "ngram",
+    "cold"
+   ],
+   "want": "0,42",
+   "recalled": true,
+   "got": "0,42 millimètres de diam"
+  },
+  {
+   "base_top": " de",
+   "base_p": 0.1511010378599167,
+   "final_top": " Carb",
+   "final_p": 0.44000133872032166,
+   "moved": true,
+   "cold": {
+    "token": " Carb",
+    "id": 68477,
+    "mass": 1.0,
+    "n": 1
+   },
+   "tiers": [
+    "ngram",
+    "cold"
+   ],
+   "want": "CarbTec",
+   "recalled": true,
+   "got": "CarbTec 88-R, et le"
+  },
+  {
+   "base_top": " un",
+   "base_p": 0.3300939202308655,
+   "final_top": " ",
+   "final_p": 0.5169527530670166,
+   "moved": true,
+   "cold": {
+    "token": " ",
+    "id": 220,
+    "mass": 1.0,
+    "n": 1
+   },
+   "tiers": [
+    "ngram",
+    "cold"
+   ],
+   "want": "21 480",
+   "recalled": true,
+   "got": "21 480\nheures"
+  },
+  {
+   "base_top": " ",
+   "base_p": 0.5529041290283203,
+   "final_top": " ",
+   "final_p": 0.6870328783988953,
+   "moved": false,
+   "cold": {
+    "token": " ",
+    "id": 220,
+    "mass": 1.0,
+    "n": 1
+   },
+   "tiers": [
+    "cold"
+   ],
+   "want": "51",
+   "recalled": true,
+   "got": "51 degres.\n\nLe filtre am"
+  },
+  {
+   "base_top": " M",
+   "base_p": 0.02044304832816124,
+   "final_top": " M",
+   "final_p": 0.02044304832816124,
+   "moved": false,
+   "cold": null,
+   "tiers": [],
+   "want": "Brindas",
+   "recalled": false,
+   "got": "M. A. D. D. D."
+  },
+  {
+   "base_top": " ",
+   "base_p": 0.4315406084060669,
+   "final_top": " ",
+   "final_p": 0.6020784378051758,
+   "moved": false,
+   "cold": {
+    "token": " ",
+    "id": 220,
+    "mass": 1.0,
+    "n": 1
+   },
+   "tiers": [
+    "cold"
+   ],
+   "want": "40",
+   "recalled": true,
+   "got": "40 pour cent de\nla section ut"
+  }
+ ],
+ "R1": {
+  "missed": 1,
+  "missed_but_in_cold": 0
+ },
+ "raised": [
+  {
+   "want": "62",
+   "recalled": true,
+   "got": "62 newtons-metres.\n\nLa"
+  },
+  {
+   "want": "4,7",
+   "recalled": true,
+   "got": "4,7 bars\npour un debit de"
+  },
+  {
+   "want": "0,42",
+   "recalled": true,
+   "got": "0,42 millimetre\nau"
+  },
+  {
+   "want": "CarbTec",
+   "recalled": true,
+   "got": "CarbTec 88-R, et le"
+  },
+  {
+   "want": "21 480",
+   "recalled": true,
+   "got": "21 480\nheures"
+  },
+  {
+   "want": "51",
+   "recalled": true,
+   "got": "51 degres.\n\nLe filtre am"
+  },
+  {
+   "want": "Brindas",
+   "recalled": false,
+   "got": "M. A. D. D. D."
+  },
+  {
+   "want": "40",
+   "recalled": true,
+   "got": "40 pour cent de\nla section ut"
+  }
+ ],
+ "R3": {
+  "before": 7,
+  "after": 7,
+  "gained": [],
+  "lost": []
+ }
+}

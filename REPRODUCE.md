@@ -3,11 +3,11 @@
 This file is for the *research* scripts. If you only want to use the system,
 `pip install -e .` and `sillage read yourfile.md` is the whole story
 (see [README.md](README.md)); `python test_unit.py` checks the mechanisms
-themselves in five seconds (18 checks), `python test_sillage.py` runs 14
+themselves in five seconds (20 checks), `python test_sillage.py` runs 14
 end-to-end tests of the tool in about twenty minutes, `python test_serve.py`
 starts the HTTP service and talks to it over real sockets (16 checks), and
 `python test_axis4.py` covers watch, review, export and pull, and the same
-commands through the command line (25 checks).
+commands through the command line (28 checks).
 
 Sections 0–4 (papers 1–4) run entirely on CPU with fixed seeds. Total: roughly
 2 h for the corpora and frozen-LM passes, then 3–6 h for the experiments (most
@@ -235,7 +235,49 @@ python behav/probe_ask_abstain.py
 python behav/probe_ask_stem.py
 python behav/probe_ask_abstain.py
 python behav/probe_ask_ranking.py
+
+# why `complete` invents: four hypotheses, three refuted (1.9.0)
+python behav/probe_readout_dial.py [--target Qwen/Qwen3-1.7B]
+python behav/probe_linewrap.py
+python behav/probe_outvoted.py
+python behav/probe_tokenkey.py
+python behav/probe_reflow.py
+python behav/probe_moredocs.py
+python behav/probe_freeze_mu.py
+python behav/probe_abstain_gen.py
+python behav/probe_crosscheck.py
 ```
+
+**The 1.9.0 series answers one question**: `complete` recalls a fact
+perfectly from one phrasing and fabricates from another -- why. Run them
+in the order above; each was registered with its falsification threshold
+before it ran, and three of the four hypotheses died.
+
+`probe_readout_dial.py` tests the readout constants at two capacities
+(`--target` for the second). `probe_linewrap.py` and `probe_outvoted.py`
+are the two refutations: line wrapping alone does not explain the loss,
+and the missing fact is *absent* from the cold store rather than
+outvoted in it. `probe_tokenkey.py` isolates the cause -- the same fact,
+three phrasings, and the key `[' responsable', ',
+', 'mad', 'ame']`
+becomes `[' responsable', ',', ' mad', 'ame']` when the line is
+rejoined. `probe_reflow.py` measures the fix (7/8 -> 8/8).
+
+`probe_moredocs.py` answers the scaling worry it raised: reading three
+unrelated documents afterwards leaves recall at 8/8 throughout, so the
+running centre drifting is not a problem in normal use --
+`probe_freeze_mu.py` shows the generation-time freeze is hygiene (the
+eight answers are byte-identical), not a gain.
+
+`probe_abstain_gen.py` and `probe_crosscheck.py` are the pair worth
+reading last. The first tests, on a corpus that set nothing, whether the
+memory's own contribution says when it does not know: 7 of 8 unanswerable
+questions are correctly refused, and both reworded questions it answers
+are right. The second tries three ways to catch the one that slips
+through and **fails at all three** -- see the twin questions in
+`results/crosscheck.json`, where the identical completion is the correct
+answer to one question and a fabrication for the other, with every
+signal the same.
 
 `probe_shareable_state.py` asks what a state is worth without its cold store
 and its index -- the two tiers a shared cartridge cannot carry, because both

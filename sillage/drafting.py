@@ -181,7 +181,7 @@ def complete_fast(rt, prompt, n=40, gamma=GAMMA):
                 # generation -- plain decoding's `step == 0`
                 sS = pooled if not out_ids and i == 0 else None
             elif mem.semantic:
-                qS = mem.sem_key(h)
+                qS = mem.sem_key(h, learn=False)
                 _, sS = mem.scores(mem.MS, qS)
             p = mem.mix_full(p_base, sG, sS, pc, thrG, thrS)
             t_i = int(np.argmax(p))
@@ -197,10 +197,12 @@ def complete_fast(rt, prompt, n=40, gamma=GAMMA):
         for t in drafts[:accepted]:
             mem.step_key(int(t))
         if mem.semantic and not sem2 and hs is not None:
+            # neither path folds generated states into the centre any
+            # more (sem_key learn=False), so there is nothing to replay
+            # -- but restoring keeps the identical-output guarantee
+            # true by construction rather than by assumption
             mem.mu = mu_snap[0]
             mem.mu_n = mu_snap[1]
-            for i in range(accepted + 1):
-                mem.sem_key(hs[i])
         out_ids.extend(drafts[:accepted])
         out_ids.append(emitted)
         out_ids = out_ids[:n]

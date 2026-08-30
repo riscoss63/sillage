@@ -1,0 +1,154 @@
+{
+ "cases": [
+  {
+   "want": "Brindas",
+   "kind": "wrapped",
+   "variants": [
+    {
+     "base_top": " le",
+     "base_p": 0.044711921364068985,
+     "final_top": " Br",
+     "final_p": 0.44302132725715637,
+     "moved": true,
+     "cold": {
+      "token": " Br",
+      "id": 3240,
+      "mass": 1.0,
+      "n": 1
+     },
+     "tiers": [
+      "ngram",
+      "cold"
+     ],
+     "label": "A doc-exact",
+     "recalled": true,
+     "got": "Brindas Kolvec, mat",
+     "key": [
+      " responsable",
+      ",\n",
+      "mad",
+      "ame"
+     ]
+    },
+    {
+     "base_top": " M",
+     "base_p": 0.021837985143065453,
+     "final_top": " M",
+     "final_p": 0.021837985143065453,
+     "moved": false,
+     "cold": null,
+     "tiers": [],
+     "label": "B rewrapped",
+     "recalled": false,
+     "got": "M. A. D.  Le",
+     "key": [
+      " responsable",
+      ",",
+      " mad",
+      "ame"
+     ]
+    },
+    {
+     "base_top": "4",
+     "base_p": 0.14395961165428162,
+     "final_top": "4",
+     "final_p": 0.14395961165428162,
+     "moved": false,
+     "cold": null,
+     "tiers": [],
+     "label": "C trailing-space",
+     "recalled": false,
+     "got": "44444444",
+     "key": [
+      ",\n",
+      "mad",
+      "ame",
+      " "
+     ]
+    }
+   ]
+  },
+  {
+   "want": "62",
+   "kind": "mid-line",
+   "variants": [
+    {
+     "base_top": " ",
+     "base_p": 0.7899965047836304,
+     "final_top": " ",
+     "final_p": 0.8529975414276123,
+     "moved": false,
+     "cold": {
+      "token": " ",
+      "id": 220,
+      "mass": 1.0,
+      "n": 1
+     },
+     "tiers": [
+      "cold"
+     ],
+     "label": "A doc-exact",
+     "recalled": true,
+     "got": "62 newtons-metres",
+     "key": [
+      " de",
+      " bride",
+      " est",
+      " de"
+     ]
+    },
+    {
+     "base_top": " ",
+     "base_p": 0.8184323906898499,
+     "final_top": " ",
+     "final_p": 0.8729026913642883,
+     "moved": false,
+     "cold": {
+      "token": " ",
+      "id": 220,
+      "mass": 1.0,
+      "n": 1
+     },
+     "tiers": [
+      "cold"
+     ],
+     "label": "B rewrapped",
+     "recalled": true,
+     "got": "62 newtons-metres",
+     "key": [
+      " de",
+      " bride",
+      " est",
+      " de"
+     ]
+    },
+    {
+     "base_top": "1",
+     "base_p": 0.3866042196750641,
+     "final_top": "6",
+     "final_p": 0.46060365438461304,
+     "moved": true,
+     "cold": {
+      "token": "6",
+      "id": 21,
+      "mass": 1.0,
+      "n": 1
+     },
+     "tiers": [
+      "ngram",
+      "cold"
+     ],
+     "label": "C trailing-space",
+     "recalled": true,
+     "got": "62 newtons-metres.",
+     "key": [
+      " bride",
+      " est",
+      " de",
+      " "
+     ]
+    }
+   ]
+  }
+ ]
+}

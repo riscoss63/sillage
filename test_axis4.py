@@ -26,8 +26,10 @@ state while still claiming identical output.
     python test_axis4.py
 """
 
+import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -341,7 +343,65 @@ try:
           and rc2 == 0 and "4x slower" in out2,
           "(int8 says how much of GPT-2 it could not touch; bfloat16 "
           "loads and prints the measured caveat)")
-    clean("_a4_state", "_a4_out", "_a4_cli", "_a4_sub")
+
+    # --- D6: the readout dial, and what the memory actually contributed ---
+    from sillage.cli import apply_readout, FAMILY_READOUT
+
+    class _M:
+        pass
+
+    def dial(spec):
+        s = _M()
+        s.mem = _M()
+        s.mem.beta_G, s.mem.lam_G, s.mem.thr_qG = 160.0, 0.2, 0.75
+        apply_readout(s, spec)
+        return (s.mem.beta_G, s.mem.lam_G, s.mem.thr_qG)
+
+    bad = None
+    try:
+        dial("40,0.85")
+    except SystemExit as exc:
+        bad = str(exc)
+    check("D6 --readout reaches the constants that decide whether the "
+          "memory speaks",
+          dial(None) == (160.0, 0.2, 0.75)
+          and dial("published") == (160.0, 0.2, 0.75)
+          and dial("family") == FAMILY_READOUT
+          and dial("20,0.5,0.9") == (20.0, 0.5, 0.9)
+          and bad is not None and "three numbers" in bad,
+          "(default and 'published' leave every published number alone; "
+          "'family' is paper 5's 40,0.85,0.5; a malformed spec explains "
+          "itself)")
+
+    rc, out = run("complete", "the report says", "-n", "6", "--model",
+                  "gpt2", "--state", at("_a4_state"))
+    rc2, out2 = run("complete", "the report says", "-n", "6", "--model",
+                    "gpt2", "--state", at("_a4_empty"))
+    check("D7 complete says what the memory contributed",
+          rc == 0 and rc2 == 0
+          and ("memory moved" in out or "barely spoke here" in out)
+          and "barely spoke here" in out2,
+          "(an empty memory says so in words rather than letting the "
+          "frozen model's invention look sourced)")
+    # --- D8: --reflow changes what is stored, and only on request ---
+    wrapped = at("_a4_wrap.md")
+    io.open(wrapped, "w", encoding="utf-8").write(
+        "Note de service\n\nLe couple de serrage applique aux huit\n"
+        "goujons de bride est de 62 newtons-metres.\n\n"
+        "Le filtre a ete nettoye ce matin.\n")
+    rc, out = run("read", wrapped, "--model", "gpt2",
+                  "--state", at("_a4_flowA"))
+    rc2, out2 = run("read", wrapped, "--model", "gpt2",
+                    "--state", at("_a4_flowB"), "--reflow")
+    n1 = int(re.search(r"read [^:]+: (\d+) tokens", out).group(1))
+    n2 = int(re.search(r"read [^:]+: (\d+) tokens", out2).group(1))
+    check("D8 --reflow rejoins wrapped lines at read time",
+          rc == 0 and rc2 == 0 and n2 < n1,
+          f"(the same file stores {n1} tokens as written and {n2} "
+          f"reflowed -- the wrap tokens are what a typed question does "
+          f"not reproduce; off by default, so published numbers stand)")
+    clean("_a4_state", "_a4_out", "_a4_cli", "_a4_sub", "_a4_empty",
+          "_a4_flowA", "_a4_flowB", "_a4_wrap.md")
 finally:
     clean(*SCRATCH)
     clean(".sillage-demo")

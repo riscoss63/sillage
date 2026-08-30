@@ -469,5 +469,36 @@ check("T17 automatic layer choice", picked == 2 and monotone_tail
       f"(picked layer {picked} of 5, separations "
       f"{[round(x, 2) for x in seps17]}; declines when nothing repeats)")
 
+# --- T18: answering is not reading -------------------------------------
+from sillage.core import SillageMemory as _SM            # noqa: E402
+from sillage.runtime import Sillage as _S                # noqa: E402
+
+_m = _SM(state_dir=None, which="gpt2", semantic=True, fastweights=False)
+_h = np.random.default_rng(0).standard_normal(768).astype(np.float32)
+_m.sem_key(_h)                                   # one read-time observation
+_mu0, _n0 = _m.mu.copy(), _m.mu_n
+_k_frozen = _m.sem_key(_h * 1.7 + 0.3, learn=False)
+_frozen_ok = _m.mu_n == _n0 and np.array_equal(_m.mu, _mu0)
+# repeated frozen keying is deterministic: the centre it reads is fixed
+_same = np.array_equal(_k_frozen, _m.sem_key(_h * 1.7 + 0.3, learn=False))
+_m.sem_key(_h * 1.7 + 0.3, learn=True)
+_learn_ok = _m.mu_n == _n0 + 1 and not np.array_equal(_m.mu, _mu0)
+check("T18 the semantic centre only learns while reading",
+      _frozen_ok and _learn_ok and _same,
+      "(learn=False keys without moving mu/mu_n, learn=True moves both, "
+      "and a frozen key is deterministic -- `complete` promised it writes "
+      "nothing and used to move the centre on every generated token)")
+
+# --- T19: reflow joins paragraph lines, keeps paragraph breaks ----------
+_r = _S.reflow("Titre du rapport\n\nUne phrase coupee,\nsur deux lignes.\n\n"
+               "Un autre   paragraphe.\n")
+check("T19 reflow rejoins wrapped lines without merging paragraphs",
+      _r == "Titre du rapport\n\nUne phrase coupee, sur deux lignes.\n\n"
+            "Un autre paragraphe."
+      and "\n" not in _r.split("\n\n")[1],
+      "(the wrap inside a paragraph becomes a space -- which is what makes "
+      "a typed question form the key the document stored -- while the "
+      "blank line between paragraphs survives)")
+
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

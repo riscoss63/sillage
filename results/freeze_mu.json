@@ -1,0 +1,206 @@
+{
+ "old": {
+  "mu_n": [
+   826,
+   922,
+   1162
+  ],
+  "before": 8,
+  "after": 8,
+  "detail_before": [
+   {
+    "want": "62",
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa pression"
+   },
+   {
+    "want": "4,7",
+    "ok": true,
+    "got": "4,7 bars pour un debit de 11"
+   },
+   {
+    "want": "0,42",
+    "ok": true,
+    "got": "0,42 millimètres de diamètre et"
+   },
+   {
+    "want": "CarbTec",
+    "ok": true,
+    "got": "CarbTec 88-R, et le couple de"
+   },
+   {
+    "want": "21 480",
+    "ok": true,
+    "got": "21 480 heures de fonctionnement."
+   },
+   {
+    "want": "51",
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont a"
+   },
+   {
+    "want": "Brindas",
+    "ok": true,
+    "got": "Brindas Kolvec, matricule 4"
+   },
+   {
+    "want": "40",
+    "ok": true,
+    "got": "40 pour cent de la section utile. Le"
+   }
+  ],
+  "detail_after": [
+   {
+    "want": "62",
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa pression"
+   },
+   {
+    "want": "4,7",
+    "ok": true,
+    "got": "4,7 bars pour un debit de 11"
+   },
+   {
+    "want": "0,42",
+    "ok": true,
+    "got": "0,42 millimètres de diamètre et"
+   },
+   {
+    "want": "CarbTec",
+    "ok": true,
+    "got": "CarbTec 88-R, et le couple de"
+   },
+   {
+    "want": "21 480",
+    "ok": true,
+    "got": "21 480 heures de fonctionnement."
+   },
+   {
+    "want": "51",
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont a"
+   },
+   {
+    "want": "Brindas",
+    "ok": true,
+    "got": "Brindas Kolvec, matricule 4"
+   },
+   {
+    "want": "40",
+    "ok": true,
+    "got": "40 pour cent de la section utile. Le"
+   }
+  ]
+ },
+ "new": {
+  "mu_n": [
+   826,
+   826,
+   826
+  ],
+  "before": 8,
+  "after": 8,
+  "detail_before": [
+   {
+    "want": "62",
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa pression"
+   },
+   {
+    "want": "4,7",
+    "ok": true,
+    "got": "4,7 bars pour un debit de 11"
+   },
+   {
+    "want": "0,42",
+    "ok": true,
+    "got": "0,42 millimètres de diamètre et"
+   },
+   {
+    "want": "CarbTec",
+    "ok": true,
+    "got": "CarbTec 88-R, et le couple de"
+   },
+   {
+    "want": "21 480",
+    "ok": true,
+    "got": "21 480 heures de fonctionnement."
+   },
+   {
+    "want": "51",
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont a"
+   },
+   {
+    "want": "Brindas",
+    "ok": true,
+    "got": "Brindas Kolvec, matricule 4"
+   },
+   {
+    "want": "40",
+    "ok": true,
+    "got": "40 pour cent de la section utile. Le"
+   }
+  ],
+  "detail_after": [
+   {
+    "want": "62",
+    "ok": true,
+    "got": "62 newtons-metres.\n\nLa pression"
+   },
+   {
+    "want": "4,7",
+    "ok": true,
+    "got": "4,7 bars pour un debit de 11"
+   },
+   {
+    "want": "0,42",
+    "ok": true,
+    "got": "0,42 millimètres de diamètre et"
+   },
+   {
+    "want": "CarbTec",
+    "ok": true,
+    "got": "CarbTec 88-R, et le couple de"
+   },
+   {
+    "want": "21 480",
+    "ok": true,
+    "got": "21 480 heures de fonctionnement."
+   },
+   {
+    "want": "51",
+    "ok": true,
+    "got": "51 degres.\n\nLe filtre amont a"
+   },
+   {
+    "want": "Brindas",
+    "ok": true,
+    "got": "Brindas Kolvec, matricule 4"
+   },
+   {
+    "want": "40",
+    "ok": true,
+    "got": "40 pour cent de la section utile. Le"
+   }
+  ]
+ },
+ "verdict": {
+  "W1": {
+   "old_before": 8,
+   "old_after": 8,
+   "holds": false
+  },
+  "W2": {
+   "new_before": 8,
+   "new_after": 8,
+   "mu_frozen": true,
+   "holds": true
+  },
+  "W3": {
+   "identical_answers_on_clean_state": 8,
+   "of": 8,
+   "changed": []
+  }
+ }
+}
