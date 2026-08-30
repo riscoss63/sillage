@@ -1463,3 +1463,61 @@ La transplantation reste donc **une limite ouverte, nommée et bornée** :
 elle ne touche que les questions dont la formulation recouvre presque
 entièrement un passage stocké, et le garde-fou `FAINT` attrape tout le
 reste (11 des 12 questions sans réponse sur deux corpus).
+
+### 2026-08-30, nuit — la reformulation n'est ni un problème de taille, ni d'interface
+
+Hypothèse : le 0,6B ne sait pas répondre dans le registre d'un document,
+donc c'est LE MODÈLE qui doit faire le pont entre la question et la
+surface où la mémoire mord ; un plus gros devrait donc mieux reformuler.
+Quatre bras, même document reflowé (`results/bridge.json`) :
+
+| bras | verbatim | **reformulées** | intrusion |
+|---|---|---|---|
+| 0,6B publié | 7/8 | 2/8 | 1/8 |
+| **0,6B famille** | **8/8** | **3/8** | 2/8 |
+| 1,7B publié | 6/8 | 0/8 | 2/8 |
+| 1,7B famille | 8/8 | **0/8** | 3/8 |
+
+**P1 FALSIFIÉE** (≥5/8 prédit, 0/8 obtenu) — et à l'envers : le gros
+modèle fait MOINS bien. Cause : `complete` encode le prompt BRUT, et un
+modèle de base à qui on donne une question continue le genre. Le 1,7B
+écrit d'autres questions 7 fois sur 8 (« Qui a rédigé ce compte rendu ?
+Qui a rédigé ce compt… »). La maladresse du 0,6B — retomber dans la
+phrase du document — est justement ce qui laissait la mémoire prendre le
+relais. **Erreur de conception de ma sonde : j'ai testé la mauvaise
+porte.** P3 (contrôle) tient : 0,6B famille = 3/8 < 5, donc un gain à
+1,7B n'aurait pas pu être attribué au readout seul. P5 partiellement
+falsifiée (1,7B publié : 6/8 verbatim, sous le plancher).
+
+**Correction 2 au passage** : « famille n'achète rien à 0,6B » était vrai
+sur Vernouil, FAUX ici (7/8→8/8 verbatim, 2→3 reformulées). La valeur du
+réglage dépend du corpus — il reste un drapeau, pas un défaut.
+
+**Le vrai test, par le gabarit de conversation** (`results/chattemplate.json`),
+celui que `chat` et `serve` appliquent et que `complete` n'applique pas :
+
+| | reformulées | écho | intrusion | moved moyen (sans réponse) |
+|---|---|---|---|---|
+| 0,6B brut | 3/8 | 4/8 | 3/8 | 2,4 |
+| 0,6B **gabarit** | **1/8** | 1/8 | **5/8** | **5,8** |
+| 1,7B brut | 0/8 | 7/8 | 4/8 | 5,6 |
+| 1,7B **gabarit** | **0/8** | **0/8** | **5/8** | **7,0** |
+
+**Q1 confirmée** (l'écho disparaît, 7/8→0/8), **Q2 FALSIFIÉE** (1,7B reste
+0/8, et le gabarit fait TOMBER le 0,6B de 3/8 à 1/8), **Q3 confirmée**
+(moved baisse sur les répondables), **Q4 : l'intrusion MONTE**.
+
+Raison structurelle, enregistrée avant la mesure : **le gabarit finit
+chaque prompt par le même en-tête assistant, donc la clé 4-grammes du
+premier token est IDENTIQUE pour toutes les questions.** La mémoire se
+déclenche sur le gabarit et non sur la demande : elle parle plus (2,4 →
+5,8 tokens) et discrimine moins (3/8 → 1/8). C'est la pire combinaison,
+et elle touche `serve`.
+
+**Conclusion des deux sondes : la reformulation n'est ni un problème de
+capacité ni un problème d'interface. C'est un problème de CLÉ** — les
+deux tiers rapides indexent de la surface, et aucune taille de modèle ni
+aucun gabarit ne change ça. C'est exactement ce que vise le premier point
+de l'axe 5 (clés d'encodeur gelé externe, invariant à la paraphrase par
+construction). Pour poser une question aujourd'hui, la bonne porte reste
+`ask` : 12/12 à l'entrée, verbatim, sourcé, rien de généré.

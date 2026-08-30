@@ -348,6 +348,19 @@ measured that this never hurts when the evidence is already in the window
 it used, in the `sillage` field and in the `X-Sillage-Sources` header — a
 service that rewrites your prompt in silence would not be auditable.
 
+**One measured caveat about the second mechanism here.** A chat template
+ends every prompt with the same assistant header, so the *n*-gram tier's
+four-token key at the first generated position is identical for every
+question you could ask. Measured on eight rephrased questions and eight
+unanswerable ones, going from a raw prompt to the template makes the
+memory **speak more and discriminate less**: correct rephrased recall
+falls 3/8 → 1/8 while intrusion on unanswerable questions rises 3/8 →
+5/8, and the mean contribution on questions with no answer goes from 2.4
+to 5.8 tokens (same at 1.7B: 4/8 → 5/8, 5.6 → 7.0). The retrieval
+mechanism above is unaffected — it is lexical and keys on your words.
+So over the chat endpoint, trust the **sources** it names, not the prose
+it wraps them in ([measured](results/chattemplate.json)).
+
 Reading a folder does not block the conversation: `POST /read` returns a
 task id and the ingestion hands the state's lock back every 32 tokens, so
 answers keep coming while it works. Measured on a single-window document
@@ -549,6 +562,22 @@ This is the part most repositories leave out.
   memory's contribution. This is the sharpest form of "never a source of
   truth": the generation is wrong in a way that *looks* sourced. Use
   `sillage ask`, which returns the passage or nothing.
+- **A bigger model does not fix rephrased questions — and neither does
+  the chat template.** The obvious hypothesis was that the 0.6B simply
+  cannot answer in a document's register, so a larger one would bridge a
+  question back to the surface the memory keys on. Measured on four arms
+  of one document, it is the reverse: rephrased recall is 2/8 and 3/8 at
+  0.6B, and **0/8 at 1.7B** under both readouts, because `complete`
+  encodes the prompt raw and a base model handed a question continues the
+  genre — the 1.7B wrote more questions 7 times out of 8. Running the
+  same questions through the model's chat template removes that echo
+  entirely (7/8 → 0/8) and still answers **0/8**, while making the memory
+  intrude *more* (see the serve caveat above). Rephrasing is not a
+  capacity problem and not an interface problem: both fast tiers key on
+  surface, and no model size changes that
+  ([bridge](results/bridge.json), [template](results/chattemplate.json)).
+  For a question today, `ask` is the door: 12/12 at the entry, verbatim,
+  sourced, nothing generated.
 - **Turning the readout up does not buy recall at 0.6B, and costs
   locality thirteen-fold.** Paper 5's "family" settings (`40,0.85,0.5`)
   convert 10 % of conflicts into 100 % on the paper's own synthetic

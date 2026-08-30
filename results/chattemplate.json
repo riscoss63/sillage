@@ -1,0 +1,610 @@
+{
+ "arms": {
+  "0.6B raw prompt reworded": {
+   "rows": [
+    {
+     "q": "Combien d'acariens varroa par jour ont ete c",
+     "want": "2,4",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et quels sont les principaux facteurs qui influencent la pro"
+    },
+    {
+     "q": "Quel est le poids de la ruche 9 une fois la ",
+     "want": "trente-huit",
+     "correct": true,
+     "asks_back": false,
+     "moved": 13,
+     "got": "Et quels sont les éléments de la ruche numero 9 apres reunio"
+    },
+    {
+     "q": "Combien de kilos de colza par ruche sont att",
+     "want": "quatorze",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et comment se calcule la quantité de colza nécessaire pour u"
+    },
+    {
+     "q": "Sur combien de cadres s'etend le couvain de ",
+     "want": "huit",
+     "correct": true,
+     "asks_back": false,
+     "moved": 14,
+     "got": "- Le couvain de la ruche numero 9 apres reunion s'etablit a "
+    },
+    {
+     "q": "Qui a redige ce compte rendu ?",
+     "want": "Ovide",
+     "correct": true,
+     "asks_back": false,
+     "moved": 16,
+     "got": "Le compte rendu a ete redige par le technicien du groupement"
+    },
+    {
+     "q": "Sur quel cadre la reine a-t-elle ete apercue",
+     "want": "quatrieme",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et quels sont les éléments du cadre ? Et quels sont les élém"
+    },
+    {
+     "q": "Combien de colonies ont recu du sirop ?",
+     "want": "trois",
+     "correct": false,
+     "asks_back": false,
+     "moved": 1,
+     "got": "Le avenir est à la fois un choix et un choix, et la vie est "
+    },
+    {
+     "q": "A quelle date la visite de printemps a-t-ell",
+     "want": "11 avril",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et quels sont les éléments du printemps ? Et quels sont les "
+    }
+   ],
+   "correct": 3,
+   "echo": 4,
+   "mean_moved": 5.5,
+   "intrudes": 0
+  },
+  "0.6B raw prompt unanswerable": {
+   "rows": [
+    {
+     "q": "Combien de ruches compte le rucher de Peyrel",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 7,
+     "got": "Et quels sont les éléments du rucher de Peyrelonge\n\nLa visit"
+    },
+    {
+     "q": "Quel est le prix du kilo de miel de colza a ",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et quels sont les avantages du miel ? Quel est le prix du ki"
+    },
+    {
+     "q": "Quand aura lieu la prochaine visite du ruche",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 6,
+     "got": "Et quels sont les risques liés à la visite du rucher de Peyr"
+    },
+    {
+     "q": "Quel modele de ruches est utilise au rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 6,
+     "got": "Et quels sont les principes de la construction du rucher de "
+    },
+    {
+     "q": "Quelle a ete la production totale du rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et quels sont les principes d'organisation du rucher ? Quel "
+    },
+    {
+     "q": "Dans quelle commune se trouve le rucher de P",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "La réponse est : 1111111111111111111111111"
+    },
+    {
+     "q": "Quel age a la reine de la ruche numero 7 ?",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et quels sont les nombres d'heures par jour ? Et quels sont "
+    },
+    {
+     "q": "Quel traitement anti-varroa est retenu pour ",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et quels sont les principes du traitement anti-varroa ? Quel"
+    }
+   ],
+   "correct": 0,
+   "echo": 4,
+   "mean_moved": 2.375,
+   "intrudes": 3
+  },
+  "0.6B chat template reworded": {
+   "rows": [
+    {
+     "q": "Combien d'acariens varroa par jour ont ete c",
+     "want": "2,4",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Il n'y a pas d'acariens varroa comptes au long par jour. Le "
+    },
+    {
+     "q": "Quel est le poids de la ruche 9 une fois la ",
+     "want": "trente-huit",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "La question est ambiguë et ne contient pas d'informations pr"
+    },
+    {
+     "q": "Combien de kilos de colza par ruche sont att",
+     "want": "quatorze",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "La réponse à la question \"Combien de kilos de colza par ruch"
+    },
+    {
+     "q": "Sur combien de cadres s'etend le couvain de ",
+     "want": "huit",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "La question est ambiguë et ne contient pas d'informations pr"
+    },
+    {
+     "q": "Qui a redige ce compte rendu ?",
+     "want": "Ovide",
+     "correct": true,
+     "asks_back": false,
+     "moved": 17,
+     "got": "Ce compte rendu a ete redige par le technicien du groupement"
+    },
+    {
+     "q": "Sur quel cadre la reine a-t-elle ete apercue",
+     "want": "quatrieme",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "La reine a été apérue dans le cadre du **Roi d'Angleterre** "
+    },
+    {
+     "q": "Combien de colonies ont recu du sirop ?",
+     "want": "trois",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Il n'y a pas de réponse précise sur le nombre exact des colo"
+    },
+    {
+     "q": "A quelle date la visite de printemps a-t-ell",
+     "want": "11 avril",
+     "correct": false,
+     "asks_back": false,
+     "moved": 9,
+     "got": "La visite de printemps du rucher de Peyrelonge\n\nLa visite de"
+    }
+   ],
+   "correct": 1,
+   "echo": 1,
+   "mean_moved": 3.25,
+   "intrudes": 0
+  },
+  "0.6B chat template unanswerable": {
+   "rows": [
+    {
+     "q": "Combien de ruches compte le rucher de Peyrel",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 10,
+     "got": "Le rucher de Peyrelonge\n\nLa visite de printemps du rucher de"
+    },
+    {
+     "q": "Quel est le prix du kilo de miel de colza a ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Je ne peux pas fournir le prix exact du kilo de miel de colz"
+    },
+    {
+     "q": "Quand aura lieu la prochaine visite du ruche",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 6,
+     "got": "La prochaine visite du rucher de Peyrelonge\n\nLa visite de pr"
+    },
+    {
+     "q": "Quel modele de ruches est utilise au rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 10,
+     "got": "Le rucher de Peyrelonge\n\nLa visite de printemps du rucher de"
+    },
+    {
+     "q": "Quelle a ete la production totale du rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 1,
+     "got": "La production totale du rucher l’an dernier est **28 million"
+    },
+    {
+     "q": "Dans quelle commune se trouve le rucher de P",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 10,
+     "got": "Le rucher de Peyrelonge\n\nLa visite de printemps du rucher de"
+    },
+    {
+     "q": "Quel age a la reine de la ruche numero 7 ?",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 9,
+     "got": "La réponse à la question \"Quel age a la reine de la ruche nu"
+    },
+    {
+     "q": "Quel traitement anti-varroa est retenu pour ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Le traitement anti-varroa (ou anti-varroa) retenu pour l'aut"
+    }
+   ],
+   "correct": 0,
+   "echo": 0,
+   "mean_moved": 5.75,
+   "intrudes": 5
+  },
+  "1.7B raw prompt reworded": {
+   "rows": [
+    {
+     "q": "Combien d'acariens varroa par jour ont ete c",
+     "want": "2,4",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Et combien de varroa ont été comptés au long cours ? Et comb"
+    },
+    {
+     "q": "Quel est le poids de la ruche 9 une fois la ",
+     "want": "trente-huit",
+     "correct": false,
+     "asks_back": false,
+     "moved": 2,
+     "got": "- 1 reine, d'abord, 200000000000000000"
+    },
+    {
+     "q": "Combien de kilos de colza par ruche sont att",
+     "want": "quatorze",
+     "correct": false,
+     "asks_back": true,
+     "moved": 1,
+     "got": "Et colonies de colza ? Et de la colza en poudre ? Et de la c"
+    },
+    {
+     "q": "Sur combien de cadres s'etend le couvain de ",
+     "want": "huit",
+     "correct": false,
+     "asks_back": true,
+     "moved": 6,
+     "got": "Et combien de cadres s'etendent le couvain de la ruche numer"
+    },
+    {
+     "q": "Qui a redige ce compte rendu ?",
+     "want": "Ovide",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Qui a rédigé ce compte rendu ? Qui a rédigé ce compte rendu "
+    },
+    {
+     "q": "Sur quel cadre la reine a-t-elle ete apercue",
+     "want": "quatrieme",
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Etait-ce un cadre de la reine ? Etait-ce un cadre de la rein"
+    },
+    {
+     "q": "Combien de colonies ont recu du sirop ?",
+     "want": "trois",
+     "correct": false,
+     "asks_back": true,
+     "moved": 2,
+     "got": "Et comment ont- colonisés les. Les colonies ont reçu du siro"
+    },
+    {
+     "q": "A quelle date la visite de printemps a-t-ell",
+     "want": "11 avril",
+     "correct": false,
+     "asks_back": true,
+     "moved": 5,
+     "got": "Et comment a-t-elle été organisée ? Quels sont les principau"
+    }
+   ],
+   "correct": 0,
+   "echo": 7,
+   "mean_moved": 2.0,
+   "intrudes": 0
+  },
+  "1.7B raw prompt unanswerable": {
+   "rows": [
+    {
+     "q": "Combien de ruches compte le rucher de Peyrel",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 13,
+     "got": "Et comment est le rucher de Peyrelonge s'est deroulee le 11 "
+    },
+    {
+     "q": "Quel est le prix du kilo de miel de colza a ",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 1,
+     "got": "Et comment puis-je obtenir le miel de colza ? Quel est le pr"
+    },
+    {
+     "q": "Quand aura lieu la prochaine visite du ruche",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 6,
+     "got": "Et comment puis-je me procurer du miel ? Quel est le prix du"
+    },
+    {
+     "q": "Quel modele de ruches est utilise au rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 11,
+     "got": "Et comment est-ce que le rucher de Peyrelonge s'est deroulee"
+    },
+    {
+     "q": "Quelle a ete la production totale du rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 2,
+     "got": "Et comment a-t-on fait pour la produire ? Quelle est la quan"
+    },
+    {
+     "q": "Dans quelle commune se trouve le rucher de P",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 11,
+     "got": "Et comment s'appelle le rucher de Peyrelonge s'est deroulee "
+    },
+    {
+     "q": "Quel age a la reine de la ruche numero 7 ?",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 1,
+     "got": "- 1 reine est née en 2000. - 1 reine est née en 2001."
+    },
+    {
+     "q": "Quel traitement anti-varroa est retenu pour ",
+     "want": null,
+     "correct": false,
+     "asks_back": true,
+     "moved": 0,
+     "got": "Quel est le nom de la méthode de traitement de la varroa par"
+    }
+   ],
+   "correct": 0,
+   "echo": 4,
+   "mean_moved": 5.625,
+   "intrudes": 4
+  },
+  "1.7B chat template reworded": {
+   "rows": [
+    {
+     "q": "Combien d'acariens varroa par jour ont ete c",
+     "want": "2,4",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Il n'y a pas de données officielles standard sur le nombre d"
+    },
+    {
+     "q": "Quel est le poids de la ruche 9 une fois la ",
+     "want": "trente-huit",
+     "correct": false,
+     "asks_back": false,
+     "moved": 1,
+     "got": "Pour répondre à cette question, il faut préciser **quel est "
+    },
+    {
+     "q": "Combien de kilos de colza par ruche sont att",
+     "want": "quatorze",
+     "correct": false,
+     "asks_back": false,
+     "moved": 2,
+     "got": "Le poids de la colza par ruche varie selon plusieurs facteur"
+    },
+    {
+     "q": "Sur combien de cadres s'etend le couvain de ",
+     "want": "huit",
+     "correct": false,
+     "asks_back": false,
+     "moved": 7,
+     "got": "Le **couvain de la ruche numero 9 apres reunion s'etablit** "
+    },
+    {
+     "q": "Qui a redige ce compte rendu ?",
+     "want": "Ovide",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Je ne peux pas déterminer qui a rédigé ce compte rendu sans "
+    },
+    {
+     "q": "Sur quel cadre la reine a-t-elle ete apercue",
+     "want": "quatrieme",
+     "correct": false,
+     "asks_back": false,
+     "moved": 2,
+     "got": "La question est un peu ambiguë, mais je suppose que vous fai"
+    },
+    {
+     "q": "Combien de colonies ont recu du sirop ?",
+     "want": "trois",
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Le sirop de glucose, également appelé **sirop de sucre** ou "
+    },
+    {
+     "q": "A quelle date la visite de printemps a-t-ell",
+     "want": "11 avril",
+     "correct": false,
+     "asks_back": false,
+     "moved": 9,
+     "got": "La date, la visite de printemps du rucher, a eu lieu le **22"
+    }
+   ],
+   "correct": 0,
+   "echo": 0,
+   "mean_moved": 2.625,
+   "intrudes": 0
+  },
+  "1.7B chat template unanswerable": {
+   "rows": [
+    {
+     "q": "Combien de ruches compte le rucher de Peyrel",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 15,
+     "got": "Le rucher de Peyrelonge s'est deroulee le 11 avril 2026, par"
+    },
+    {
+     "q": "Quel est le prix du kilo de miel de colza a ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Pour répondre à votre question, je dois préciser que je n'ai"
+    },
+    {
+     "q": "Quand aura lieu la prochaine visite du ruche",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 10,
+     "got": "La prochaine visite du rucher de Peyrelonge s'est deroulee l"
+    },
+    {
+     "q": "Quel modele de ruches est utilise au rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 9,
+     "got": "Le rucher de Peyrelonge s'est deroulee le 11 avril 1982, et "
+    },
+    {
+     "q": "Quelle a ete la production totale du rucher ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 1,
+     "got": "Pour répondre à votre question, je nécessite plus d'informat"
+    },
+    {
+     "q": "Dans quelle commune se trouve le rucher de P",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 17,
+     "got": "Le rucher de Peyrelonge s'est deroulee le 11 avril 2026, par"
+    },
+    {
+     "q": "Quel age a la reine de la ruche numero 7 ?",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 4,
+     "got": "La reine de la ruche numero 9 apporte une ré au monde entier"
+    },
+    {
+     "q": "Quel traitement anti-varroa est retenu pour ",
+     "want": null,
+     "correct": false,
+     "asks_back": false,
+     "moved": 0,
+     "got": "Pour l'automne, le **traitement anti-varroa** recommandé est"
+    }
+   ],
+   "correct": 0,
+   "echo": 0,
+   "mean_moved": 7.0,
+   "intrudes": 5
+  }
+ },
+ "verdict": {
+  "Q1_echo": {
+   "0.6B raw prompt reworded": 4,
+   "0.6B chat template reworded": 1,
+   "1.7B raw prompt reworded": 7,
+   "1.7B chat template reworded": 0
+  },
+  "Q2_correct": {
+   "0.6B raw prompt reworded": 3,
+   "0.6B chat template reworded": 1,
+   "1.7B raw prompt reworded": 0,
+   "1.7B chat template reworded": 0
+  },
+  "Q3_mean_moved": {
+   "0.6B raw prompt reworded": 5.5,
+   "0.6B raw prompt unanswerable": 2.4,
+   "0.6B chat template reworded": 3.2,
+   "0.6B chat template unanswerable": 5.8,
+   "1.7B raw prompt reworded": 2.0,
+   "1.7B raw prompt unanswerable": 5.6,
+   "1.7B chat template reworded": 2.6,
+   "1.7B chat template unanswerable": 7.0
+  },
+  "Q4_intrusion": {
+   "0.6B raw prompt unanswerable": 3,
+   "0.6B chat template unanswerable": 5,
+   "1.7B raw prompt unanswerable": 4,
+   "1.7B chat template unanswerable": 5
+  }
+ }
+}

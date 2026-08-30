@@ -1,0 +1,909 @@
+{
+ "arms": {
+  "0.6B published": [
+   {
+    "kind": "verbatim",
+    "want": "2,4",
+    "moved": 12,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "2,4 acariens par jour, contre un seuil d'alerte fixe a 5"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trente-huit",
+    "moved": 21,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "trente-huit kilogrammes.\n\nLes hausses ont ete posees sur"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatorze",
+    "moved": 16,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "quatorze kilogrammes par ruche sur la parcelle du bas, e"
+   },
+   {
+    "kind": "verbatim",
+    "want": "huit",
+    "moved": 23,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "huit cadres de couvain sur les dix que compte le corps. "
+   },
+   {
+    "kind": "verbatim",
+    "want": "Ovide",
+    "moved": 14,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "Ovide Trenchard, carte apicole numero 6318. Le compte re"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatrieme",
+    "moved": 2,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "quatrième de la route, et a été vue par un homme en noir"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trois",
+    "moved": 20,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "trois colonies les plus faibles, a raison d'un litre par"
+   },
+   {
+    "kind": "verbatim",
+    "want": "11 avril",
+    "moved": 16,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "11 avril 2026, par temps couvert et douze degres, en pre"
+   },
+   {
+    "kind": "reworded",
+    "want": "2,4",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et quels sont les principaux facteurs qui influencent la"
+   },
+   {
+    "kind": "reworded",
+    "want": "trente-huit",
+    "moved": 2,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et quels sont les éléments de la ruche numero 9 ?\n\nPour "
+   },
+   {
+    "kind": "reworded",
+    "want": "quatorze",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et comment se calcule la quantité de colza nécessaire po"
+   },
+   {
+    "kind": "reworded",
+    "want": "huit",
+    "moved": 12,
+    "spoke": true,
+    "correct": true,
+    "bridges": false,
+    "got": "- Le couvain de la ruche numero 7 occupe huit cadres de "
+   },
+   {
+    "kind": "reworded",
+    "want": "Ovide",
+    "moved": 16,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "Le compte rendu a ete redige par le technicien du groupe"
+   },
+   {
+    "kind": "reworded",
+    "want": "quatrieme",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et quels sont les éléments du cadre ? Et quels sont les "
+   },
+   {
+    "kind": "reworded",
+    "want": "trois",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Le sirop est un produit de la production d'or, et il est"
+   },
+   {
+    "kind": "reworded",
+    "want": "11 avril",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et quels sont les éléments du printemps ? Et quels sont "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12000000000000000000000000000"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "1200 euros par kilo. Le prix du kilo de miel de colza a "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 16,
+    "spoke": true,
+    "correct": false,
+    "bridges": true,
+    "got": "11 avril 2026, par temps couvert et douze degres, en pre"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "un exemple de la technique de ruches et de ruches en fra"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12 millions de dollars. Le rucher a généré un profit de "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "le nom du rucher, et le rucher est le nom du rucher, et "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12 ans, et la reine de la ruche numero 8 a 14 ans. How m"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "effectué sur les fruits de la saison. La saison d'automn"
+   }
+  ],
+  "0.6B family": [
+   {
+    "kind": "verbatim",
+    "want": "2,4",
+    "moved": 21,
+    "spoke": true,
+    "correct": true,
+    "bridges": false,
+    "got": "2,4 acariens par jour pour la saison.\n\nLa ruche numero 9"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trente-huit",
+    "moved": 21,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "trente-huit kilogrammes.\n\nLes hausses ont ete posees sur"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatorze",
+    "moved": 18,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "quatorze kilogrammes par ruche sur la parcelle du bas, e"
+   },
+   {
+    "kind": "verbatim",
+    "want": "huit",
+    "moved": 23,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "huit cadres de couvain sur les dix que compte le corps. "
+   },
+   {
+    "kind": "verbatim",
+    "want": "Ovide",
+    "moved": 14,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "Ovide Trenchard, carte apicole numero 6318. Le compte re"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatrieme",
+    "moved": 24,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "quatrieme cadre. Le taux d'infestation par varroa mesure"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trois",
+    "moved": 20,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "trois colonies les plus faibles, a raison d'un litre par"
+   },
+   {
+    "kind": "verbatim",
+    "want": "11 avril",
+    "moved": 16,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "11 avril 2026, par temps couvert et douze degres, en pre"
+   },
+   {
+    "kind": "reworded",
+    "want": "2,4",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et quels sont les principaux facteurs qui influencent la"
+   },
+   {
+    "kind": "reworded",
+    "want": "trente-huit",
+    "moved": 13,
+    "spoke": true,
+    "correct": true,
+    "bridges": false,
+    "got": "Et quels sont les éléments de la ruche numero 9 apres re"
+   },
+   {
+    "kind": "reworded",
+    "want": "quatorze",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et comment se calcule la quantité de colza nécessaire po"
+   },
+   {
+    "kind": "reworded",
+    "want": "huit",
+    "moved": 14,
+    "spoke": true,
+    "correct": true,
+    "bridges": false,
+    "got": "- Le couvain de la ruche numero 9 apres reunion s'etabli"
+   },
+   {
+    "kind": "reworded",
+    "want": "Ovide",
+    "moved": 16,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "Le compte rendu a ete redige par le technicien du groupe"
+   },
+   {
+    "kind": "reworded",
+    "want": "quatrieme",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et quels sont les éléments du cadre ? Et quels sont les "
+   },
+   {
+    "kind": "reworded",
+    "want": "trois",
+    "moved": 1,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Le avenir est à la fois un choix et un choix, et la vie "
+   },
+   {
+    "kind": "reworded",
+    "want": "11 avril",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et quels sont les éléments du printemps ? Et quels sont "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12000000000000000000000000000"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "1200 euros par kilo. Le prix du kilo de miel de colza a "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 16,
+    "spoke": true,
+    "correct": false,
+    "bridges": true,
+    "got": "11 avril 2026, par temps couvert et douze degres, en pre"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 2,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "un exemple de la technique de ruches qu'on utilise dans "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12 millions de dollars. Le rucher a généré un profit de "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "le nom du rucher, et le rucher est le nom du rucher, et "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 12,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "12 ans, et la reine de la ruche numero 9 apres reunion s"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "effectué sur les fruits de la saison. La saison d'automn"
+   }
+  ],
+  "1.7B published": [
+   {
+    "kind": "verbatim",
+    "want": "2,4",
+    "moved": 8,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "2,4 acariens par jour, contre un seuil de 10 acariens pa"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trente-huit",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "1000 g. La ruche numero 10 apres reunion s'etablit a 100"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatorze",
+    "moved": 7,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "quatorze kilogrammes par hectare. Quelle est la quantité"
+   },
+   {
+    "kind": "verbatim",
+    "want": "huit",
+    "moved": 9,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "huit cadres de couvain sur les dix que compte la colonie"
+   },
+   {
+    "kind": "verbatim",
+    "want": "Ovide",
+    "moved": 9,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "Ovide Trenchard, carte apportee par le technicien du gro"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatrieme",
+    "moved": 11,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "quai de la Seine, le 11 avril 2026, par temps couvert et"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trois",
+    "moved": 20,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "trois colonies les plus faibles, a raison d'un litre par"
+   },
+   {
+    "kind": "verbatim",
+    "want": "11 avril",
+    "moved": 6,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "11 avril 2026, par temps couverts. Le rucher est un site"
+   },
+   {
+    "kind": "reworded",
+    "want": "2,4",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et combien de varroa ont été comptés au long cours ? Et "
+   },
+   {
+    "kind": "reworded",
+    "want": "trente-huit",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "- 1000000000000000000000000000"
+   },
+   {
+    "kind": "reworded",
+    "want": "quatorze",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et comment est-ce que l'on peut préparer les colzas pour"
+   },
+   {
+    "kind": "reworded",
+    "want": "huit",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et combien de cadres s'etendent le couvain de la ruche 8"
+   },
+   {
+    "kind": "reworded",
+    "want": "Ovide",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Qui a rédigé ce compte rendu ? Qui a rédigé ce compte re"
+   },
+   {
+    "kind": "reworded",
+    "want": "quatrieme",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Etait-ce un cadre de la reine ? Etait-ce un cadre de la "
+   },
+   {
+    "kind": "reworded",
+    "want": "trois",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et comment ont-ils été traités ? Quel est le nom de la c"
+   },
+   {
+    "kind": "reworded",
+    "want": "11 avril",
+    "moved": 5,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "Et comment a-t-elle été organisée ? Quels sont les princ"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12000000000000000000000000000"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 2,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12,50€. Le prix du kilo de miel de colza est estime à 12"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 5,
+    "spoke": true,
+    "correct": false,
+    "bridges": true,
+    "got": "11 avril 2026, par temps de pluie. Le rucher est en cour"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 11,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "un exemple de la technique de la ruche numero 12 est bou"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "10000000000000000000000000000"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "important pour la localisation. La commune est située da"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12 ans. La ruche numero 8 a un age de 13 ans. La ruche n"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "de l'apport de 100 g de poudre de chaleur (PCH) par m², "
+   }
+  ],
+  "1.7B family": [
+   {
+    "kind": "verbatim",
+    "want": "2,4",
+    "moved": 15,
+    "spoke": true,
+    "correct": true,
+    "bridges": false,
+    "got": "2,4 acariens par jour pour la saison.\n\nLa ruche numero 9"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trente-huit",
+    "moved": 19,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "trente-huit kilogrammes.\n\nLes hausses ont ete posees sur"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatorze",
+    "moved": 16,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "quatorze kilogrammes par ruche sur la parcelle du bas, e"
+   },
+   {
+    "kind": "verbatim",
+    "want": "huit",
+    "moved": 23,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "huit cadres de couvain sur les dix que compte le corps. "
+   },
+   {
+    "kind": "verbatim",
+    "want": "Ovide",
+    "moved": 8,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "Ovide Trenchard, carte apicale, et le technicien du grou"
+   },
+   {
+    "kind": "verbatim",
+    "want": "quatrieme",
+    "moved": 22,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "quatrieme cadre. Le taux d'infestation par varroa mesure"
+   },
+   {
+    "kind": "verbatim",
+    "want": "trois",
+    "moved": 20,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "trois colonies les plus faibles, a raison d'un litre par"
+   },
+   {
+    "kind": "verbatim",
+    "want": "11 avril",
+    "moved": 20,
+    "spoke": true,
+    "correct": true,
+    "bridges": true,
+    "got": "11 avril 2026, par temps couvert et douze degres, en pre"
+   },
+   {
+    "kind": "reworded",
+    "want": "2,4",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et combien de varroa ont été comptés au long cours ? Et "
+   },
+   {
+    "kind": "reworded",
+    "want": "trente-huit",
+    "moved": 2,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "- 1 reine, d'abord, 200000000000000000"
+   },
+   {
+    "kind": "reworded",
+    "want": "quatorze",
+    "moved": 1,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et colonies de colza ? Et de la colza en poudre ? Et de "
+   },
+   {
+    "kind": "reworded",
+    "want": "huit",
+    "moved": 6,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "Et combien de cadres s'etendent le couvain de la ruche n"
+   },
+   {
+    "kind": "reworded",
+    "want": "Ovide",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Qui a rédigé ce compte rendu ? Qui a rédigé ce compte re"
+   },
+   {
+    "kind": "reworded",
+    "want": "quatrieme",
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Etait-ce un cadre de la reine ? Etait-ce un cadre de la "
+   },
+   {
+    "kind": "reworded",
+    "want": "trois",
+    "moved": 2,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "Et comment ont- colonisés les. Les colonies ont reçu du "
+   },
+   {
+    "kind": "reworded",
+    "want": "11 avril",
+    "moved": 5,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "Et comment a-t-elle été organisée ? Quels sont les princ"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12000000000000000000000000000"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 1,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "12,50€. Le prix du kilo de miel du colza est de 15,50€. "
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 20,
+    "spoke": true,
+    "correct": false,
+    "bridges": true,
+    "got": "11 avril 2026, par temps couvert et douze degres, en pre"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 17,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "un exemple de la technique de la ruche numero 9 apres re"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "10000000000000000000000000000"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 1,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "important pour la localisation. La commune est située da"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 4,
+    "spoke": true,
+    "correct": false,
+    "bridges": false,
+    "got": "12 ans. La ruche numero 9 apporte un apport de 1000000 à"
+   },
+   {
+    "kind": "no-answer",
+    "want": null,
+    "moved": 0,
+    "spoke": false,
+    "correct": false,
+    "bridges": false,
+    "got": "de l'apport de 100 g de poudre de chaleur (PCH) par m², "
+   }
+  ]
+ },
+ "verdict": {
+  "P1": {
+   "reworded_17B_family": 0,
+   "holds": false
+  },
+  "P2": {
+   "bridged_of_correct": 0,
+   "correct": 0,
+   "holds": false
+  },
+  "P3": {
+   "reworded_06B_family": 3,
+   "holds": true
+  },
+  "P4": {
+   "0.6B published": 1,
+   "0.6B family": 2,
+   "1.7B published": 2,
+   "1.7B family": 3
+  },
+  "P5": {
+   "0.6B published": 7,
+   "0.6B family": 8,
+   "1.7B published": 6,
+   "1.7B family": 8
+  },
+  "reworded_all": {
+   "0.6B published": 2,
+   "0.6B family": 3,
+   "1.7B published": 0,
+   "1.7B family": 0
+  }
+ }
+}
