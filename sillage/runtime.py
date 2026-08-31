@@ -50,6 +50,7 @@ class Sillage:
     def __init__(self, model=None, state=None, semantic=None,
                  fastweights=None, half_life=None, calibrate=None,
                  device=None, quiet=False, target=None, cold_mass=None,
+                 cold_max=None,
                  sem2=None, sem2_whiten=None, dtype=None):
         self.state_dir = (default_state() if state is None
                           else os.path.expanduser(state))
@@ -65,6 +66,14 @@ class Sillage:
         self.mem = SillageMemory(self.state_dir, model, semantic,
                                  fastweights, half_life, calibrate,
                                  cold_mass, sem2, sem2_whiten)
+        if cold_max:
+            # lowering it prunes NOW rather than at the next save, so
+            # `--cold-max` on an existing state means what it says
+            self.mem.cold_max = int(cold_max)
+            dropped = self.mem.prune_cold()
+            if dropped:
+                self._say(f"cold store capped at {cold_max}: dropped "
+                          f"{dropped} of its lowest-surprise grams.")
         self.index = Index(None if self.state_dir is None else
                            os.path.join(self.state_dir, "index.json"))
         self.quiet = quiet

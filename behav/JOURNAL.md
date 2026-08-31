@@ -1706,3 +1706,37 @@ que si son probe forme un 4-gramme qu'aucun autre ne forme. Et le
 contrôle « filler » est inutilisable tel quel : sur mémoire VIDE il vaut
 déjà 100 %, GPT-2 prédisant sa propre grammaire — d'où C4 mesurée DANS le
 store et non par génération.
+
+### 2026-08-31 — la molette de capacité, et un cap qui tient enfin
+
+Deux correctifs issus de la loi de capacité.
+
+**① `COLD_MAX` devient un réglage.** C'était une constante de module que
+personne ne pouvait atteindre — exactement le cas du readout avant-hier,
+sauf qu'ici la constante décide de la CAPACITÉ du produit. Elle devient
+`mem.cold_max` (par mémoire) et `--cold-max N` en ligne de commande.
+L'abaisser sur un état existant **élague immédiatement** et dit combien
+de grammes de plus faible surprise ont été jetés, au lieu d'attendre le
+prochain `save()`.
+
+**② Le cap tient pendant l'ingestion, plus seulement au `save()`.**
+Mesuré avant : un cap de 2 000 laissait le store monter à **5 972
+(2,99×)** parce que l'éviction ne vivait que dans `save()` — et le chemin
+rapide `ingest_text` ne passe même pas par `write_all`. Les DEUX chemins
+élaguent maintenant sur une marge `PRUNE_MARGIN = 1.25` (trier 60k items
+est bon marché, le faire à chaque token ne l'est pas).
+
+    cap 2000 | pic en memoire 2497 (1.25x) | apres save 2000
+    rappel : plus ancien 100 %, plus recent 100 %, sur 372 faits plantes
+
+**L'élagage continu ne coûte rien** : le rappel reste à 100 % aux deux
+extrémités du corpus alors que le store est maintenu à 1/3 de ce qu'il
+aurait atteint. C'est la contrepartie mesurée de l'éviction par masse de
+surprise.
+
+**Correction d'un contrat au passage.** T6 patchait `core.COLD_MAX` APRÈS
+construction puis appelait `save()` : il testait que le cap était lu à
+l'écriture. Ce n'est plus vrai — et c'est le but, puisque c'est ce qui
+rend `--cold-max` possible. Le test vérifie la même propriété (garder la
+masse la plus forte) sous le nouveau contrat, et T21 ajoute la molette
+elle-même. Tests 22 + 14 + 16 + 28 = **80**.

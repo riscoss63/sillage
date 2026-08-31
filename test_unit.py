@@ -16,6 +16,7 @@ import tempfile
 
 import numpy as np
 
+import sillage.core as core
 from sillage.core import (BETAS, CAP, D_K, D_V, ETA, R_FEAT,
                           SillageMemory, fit_readout, lse_grid,
                           peek, resolve)
@@ -118,13 +119,13 @@ finally:
 m7 = SillageMemory(None, "gpt2", semantic=False, fastweights=False)
 m7.dir = tempfile.mkdtemp()
 try:
-    import sillage.core as core
-    keep_n, core.COLD_MAX = core.COLD_MAX, 3
+    # the cap is a property of the MEMORY now, not a module constant read
+    # at save time -- that is what makes `--cold-max` possible at all
+    m7.cold_max = 3
     m7.cold = {np.array([i, 0, 0, 0], np.int32).tobytes():
                [float(i), {i: 1}] for i in range(10)}
     m7.save()
     kept = sorted(int(list(v[1])[0]) for v in m7.cold.values())
-    core.COLD_MAX = keep_n
     check("T6 surprise-mass consolidation", kept == [7, 8, 9],
           f"(kept the {len(kept)} highest-mass grams: {kept})")
 finally:
@@ -530,6 +531,26 @@ check("T20 a wider reader silences the tiers it cannot key",
       "could not be broadcast' from inside the decoding loop -- which "
       "`complete --target` did from 1.1.0 to 1.9.0, on the default qwen "
       "state, for paper 5's headline feature)")
+
+# --- T21: the capacity dial, and a cap that means what it says ----------
+from sillage.core import COLD_MAX as _CAP_DEFAULT     # noqa: E402
+
+_c = _SM(state_dir=None, which="gpt2", semantic=False, fastweights=False)
+_default_ok = _c.cold_max == _CAP_DEFAULT
+_c.cold_max = 10
+# surprise mass in slot[0] is what the pruner ranks on: give the first
+# twenty a mass of 0.1 and the last ten a mass of 5.0
+for i in range(30):
+    key = np.array([i, i, i, i], dtype=np.int32).tobytes()
+    _c.cold[key] = [0.1 if i < 20 else 5.0, {i: 2}, {i: 0.2}]
+_dropped = _c.prune_cold()
+_kept = {int(np.frombuffer(k, dtype=np.int32)[0]) for k in _c.cold}
+check("T21 the cold store's cap is a dial, and it keeps the surprising",
+      _default_ok and _dropped == 20 and len(_c.cold) == 10
+      and _kept == set(range(20, 30)) and _c.prune_cold() == 0,
+      "(cold_max is per-memory rather than a module constant no user "
+      "could reach; pruning drops the 20 low-mass grams and keeps the "
+      "10 high-mass ones exactly, and a second prune is a no-op)")
 
 print("\n".join(passed))
 print(f"\nALL {len(passed)} UNIT TESTS PASSED")

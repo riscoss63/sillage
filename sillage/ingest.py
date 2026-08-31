@@ -32,7 +32,7 @@ import time
 
 import numpy as np
 
-from .core import CAP, NGRAM
+from .core import CAP, NGRAM, PRUNE_MARGIN
 
 WINDOW, STRIDE = 1024, 512
 
@@ -57,6 +57,12 @@ def blocked_write(mem, Qg, Qs, toks, g_vec, grams):
         tk = int(toks[k])
         gr = grams[k]
         if gr is not None:
+            # the same margin the sequential path uses: without it a
+            # long fast ingest runs far past the cap (measured 2.99x on
+            # a 2000-gram cap), because eviction used to live only in
+            # save() and this loop does not go through write_all
+            if len(mem.cold) > mem.cold_max * PRUNE_MARGIN:
+                mem.prune_cold()
             slot = mem.cold.setdefault(gr, [0.0, {}, {}])
             if len(slot) == 2:          # pre-1.2 slot: migrate in place
                 slot.append({t: float(c) for t, c in slot[1].items()})

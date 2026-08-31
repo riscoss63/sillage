@@ -93,6 +93,7 @@ def make(a, **over):
           "device": a.device,
           "target": getattr(a, "target", None),
           "cold_mass": getattr(a, "cold_mass", None),
+          "cold_max": getattr(a, "cold_max", None),
           "sem2": getattr(a, "sem2", None),
           "sem2_whiten": getattr(a, "sem2_whiten", None),
           "dtype": getattr(a, "dtype", None)}
@@ -712,6 +713,14 @@ def build_parser():
     common.add_argument("--no-calibrate", dest="calibrate",
                         action="store_false",
                         help="keep the readout settings as they are")
+    common.add_argument("--cold-max", type=int, default=None, metavar="N",
+                        help="how many 4-grams the exact store keeps "
+                             "(default 50000). This is the capacity dial: "
+                             "measured at ~42 bytes a gram, about 40 pages "
+                             "of durable memory per megabyte. Lowering it "
+                             "prunes now, keeping the highest-surprise "
+                             "grams -- measured to drop 38%% of a store "
+                             "without losing one planted fact")
     common.add_argument("--readout", default=None, metavar="SPEC",
                         help="how loudly the memory speaks: 'published' "
                              "(default, the papers' numbers), 'family' "

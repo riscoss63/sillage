@@ -46,6 +46,9 @@ B_LIST = [8, 12, 16]
 D_S = len(B_LIST) * L_BANDS * D_BAND
 # --- paper 3: cold store ----------------------------------------------------
 COLD_MAX, COLD_MIN_COUNT, LAM_C = 50_000, 2, 0.3
+#: prune when the store is this far past its cap. Sorting 60k items
+#: is cheap; doing it on every token would not be.
+PRUNE_MARGIN = 1.25
 # --- paper 4: readout adapter -----------------------------------------------
 R_FEAT, ETA = 16, 0.1
 # --- forgetting (papers 1 and 3) -------------------------------------------
@@ -219,6 +222,12 @@ class SillageMemory:
                  fastweights=None, half_life=None, calibrate=None,
                  cold_mass=None, sem2=None, sem2_whiten=None):
         self.dir = state_dir
+        #: how many 4-grams the cold store keeps. It is the
+        #: capacity dial of the whole system -- measured at ~42
+        #: bytes a gram, so roughly 40 pages of durable memory
+        #: per megabyte (results/gramrate.json) -- and until now
+        #: it was a module constant no user could reach.
+        self.cold_max = COLD_MAX
         if which is None:              # adopt whatever this state belongs to
             saved = peek(state_dir)
             which = saved[0] if saved else "qwen"
@@ -469,13 +478,29 @@ class SillageMemory:
         self.log = (json.load(open(log_path, encoding="utf-8"))
                     if os.path.exists(log_path) else {"files": []})
 
+    def prune_cold(self):
+        """Keep the highest-surprise grams, drop the rest.
+
+        Measured (results/eviction.json): pruning 38% of a store lost
+        NONE of 294 planted facts and left recall unchanged, because the
+        rule keeps surprise mass and an invented fact is the most
+        surprising thing in a document. What it drops is mostly grams
+        seen ONCE -- on real prose about 94% of the store, and
+        COLD_MIN_COUNT already makes those unretrievable. The cap
+        therefore costs almost nothing.
+        """
+        if len(self.cold) <= self.cold_max:
+            return 0
+        n = len(self.cold)
+        keep = sorted(self.cold.items(), key=lambda kv: -kv[1][0])
+        self.cold = dict(keep[:self.cold_max])
+        return n - len(self.cold)
+
     def save(self):
         """Consolidate ("sleep") and write the state to disk."""
         if self.dir is None:
             return
-        if len(self.cold) > COLD_MAX:      # keep the highest surprise mass
-            keep = sorted(self.cold.items(), key=lambda kv: -kv[1][0])
-            self.cold = dict(keep[:COLD_MAX])
+        self.prune_cold()
         os.makedirs(self.dir, exist_ok=True)
         np.savez_compressed(
             os.path.join(self.dir, "state.npz"), M=self.M, MS=self.MS,
@@ -1075,6 +1100,13 @@ class SillageMemory:
             self.amp_write(self.MS, qS, uS, tok_next, g)
         if len(self._hist) >= NGRAM:
             gram = np.array(self._hist[-NGRAM:], dtype=np.int32).tobytes()
+            # the cap used to be enforced ONLY in save(), so an ingest
+            # loop that does not persist ran past it -- measured at
+            # 63,898 grams against a 50,000 cap over a million tokens.
+            # Pruning on a margin keeps the sort rare (once per 25% of
+            # the cap) while making len(cold) mean what the cap says.
+            if len(self.cold) > self.cold_max * PRUNE_MARGIN:
+                self.prune_cold()
             slot = self.cold.setdefault(gram, [0.0, {}, {}])
             if len(slot) == 2:         # slot written by a pre-1.2 state:
                 slot.append({t: float(c) for t, c in slot[1].items()})

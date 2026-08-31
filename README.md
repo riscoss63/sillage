@@ -240,6 +240,23 @@ than three, which on two corpora and 36 questions caught **11 of the 12
 questions the documents could not answer** while no correct answer ever
 moved fewer than 12.
 
+`--cold-max N` is the capacity dial. The exact store keeps N 4-grams at
+about 42 bytes each, which measures out at roughly **40 pages of durable
+memory per megabyte**; when it overflows it keeps the highest surprise
+mass, and that was measured to drop **38 % of a store without losing one
+of 294 planted facts** ([here](results/eviction.json)). Recall itself is
+flat from 5,850 to 1,000,107 tokens, with the locality perturbation
+exactly zero at every scale ([here](results/capacity.json)).
+
+What fills it is not tokens but *repeated* 4-grams, so the same document
+costs very different amounts depending on how you read it: real prose
+repeats only ~6 % of its own grams, so one read fills the store after
+~890k tokens and retains almost nothing, while reading twice -- what
+paper 6 tells you to do -- fills it after ~56k and retains everything
+distinct, a figure stable within 5 % across ten independent texts
+([here](results/gramrate.json)). **Durability and capacity are the same
+budget.**
+
 Globs are expanded by the tool
 itself, so `sillage read docs/*.md` works on Windows too.
 </details>
@@ -693,7 +710,7 @@ talks to it over real sockets (16 checks: an OpenAI client, a background
 ingestion answering mid-read, a stream that arrives while it is generated,
 refusals, and the bearer token); and `python test_axis4.py` covers watch,
 review, export and pull (25 checks, including the cartridge round-trip and
-its refusals). **79 checks**, all green on the shipped 1.9.1.
+its refusals). **80 checks**, all green on the shipped 1.9.2.
 
 <details>
 <summary><b>Repository layout</b></summary>
