@@ -1624,3 +1624,85 @@ ni de la vitesse ni de la fluidité.
 
 Compteur de refus corrigé au passage : il ratait « ne mentionne pas » et
 sous-évaluait le 1,7B de trois. Recompté sur les textes enregistrés.
+
+### 2026-08-31 — LA LOI DE CAPACITÉ
+
+La question que tout utilisateur pose en premier et à laquelle le projet
+ne savait pas répondre : « 7 Mo pour toujours », mais pour combien de
+documents ? Trois sondes, cinq prédictions enregistrées + quatre sur
+l'éviction.
+
+**① Ce qui remplit le store, ce ne sont pas les tokens**
+(`results/gramrate.json`, 11 textes réels, tokenizer seul). Une prose
+réelle ne répète que **~6 %** de ses propres 4-grammes, et le cold store
+n'admet qu'à partir de **deux occurrences**. D'où deux régimes :
+
+| | le store se remplit après | ce qu'il retient |
+|---|---|---|
+| lu **une fois** | ~**890 000 tokens** | presque rien (les 6 % qui se répètent seuls) |
+| lu **deux fois** | ~**56 000 tokens** | tout ce qui est distinct |
+
+Le second chiffre est stable à ±5 % sur dix textes indépendants (53k-59k
+: les 8 preprints, README, REPRODUCE). **Durabilité et capacité sont le
+MÊME budget** — la règle des deux occurrences du papier 6 remplit le
+store 16× plus vite, et ce prix n'était écrit nulle part.
+
+Coût de stockage exact d'après `_cold_save` : 16 o de clé + 4 o de masse
++ 8 o de décalage + 12 o par successeur ≈ **42 o/gramme**. Donc le cap de
+50 000 coûte **~2,1 Mo** → **≈ 27 000 tokens durables par Mo, soit ~40
+pages par mégaoctet**. **Ce n'est pas un plafond, c'est une molette** —
+et `COLD_MAX` est une constante de module, pas un réglage utilisateur.
+
+**② Le rappel ne se dégrade PAS** (`results/capacity.json`, gpt2, faits
+plantés 2× par cohorte, 1 million de tokens, 47 min) :
+
+| tokens | grammes | ancien | milieu | récent | grammes présents | témoin |
+|---|---|---|---|---|---|---|
+| 5 850 | 1 180 | 100 % | 83 % | 100 % | 100 % | +0.0000 |
+| 100 735 | 9 417 | 100 % | 100 % | 100 % | 100 % | +0.0000 |
+| 400 275 | 31 508 | 100 % | 100 % | 83 % | 100 % | +0.0000 |
+| 800 908 | 50 781 | 100 % | 83 % | 100 % | 100 % | +0.0000 |
+| **1 000 107** | **63 898** | **100 %** | **100 %** | **100 %** | **100 %** | **+0.0000** |
+
+**Plat sur 171× d'échelle.** C2, C3, C5 tiennent ; les 83 % isolés sont
+du bruit à un fait près (5/6), sans tendance. **La localité est
+EXACTEMENT nulle** (1,74e-07, identique à 7 chiffres) à toutes les
+échelles : la matrice ne bave pas en se remplissant.
+
+**C1 FALSIFIÉE, et c'est un défaut** : le store est monté à **63 898
+grammes pour un cap de 50 000**. L'éviction n'est appliquée que dans
+`save()` — une boucle d'ingestion qui ne persiste pas dépasse le cap de
+28 %. Donc C4 n'était pas testée non plus : la course n'a jamais élagué.
+
+**③ L'éviction, mesurée pour la première fois**
+(`results/eviction.json`, cap abaissé à 3 000 pour saturer en 3 min) :
+
+    avant save : 4 865 grammes (1,62× le cap), 294 faits plantés
+    après save : 3 000 grammes -- 1 865 jetés, 38 % du store
+    faits plantés encore présents : 100 %   rappel : 100 % -> 100 %
+
+**E1, E2, E3 tiennent.** 38 % du store disparaît et **pas un seul fait
+planté n'est perdu** : la règle « garder les COLD_MAX grammes de plus
+forte masse de surprise » protège exactement ce qui compte. **E4
+falsifiée** — la médiane de masse ne bouge pas (2,0 → 2,0), mais c'est un
+artefact de granularité : la distribution a un gros atome aux basses
+valeurs (q10 1,0 / q50 2,0 / q90 29 → 30), et le q90 monte bien.
+
+**Énoncé de la loi.** À 40 pages par mégaoctet de cold store : le rappel
+est plat jusqu'à au moins 1 million de tokens, la localité reste nulle,
+et quand le store déborde il **oublie l'ordinaire et garde le
+remarquable**, sans rien coûter à ce qu'il avait retenu.
+
+**Deux actions qui en découlent** : exposer `COLD_MAX` (la molette de
+capacité est aujourd'hui hors de portée de l'utilisateur, comme l'était
+le readout) et appliquer le cap ailleurs qu'au `save()`.
+
+**Erreur de sonde consignée** : mon premier générateur d'entités faisait
+finir tous les noms par la même syllabe, donc les 4 derniers tokens du
+probe étaient IDENTIQUES pour toutes — une seule clé partagée à six
+successeurs rivaux, rappel lu 0/6 alors que le mécanisme allait bien. Les
+noms sont désormais filtrés contre le tokenizer : un candidat n'est gardé
+que si son probe forme un 4-gramme qu'aucun autre ne forme. Et le
+contrôle « filler » est inutilisable tel quel : sur mémoire VIDE il vaut
+déjà 100 %, GPT-2 prédisant sa propre grammaire — d'où C4 mesurée DANS le
+store et non par génération.

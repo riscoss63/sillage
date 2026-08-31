@@ -1,0 +1,51 @@
+{
+ "cap": 3000,
+ "shipped_cap": 50000,
+ "model": "gpt2",
+ "before": {
+  "grams": 4865,
+  "tokens": 47929,
+  "mass_q": [
+   1.0,
+   2.0,
+   29.0
+  ],
+  "recall_oldest": 1.0,
+  "recall_newest": 0.8333333333333334,
+  "planted_grams_present": 1.0
+ },
+ "after": {
+  "grams": 3000,
+  "mass_q": [
+   1.0,
+   2.0,
+   30.0
+  ],
+  "recall_oldest": 1.0,
+  "recall_newest": 0.8333333333333334,
+  "planted_grams_present": 1.0
+ },
+ "dropped": 1865,
+ "verdict": {
+  "E1": {
+   "grams_after": 3000,
+   "cap": 3000,
+   "holds": true
+  },
+  "E2": {
+   "planted_grams_after": 1.0,
+   "share_of_store_dropped": 0.383,
+   "holds": true
+  },
+  "E3": {
+   "before": 1.0,
+   "after": 1.0,
+   "holds": true
+  },
+  "E4": {
+   "median_before": 2.0,
+   "median_after": 2.0,
+   "holds": false
+  }
+ }
+}

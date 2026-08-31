@@ -1,0 +1,98 @@
+{
+ "cold_max": 50000,
+ "min_count": 2,
+ "rows": [
+  {
+   "label": "paper: behavior.tex",
+   "tokens": 7186,
+   "distinct_per_1k": 895.5,
+   "admitted_per_1k": 58.17,
+   "tokens_to_fill_read_once": 859569,
+   "tokens_to_fill_read_twice": 55835
+  },
+  {
+   "label": "paper: benchmark.tex",
+   "tokens": 4464,
+   "distinct_per_1k": 935.3,
+   "admitted_per_1k": 42.11,
+   "tokens_to_fill_read_once": 1187234,
+   "tokens_to_fill_read_twice": 53461
+  },
+  {
+   "label": "paper: drafter.tex",
+   "tokens": 6827,
+   "distinct_per_1k": 901.0,
+   "admitted_per_1k": 56.39,
+   "tokens_to_fill_read_once": 886623,
+   "tokens_to_fill_read_twice": 55495
+  },
+  {
+   "label": "paper: fastweights.tex",
+   "tokens": 4777,
+   "distinct_per_1k": 841.5,
+   "admitted_per_1k": 73.69,
+   "tokens_to_fill_read_once": 678551,
+   "tokens_to_fill_read_twice": 59415
+  },
+  {
+   "label": "paper: hierarchy.tex",
+   "tokens": 3515,
+   "distinct_per_1k": 907.5,
+   "admitted_per_1k": 45.8,
+   "tokens_to_fill_read_once": 1091614,
+   "tokens_to_fill_read_twice": 55094
+  },
+  {
+   "label": "paper: paraphrase.tex",
+   "tokens": 4490,
+   "distinct_per_1k": 938.8,
+   "admitted_per_1k": 39.2,
+   "tokens_to_fill_read_once": 1275568,
+   "tokens_to_fill_read_twice": 53262
+  },
+  {
+   "label": "paper: router.tex",
+   "tokens": 5189,
+   "distinct_per_1k": 859.7,
+   "admitted_per_1k": 63.02,
+   "tokens_to_fill_read_once": 793425,
+   "tokens_to_fill_read_twice": 58159
+  },
+  {
+   "label": "paper: sillage.tex",
+   "tokens": 9090,
+   "distinct_per_1k": 847.5,
+   "admitted_per_1k": 72.72,
+   "tokens_to_fill_read_once": 687594,
+   "tokens_to_fill_read_twice": 58995
+  },
+  {
+   "label": "French reports x6 (short docs, reread)",
+   "tokens": 4920,
+   "distinct_per_1k": 159.6,
+   "admitted_per_1k": 159.55,
+   "tokens_to_fill_read_once": 313375,
+   "tokens_to_fill_read_twice": 313375
+  },
+  {
+   "label": "README.md",
+   "tokens": 12675,
+   "distinct_per_1k": 916.0,
+   "admitted_per_1k": 44.5,
+   "tokens_to_fill_read_once": 1123670,
+   "tokens_to_fill_read_twice": 54586
+  },
+  {
+   "label": "REPRODUCE.md",
+   "tokens": 4997,
+   "distinct_per_1k": 897.3,
+   "admitted_per_1k": 48.03,
+   "tokens_to_fill_read_once": 1041041,
+   "tokens_to_fill_read_twice": 55720
+  }
+ ],
+ "median_admitted_per_1k": 56.39,
+ "median_tokens_to_fill_read_once": 886623,
+ "median_tokens_to_fill_read_twice": 55720,
+ "ratio": 15.9
+}

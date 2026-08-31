@@ -1,0 +1,240 @@
+{
+ "model": "gpt2",
+ "cold_max": 50000,
+ "cold_min_count": 2,
+ "checkpoints": [
+  {
+   "tokens": 5850,
+   "blocks": 6,
+   "facts_planted": 36,
+   "cold_grams": 1180,
+   "cold_full": false,
+   "M_norm": 57.329307556152344,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 0.8333333333333334,
+   "recall_newest": 1.0,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    12.0
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 0.5
+  },
+  {
+   "tokens": 25406,
+   "blocks": 26,
+   "facts_planted": 156,
+   "cold_grams": 2951,
+   "cold_full": false,
+   "M_norm": 118.48385620117188,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 0.8333333333333334,
+   "recall_newest": 1.0,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    30.0
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 1.6
+  },
+  {
+   "tokens": 100735,
+   "blocks": 103,
+   "facts_planted": 618,
+   "cold_grams": 9417,
+   "cold_full": false,
+   "M_norm": 232.45008850097656,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 1.0,
+   "recall_newest": 1.0,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    29.0
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 4.6
+  },
+  {
+   "tokens": 200093,
+   "blocks": 205,
+   "facts_planted": 1230,
+   "cold_grams": 16903,
+   "cold_full": false,
+   "M_norm": 322.9106140136719,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 1.0,
+   "recall_newest": 1.0,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    29.0
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 8.6
+  },
+  {
+   "tokens": 400275,
+   "blocks": 409,
+   "facts_planted": 2454,
+   "cold_grams": 31508,
+   "cold_full": false,
+   "M_norm": 448.3653564453125,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 1.0,
+   "recall_newest": 0.8333333333333334,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    20.3
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 16.4
+  },
+  {
+   "tokens": 600800,
+   "blocks": 604,
+   "facts_planted": 3624,
+   "cold_grams": 41742,
+   "cold_full": false,
+   "M_norm": 548.6422729492188,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 1.0,
+   "recall_newest": 0.8333333333333334,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    29.0
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 26.3
+  },
+  {
+   "tokens": 800908,
+   "blocks": 798,
+   "facts_planted": 4788,
+   "cold_grams": 50781,
+   "cold_full": true,
+   "M_norm": 630.9888305664062,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 0.8333333333333334,
+   "recall_newest": 1.0,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    29.0
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 37.3
+  },
+  {
+   "tokens": 1000107,
+   "blocks": 993,
+   "facts_planted": 5958,
+   "cold_grams": 63898,
+   "cold_full": true,
+   "M_norm": 702.3626098632812,
+   "MS_norm": 0.0,
+   "recall_oldest": 1.0,
+   "recall_middle": 1.0,
+   "recall_newest": 1.0,
+   "recall_filler": 1.0,
+   "grams_oldest": 1.0,
+   "grams_newest": 1.0,
+   "mass_q": [
+    1.0,
+    2.0,
+    29.0
+   ],
+   "witness_log_ratio": 1.7393313900271323e-07,
+   "minutes": 46.6
+  }
+ ],
+ "predictions": "C1  The cold store grows roughly linearly with novel tokens and\n      saturates at COLD_MAX. FALSIFIED if it plateaus below 60% of\n      COLD_MAX, or exceeds it.\n  C2  The OLDEST cohort holds (>= 80% of its recall at the first\n      checkpoint) until the cold store saturates, and declines after.\n      FALSIFIED if it declines materially BEFORE saturation -- that\n      would mean the matrix, not the cap, sets the ceiling.\n  C3  The NEWEST cohort stays >= 80% at every scale: writing more never\n      stops the memory taking new facts.\n      FALSIFIED if recent recall falls with corpus size.\n  C4  Eviction is surprise-ranked, so planted facts SURVIVE IN THE\n      STORE while ordinary grams are dropped: once saturated, at least\n      80% of every planted fact's gram is still present, and the store's\n      median surprise mass RISES.\n      FALSIFIED if planted grams are evicted at the same rate as the\n      rest -- \"it forgets the boring parts first\" would be a story, not\n      a mechanism.\n      (Measured in the store, not behaviourally: on an EMPTY memory the\n      filler continuations score 100% because GPT-2 predicts its own\n      grammar, so no generative probe can separate a recalled banality\n      from a guessed one.)\n  C5  Locality does not rot with scale: the witness perturbation at the\n      largest checkpoint is within 3x of the first one.\n      FALSIFIED if it grows without bound -- a memory that bleeds into\n      unrelated text as it fills cannot ship at any size.",
+ "baseline": {
+  "facts": 0.0,
+  "filler": 1.0
+ },
+ "verdict": {
+  "C1": {
+   "cold_at_end": 63898,
+   "cap": 50000,
+   "saturated_at_tokens": 800908
+  },
+  "C2": {
+   "oldest_first": 1.0,
+   "oldest_last": 1.0,
+   "held": true
+  },
+  "C3": {
+   "newest_by_scale": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.8333333333333334,
+    0.8333333333333334,
+    1.0,
+    1.0
+   ],
+   "holds": true
+  },
+  "C4": {
+   "grams_oldest_by_scale": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "mass_median_by_scale": [
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   "filler_is_base_model": 1.0
+  },
+  "C5": {
+   "witness_first": 1.7393313900271323e-07,
+   "witness_last": 1.7393313900271323e-07
+  }
+ }
+}
