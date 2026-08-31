@@ -190,7 +190,11 @@ def main():
         os.path.dirname(os.path.abspath(__file__)), "results",
         f"bench_{platform.system().lower()}_{platform.machine().lower()}"
         f".json")
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    # `--out bench.json` has no directory part, and os.makedirs("") raises
+    # -- which failed the CI job AFTER the whole benchmark had run
+    parent = os.path.dirname(out_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     with io.open(out_path, "w", encoding="utf-8") as fh:
         json.dump(res, fh, indent=1, ensure_ascii=False)
     print(f"written {out_path}")
