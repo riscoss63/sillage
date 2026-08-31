@@ -1,0 +1,81 @@
+name: arm
+
+# Does Sillage run on ARM64, and how fast?
+#
+# The project claims to be an on-device memory, and every number in it was
+# taken on one x86 desktop. This job answers the portability half on
+# hardware that costs nothing: GitHub's ARM64 runners are free for public
+# repositories, and this repository is public.
+#
+# What it does NOT answer: whether the throughput is enough for a small
+# appliance. A runner core is a server core -- considerably faster than a
+# Raspberry Pi's. Read the numbers as an upper bound for the ARM family,
+# not as a Pi measurement, and do not extrapolate between the two: the
+# same discipline the rest of this repository uses.
+#
+# The x86 job runs the identical script so the two are directly
+# comparable, which is the only reason the ARM number means anything.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sillage/**"
+      - "behav/bench_platform.py"
+      - ".github/workflows/arm.yml"
+  workflow_dispatch:
+
+jobs:
+  bench:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04-arm, label: "ARM64 (aarch64)" }
+          - { os: ubuntu-24.04, label: "x86-64 (baseline)" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install the stack from wheels only
+        # --only-binary keeps this honest: if a wheel is missing for this
+        # architecture the job fails here rather than quietly building
+        # from source for twenty minutes, which is not what a device
+        # would do either.
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --only-binary=:all: \
+            numpy "torch>=2.2" "transformers>=4.40"
+          python -m pip install -e . --no-deps
+          python -c "import sillage, torch, numpy; print(sillage.__version__, torch.__version__, numpy.__version__)"
+
+      - name: the mechanisms must be exact here too
+        run: python test_unit.py
+
+      - name: throughput and footprint
+        run: python behav/bench_platform.py --tokens 3000 --out bench.json
+
+      - name: show the numbers in the summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f bench.json ]; then
+            {
+              echo "### ${{ matrix.label }}"
+              echo '```json'
+              cat bench.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-${{ matrix.os }}
+          path: bench.json
+          if-no-files-found: warn

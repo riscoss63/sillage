@@ -1,0 +1,38 @@
+{
+ "sillage": "1.9.2",
+ "platform": {
+  "system": "Windows",
+  "machine": "AMD64",
+  "processor": "AMD64 Family 23 Model 8 Stepping 2, AuthenticAMD",
+  "python": "3.10.11",
+  "cpu_count": 16,
+  "torch": "2.11.0+cpu",
+  "numpy": "1.26.4",
+  "transformers": "5.7.0",
+  "threads": 8
+ },
+ "model": "gpt2",
+ "model_load_s": 7.4,
+ "read_fast": {
+  "tokens": 3285,
+  "seconds": 13.92,
+  "tok_per_s": 236.1
+ },
+ "read_normal": {
+  "tokens": 3285,
+  "seconds": 38.54,
+  "tok_per_s": 85.2,
+  "ppl_frozen": 1.15,
+  "ppl_with_memory": 1.16,
+  "ppl_note": "fixture is trivially predictable; not a quality measurement"
+ },
+ "generate": {
+  "tokens": 32,
+  "seconds": 2.19,
+  "tok_per_s": 14.62,
+  "sample": "the quarterly report on day-to-day operations of the Departm"
+ },
+ "state_bytes": 7007734,
+ "cold_grams": 459,
+ "rss_peak_mb": 1954.4
+}
