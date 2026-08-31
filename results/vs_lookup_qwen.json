@@ -1,0 +1,96 @@
+{
+ "k_draft": 8,
+ "n_gen": 32,
+ "model": "qwen",
+ "state": {
+  "tokens": 13866,
+  "sillage_grams": 11372,
+  "static_grams": 11372
+ },
+ "seen": {
+  "no drafter": {
+   "tok_per_fwd": 1.0,
+   "acceptance": 0.0,
+   "proposed": 0
+  },
+  "prompt lookup": {
+   "tok_per_fwd": 1.536,
+   "acceptance": 0.625,
+   "proposed": 112
+  },
+  "static cache": {
+   "tok_per_fwd": 1.362,
+   "acceptance": 0.315,
+   "proposed": 168
+  },
+  "sillage": {
+   "tok_per_fwd": 1.15,
+   "acceptance": 0.347,
+   "proposed": 75
+  }
+ },
+ "same-topic": {
+  "no drafter": {
+   "tok_per_fwd": 1.0,
+   "acceptance": 0.0,
+   "proposed": 0
+  },
+  "prompt lookup": {
+   "tok_per_fwd": 1.157,
+   "acceptance": 0.276,
+   "proposed": 105
+  },
+  "static cache": {
+   "tok_per_fwd": 1.016,
+   "acceptance": 0.022,
+   "proposed": 136
+  },
+  "sillage": {
+   "tok_per_fwd": 1.011,
+   "acceptance": 0.026,
+   "proposed": 76
+  }
+ },
+ "unrelated": {
+  "no drafter": {
+   "tok_per_fwd": 1.0,
+   "acceptance": 0.0,
+   "proposed": 0
+  },
+  "prompt lookup": {
+   "tok_per_fwd": 1.058,
+   "acceptance": 0.304,
+   "proposed": 23
+  },
+  "static cache": {
+   "tok_per_fwd": 1.0,
+   "acceptance": 0.0,
+   "proposed": 0
+  },
+  "sillage": {
+   "tok_per_fwd": 1.0,
+   "acceptance": 0.0,
+   "proposed": 0
+  }
+ },
+ "verdict": {
+  "M1_vs_prompt_lookup": [
+   1.011,
+   1.157
+  ],
+  "M1_holds": false,
+  "M2_vs_static_cache": [
+   1.011,
+   1.016
+  ],
+  "M2_holds": false,
+  "M3_unrelated": {
+   "no drafter": 1.0,
+   "prompt lookup": 1.058,
+   "static cache": 1.0,
+   "sillage": 1.0
+  },
+  "M4_margin": -0.126,
+  "M4_holds": false
+ }
+}

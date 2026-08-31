@@ -1,0 +1,102 @@
+{
+ "rules": [
+  {
+   "rule": "argmax",
+   "coverage": 0.608,
+   "precision": 0.287,
+   "offered": 87,
+   "right": 25,
+   "mean_len": 8.0,
+   "spliced": 2
+  },
+  {
+   "rule": "dominance 1.5",
+   "coverage": 0.58,
+   "precision": 0.349,
+   "offered": 83,
+   "right": 29,
+   "mean_len": 7.6,
+   "spliced": 1
+  },
+  {
+   "rule": "dominance 2.0",
+   "coverage": 0.58,
+   "precision": 0.349,
+   "offered": 83,
+   "right": 29,
+   "mean_len": 7.6,
+   "spliced": 1
+  },
+  {
+   "rule": "dominance 3.0",
+   "coverage": 0.573,
+   "precision": 0.39,
+   "offered": 82,
+   "right": 32,
+   "mean_len": 7.6,
+   "spliced": 0
+  },
+  {
+   "rule": "unique",
+   "coverage": 0.573,
+   "precision": 0.39,
+   "offered": 82,
+   "right": 32,
+   "mean_len": 7.6,
+   "spliced": 0
+  }
+ ],
+ "verdict": {
+  "K1_precision_moves": true,
+  "K1_range": [
+   0.287,
+   0.39
+  ],
+  "K2_unique_splices": 0,
+  "K2_holds": true,
+  "K3_shippable": [],
+  "K3_holds": false
+ },
+ "samples": [
+  {
+   "typed": "Rapport d",
+   "ghost": "'intervention 2026 par",
+   "correct": false
+  },
+  {
+   "typed": "Rapport d'intervention",
+   "ghost": " 2026 par",
+   "correct": false
+  },
+  {
+   "typed": "Rapport d'intervention 2",
+   "ghost": "026 par",
+   "correct": false
+  },
+  {
+   "typed": "Rapport d'intervention 202",
+   "ghost": "6 par",
+   "correct": false
+  },
+  {
+   "typed": "Rapport d'intervention 2026-",
+   "ghost": "114 - Station de pompage",
+   "correct": false
+  },
+  {
+   "typed": "026-207 - Station de pompage",
+   "ghost": " de Vernouil",
+   "correct": true
+  },
+  {
+   "typed": "6-207 - Station de pompage de Vern",
+   "ghost": "ouil",
+   "correct": true
+  },
+  {
+   "typed": "ouil\n\nLa visite de controle a ete conduite",
+   "ghost": " le 14 juin 20",
+   "correct": false
+  }
+ ]
+}

@@ -1,0 +1,58 @@
+{
+ "state": {
+  "tokens": 826,
+  "grams": 395
+ },
+ "in_corpus": {
+  "positions": 134,
+  "offered": 134,
+  "coverage": 1.0,
+  "verbatim": 124,
+  "verbatim_share": 0.925,
+  "mean_len": 8.0,
+  "ms_median": 0.0215,
+  "ms_p99": 0.0428
+ },
+ "off_corpus": {
+  "positions": 121,
+  "offered": 4,
+  "coverage": 0.033,
+  "verbatim": 0,
+  "verbatim_share": 0.0,
+  "mean_len": 8.0,
+  "ms_median": 0.0033,
+  "ms_p99": 0.0253
+ },
+ "samples": [
+  {
+   "prefix": " de maintenance sur la station de pompage de Vernouil",
+   "ghost": "\n\nL'intervention a ete condu"
+  },
+  {
+   "prefix": " radial de 0,42 millimetre au pal",
+   "ghost": "ier avant, contre 0,1"
+  },
+  {
+   "prefix": "ique aux huit goujons de bride est de ",
+   "ghost": "62 newtons-metres.\n\n"
+  },
+  {
+   "prefix": "1 bars et 74 metres cubes par heure avant l",
+   "ghost": "'intervention. La temperature du palier"
+  },
+  {
+   "prefix": " 40 pour cent de la section utile. Le",
+   "ghost": " compteur horaire du groupe numero "
+  }
+ ],
+ "verdict": {
+  "H1_latency_ms": 0.0428,
+  "H1_holds": true,
+  "H2_coverage": 1.0,
+  "H2_holds": true,
+  "H3_verbatim": 0.925,
+  "H3_holds": false,
+  "H4_off_corpus": 0.033,
+  "H4_holds": true
+ }
+}

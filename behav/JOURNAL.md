@@ -1740,3 +1740,68 @@ l'écriture. Ce n'est plus vrai — et c'est le but, puisque c'est ce qui
 rend `--cold-max` possible. Le test vérifie la même propriété (garder la
 masse la plus forte) sous le nouveau contrat, et T21 ajoute la molette
 elle-même. Tests 22 + 14 + 16 + 28 = **80**.
+
+### 2026-08-31 — deux directions produit, mesurées et mortes en une journée
+
+L'utilisateur demandait un produit réellement adopté, pas un produit de
+plus. Deux candidats, tués par la mesure avant qu'une ligne d'interface
+soit écrite.
+
+**① Autocomplétion sans modèle, depuis le cold store**
+(`results/ghost*.json`). L'idée : suivre la chaîne des successeurs est
+une lecture de dictionnaire, donc instantanée et incapable
+d'halluciner. Le premier tour est spectaculaire — **0,043 ms au p99,
+couverture 100 %, 92,5 % verbatim** — puis les deux contrôles le
+démolissent. **J1** : 2 suggestions sur 200 ne sont PAS dans le
+document, la chaîne recoud deux continuations à un gramme ambigu. **J3,
+décisif** : sur un rapport SUIVANT de la même station, 61 % des
+positions reçoivent une suggestion mais **29 % seulement sont la
+bonne** — tu tapes `2026-207` et elle propose `114`, le numéro de
+l'ancien rapport. Balayage de règles d'arrêt (`ghost3`) : `unique` ne
+recoud plus rien (K2 ✓) mais **la précision plafonne à 39 %** (K3 ✗).
+Ce n'est pas un réglage à trouver : une mémoire exacte de 4-grammes
+propose les identifiants périmés parce que le gramme n'est pas ambigu —
+**le store a raison, c'est le contexte qui a changé.** Trois erreurs sur
+cinq, et les erreurs sont des dates et des références périmées dans des
+documents où ça compte.
+
+**② Le drafter spéculatif comme produit de vitesse**
+(`results/drafter_real.json`, `vs_lookup*.json`). La seule direction où
+le mode d'échec est prouvé nul : la sortie est identique par
+construction. Premier tour très encourageant — acceptation **62 % sur
+texte lu, 70 % sur un papier jamais lu**, 22/22 sorties identiques.
+**Puis la comparaison aux titulaires a tout renversé, et mon 70 % était
+mal interprété** : il visait la sortie AUGMENTÉE par la mémoire, donc la
+mémoire s'accordait avec elle-même. Contre la cible qui compte pour un
+produit — **la sortie du modèle NU**, seule façon de vendre de la
+vitesse sans changer le comportement :
+
+| régime | sans drafter | prompt lookup | cache statique | sillage |
+|---|---|---|---|---|
+| lu (gpt2) | 1,00 | **1,59** | 1,09 | 1,05 |
+| même domaine (gpt2) | 1,00 | **1,24** | 1,01 | **1,00** |
+| même domaine (qwen) | 1,00 | **1,157** | 1,016 | **1,011** |
+| sans rapport (qwen) | 1,00 | 1,058 | 1,00 | 1,00 |
+
+M1, M2, M4 falsifiées aux deux modèles. GPT-2 gonflait le prompt lookup
+par dégénérescence gloutonne (une séquence sur trois : 13 tokens
+distincts sur 32) — refait sous Qwen3, tout le monde rétrécit et **le
+classement ne bouge pas**.
+
+**La raison est structurelle et ne dépend d'aucun modèle : un drafter
+doit prédire LE MODÈLE ; cette mémoire prédit LE CORPUS.** Deux cibles
+différentes. Le cache statique bâti sur le même corpus ne fait pas mieux
+(1,016), donc les trois choses que Sillage lui ajoute — admission à deux
+occurrences, borne, éviction par surprise — n'achètent rien **dans ce
+rôle**.
+
+**Ce qui n'est PAS invalidé** : le ×1,98 du papier 5 accélère le
+décodage AVEC mémoire, sortie identique garantie. C'est vrai et ça le
+reste. Ce n'est simplement pas transportable vers quelqu'un qui fait
+tourner un modèle nu — c'est une optimisation interne de l'outil, pas un
+produit pour les autres.
+
+**Conclusion de la journée** : les deux dernières pistes produit sont
+fermées, chacune en moins d'une journée et avec ses seuils enregistrés
+avant la mesure. Ce qui reste debout est ce qui existait déjà : un outil
+qui marche, huit preprints, une loi de capacité, et une méthode.

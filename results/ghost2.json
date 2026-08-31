@@ -1,0 +1,62 @@
+{
+ "J1": {
+  "checked": 200,
+  "not_in_source": 2,
+  "examples": [
+   {
+    "at": 4,
+    "text": "'intervention 2026 par"
+   },
+   {
+    "at": 232,
+    "text": "74 metres cubes par heure, contre"
+   }
+  ],
+  "holds": false
+ },
+ "J2": {
+  "positions": 143,
+  "offered": 87,
+  "coverage": 0.608,
+  "mean_len": 8.0,
+  "holds": false
+ },
+ "J3": {
+  "right": 25,
+  "of_offered": 87,
+  "share": 0.287,
+  "holds": false
+ },
+ "samples": [
+  {
+   "typed": "Rapport d",
+   "ghost": "'intervention 2026 par",
+   "correct": false
+  },
+  {
+   "typed": "Rapport d'intervention",
+   "ghost": " 2026 par l'",
+   "correct": false
+  },
+  {
+   "typed": "Rapport d'intervention 2",
+   "ghost": "026 par l'equipe",
+   "correct": false
+  },
+  {
+   "typed": "Rapport d'intervention 202",
+   "ghost": "6 par l'equipe de maintenance",
+   "correct": false
+  },
+  {
+   "typed": "port d'intervention 2026-",
+   "ghost": "114 - Station de pompage",
+   "correct": false
+  },
+  {
+   "typed": "6-207 - Station de pompage",
+   "ghost": " de Vernouil\n\nL'intervention",
+   "correct": false
+  }
+ ]
+}

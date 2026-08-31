@@ -1,0 +1,50 @@
+{
+ "n_gen": 24,
+ "state": {
+  "tokens": 13766,
+  "grams": 11702
+ },
+ "seen": {
+  "prompts": 8,
+  "accepted": 64,
+  "drafted": 104,
+  "acceptance": 0.615,
+  "tokens_per_forward": 1.401,
+  "identical": 8,
+  "seconds_fast": 11.9,
+  "seconds_plain": 14.4,
+  "wall_ratio": 0.826
+ },
+ "same-topic": {
+  "prompts": 8,
+  "accepted": 55,
+  "drafted": 79,
+  "acceptance": 0.696,
+  "tokens_per_forward": 1.272,
+  "identical": 8,
+  "seconds_fast": 13.0,
+  "seconds_plain": 14.8,
+  "wall_ratio": 0.877
+ },
+ "unrelated": {
+  "prompts": 6,
+  "accepted": 5,
+  "drafted": 12,
+  "acceptance": 0.417,
+  "tokens_per_forward": 0.993,
+  "identical": 6,
+  "seconds_fast": 12.2,
+  "seconds_plain": 10.7,
+  "wall_ratio": 1.139
+ },
+ "verdict": {
+  "L1_seen": 0.615,
+  "L1_holds": true,
+  "L2_same_topic": 0.696,
+  "L2_holds": true,
+  "L3_cold_wall_overhead": 0.139,
+  "L3_holds": true,
+  "L4_identical": true,
+  "note": "wall-clock on CPU understates a GPU: the papers measured the numpy readout, not the forward, as the CPU bottleneck. tokens_per_forward is the transferable number."
+ }
+}
