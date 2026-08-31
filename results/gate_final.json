@@ -1,0 +1,296 @@
+{
+ "facts": 30,
+ "seeds": 3,
+ "cold_max": 1200,
+ "rows": [
+  {
+   "lang": "EN",
+   "seed": 0,
+   "gate": "shannon",
+   "before": 1.0,
+   "after": 0.9,
+   "matrix_only": 0.867,
+   "median_mass": 10.0
+  },
+  {
+   "lang": "EN",
+   "seed": 0,
+   "gate": "uniform-matched",
+   "before": 1.0,
+   "after": 0.7,
+   "matrix_only": 0.6,
+   "median_mass": 6.55
+  },
+  {
+   "lang": "EN",
+   "seed": 0,
+   "gate": "uniform-1",
+   "before": 1.0,
+   "after": 0.7,
+   "matrix_only": 0.6,
+   "median_mass": 2.0
+  },
+  {
+   "lang": "EN",
+   "seed": 0,
+   "gate": "bayes",
+   "before": 0.967,
+   "after": 0.233,
+   "matrix_only": 0.0,
+   "median_mass": 0.0
+  },
+  {
+   "lang": "EN",
+   "seed": 1,
+   "gate": "shannon",
+   "before": 1.0,
+   "after": 0.9,
+   "matrix_only": 0.867,
+   "median_mass": 10.0
+  },
+  {
+   "lang": "EN",
+   "seed": 1,
+   "gate": "uniform-matched",
+   "before": 1.0,
+   "after": 0.7,
+   "matrix_only": 0.633,
+   "median_mass": 6.55
+  },
+  {
+   "lang": "EN",
+   "seed": 1,
+   "gate": "uniform-1",
+   "before": 1.0,
+   "after": 0.7,
+   "matrix_only": 0.633,
+   "median_mass": 2.0
+  },
+  {
+   "lang": "EN",
+   "seed": 1,
+   "gate": "bayes",
+   "before": 0.967,
+   "after": 0.233,
+   "matrix_only": 0.0,
+   "median_mass": 0.0
+  },
+  {
+   "lang": "EN",
+   "seed": 2,
+   "gate": "shannon",
+   "before": 1.0,
+   "after": 0.9,
+   "matrix_only": 0.867,
+   "median_mass": 10.0
+  },
+  {
+   "lang": "EN",
+   "seed": 2,
+   "gate": "uniform-matched",
+   "before": 1.0,
+   "after": 0.7,
+   "matrix_only": 0.6,
+   "median_mass": 6.55
+  },
+  {
+   "lang": "EN",
+   "seed": 2,
+   "gate": "uniform-1",
+   "before": 1.0,
+   "after": 0.7,
+   "matrix_only": 0.6,
+   "median_mass": 2.0
+  },
+  {
+   "lang": "EN",
+   "seed": 2,
+   "gate": "bayes",
+   "before": 0.967,
+   "after": 0.233,
+   "matrix_only": 0.0,
+   "median_mass": 0.0
+  },
+  {
+   "lang": "FR",
+   "seed": 0,
+   "gate": "shannon",
+   "before": 0.833,
+   "after": 0.8,
+   "matrix_only": 0.0,
+   "median_mass": 5.06
+  },
+  {
+   "lang": "FR",
+   "seed": 0,
+   "gate": "uniform-matched",
+   "before": 0.833,
+   "after": 0.733,
+   "matrix_only": 0.0,
+   "median_mass": 4.75
+  },
+  {
+   "lang": "FR",
+   "seed": 0,
+   "gate": "uniform-1",
+   "before": 0.833,
+   "after": 0.733,
+   "matrix_only": 0.0,
+   "median_mass": 4.0
+  },
+  {
+   "lang": "FR",
+   "seed": 0,
+   "gate": "bayes",
+   "before": 0.833,
+   "after": 0.667,
+   "matrix_only": 0.0,
+   "median_mass": 0.0
+  },
+  {
+   "lang": "FR",
+   "seed": 1,
+   "gate": "shannon",
+   "before": 0.833,
+   "after": 0.8,
+   "matrix_only": 0.0,
+   "median_mass": 5.05
+  },
+  {
+   "lang": "FR",
+   "seed": 1,
+   "gate": "uniform-matched",
+   "before": 0.833,
+   "after": 0.733,
+   "matrix_only": 0.0,
+   "median_mass": 4.75
+  },
+  {
+   "lang": "FR",
+   "seed": 1,
+   "gate": "uniform-1",
+   "before": 0.833,
+   "after": 0.733,
+   "matrix_only": 0.0,
+   "median_mass": 4.0
+  },
+  {
+   "lang": "FR",
+   "seed": 1,
+   "gate": "bayes",
+   "before": 0.833,
+   "after": 0.667,
+   "matrix_only": 0.0,
+   "median_mass": 0.0
+  },
+  {
+   "lang": "FR",
+   "seed": 2,
+   "gate": "shannon",
+   "before": 0.833,
+   "after": 0.8,
+   "matrix_only": 0.0,
+   "median_mass": 5.06
+  },
+  {
+   "lang": "FR",
+   "seed": 2,
+   "gate": "uniform-matched",
+   "before": 0.833,
+   "after": 0.733,
+   "matrix_only": 0.0,
+   "median_mass": 4.75
+  },
+  {
+   "lang": "FR",
+   "seed": 2,
+   "gate": "uniform-1",
+   "before": 0.833,
+   "after": 0.733,
+   "matrix_only": 0.0,
+   "median_mass": 4.0
+  },
+  {
+   "lang": "FR",
+   "seed": 2,
+   "gate": "bayes",
+   "before": 0.833,
+   "after": 0.667,
+   "matrix_only": 0.0,
+   "median_mass": 0.0
+  }
+ ],
+ "summary": {
+  "EN": {
+   "shannon": {
+    "before": 1.0,
+    "after": 0.9,
+    "matrix_only": 0.867,
+    "median_mass": 10.0
+   },
+   "uniform-matched": {
+    "before": 1.0,
+    "after": 0.7,
+    "matrix_only": 0.611,
+    "median_mass": 6.55
+   },
+   "uniform-1": {
+    "before": 1.0,
+    "after": 0.7,
+    "matrix_only": 0.611,
+    "median_mass": 2.0
+   },
+   "bayes": {
+    "before": 0.967,
+    "after": 0.233,
+    "matrix_only": 0.0,
+    "median_mass": 0.0
+   }
+  },
+  "FR": {
+   "shannon": {
+    "before": 0.833,
+    "after": 0.8,
+    "matrix_only": 0.0,
+    "median_mass": 5.057
+   },
+   "uniform-matched": {
+    "before": 0.833,
+    "after": 0.733,
+    "matrix_only": 0.0,
+    "median_mass": 4.75
+   },
+   "uniform-1": {
+    "before": 0.833,
+    "after": 0.733,
+    "matrix_only": 0.0,
+    "median_mass": 4.0
+   },
+   "bayes": {
+    "before": 0.833,
+    "after": 0.667,
+    "matrix_only": 0.0,
+    "median_mass": 0.0
+   }
+  }
+ },
+ "verdict": {
+  "Q1_delta_after": {
+   "EN": 0.2,
+   "FR": 0.067
+  },
+  "Q1_holds": true,
+  "Q2_delta_matrix": {
+   "EN": 0.256,
+   "FR": 0.0
+  },
+  "Q2_holds": true,
+  "Q3_languages_agree": true,
+  "Q4_bayes_worst": true,
+  "one_fact_is": 0.033,
+  "matched_budgets": {
+   "EN": 3.277,
+   "FR": 1.187
+  }
+ }
+}

@@ -1860,3 +1860,55 @@ modèle (gpt2), un seul corpus (anglais technique), 2 graines. Le verdict
 porte sur ce régime et pas encore au-delà. C'est une affirmation sur le
 mécanisme central du projet : elle mérite d'être solide avant d'être
 annoncée.
+
+### 2026-08-31, fin — la porte réduit la VARIANCE, et je ne sais pas pourquoi
+
+Suite directe : deux exécutions nominalement identiques se
+contredisaient (96,7 %/96,7 % contre 90 %/70 %). Les deux **rejouent
+exactement** — donc aucune n'est un accident, et l'écart vient de la
+seule taille du corpus d'interférence.
+
+**Test à budget apparié** (`results/gate_final.json`), construit comme la
+Phase D du preprint BHD : constante fixée à la MOYENNE du bras modulé sur
+ce corpus (EN 3,277 ; FR 1,187), donc même budget de plasticité, seule
+l'allocation diffère. 30 faits, 3 graines, deux langues, même modèle.
+
+| EN | avant | après | matrice seule | masse |
+|---|---|---|---|---|
+| shannon | 100 % | **90 %** | **87 %** | 10,00 |
+| uniform-matched | 100 % | 70 % | 61 % | 6,55 |
+| uniform-1 | 100 % | 70 % | 61 % | 2,00 |
+| bayes | 97 % | 23 % | 0 % | 0,00 |
+
+Q1-Q4 tiennent, 3 graines identiques au point près (90/90/90 contre
+70/70/70), les deux langues s'accordent. **Mais ce résultat contredisait
+le précédent**, donc balayage de la taille d'interférence sur 8 valeurs
+(`results/gate_stability.json`) :
+
+    shannon  87-97 %   ecart-type 0,035
+    uniforme 70-97 %   ecart-type 0,100     -> 2,8x
+    moyennes 93,8 % contre 90,0 %
+
+**R1 et R3 confirmées : la porte réduit la variance.** Le phénomène tient
+sur 8 configurations et explique les deux mesures contradictoires au lieu
+d'en choisir une.
+
+**R2 FALSIFIÉE, et elle emporte mon explication.** J'avais proposé un bris
+d'égalité dans le cold store : les faits à la médiane sous uniforme,
+au-dessus sous Shannon. Mesuré, c'est faux **des deux côtés** — sous
+Shannon les faits portent 10,00 pour une médiane de 10,00 (**égalité**,
+pas au-dessus) ; sous uniforme ils portent **0,00**, c'est-à-dire
+**évincés du store**, et le rappel atteint pourtant 97 %. Le cold store
+n'est donc pas le canal : la variation passe par la matrice, et je ne
+l'ai pas isolée.
+
+**ÉTAT HONNÊTE DE LA QUESTION.** Établi : avec une porte constante, le
+rappel après interférence oscille de 70 à 97 % selon la quantité de
+texte étranger lu ; avec la porte de surprise il reste entre 87 et 97 %,
+écart-type 2,8 fois plus faible, moyenne légèrement meilleure. **Non
+établi : pourquoi.** Un phénomène sans mécanisme se publie — à condition
+de le dire.
+
+Reformulation de ce que la porte fait, si le mécanisme se confirme un
+jour : *elle ne rend pas la mémoire meilleure, elle la rend prévisible.*
+C'est une raison d'être que le papier 1 ne formule pas aujourd'hui.

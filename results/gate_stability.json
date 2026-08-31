@@ -1,0 +1,184 @@
+{
+ "sizes": [
+  4000,
+  6000,
+  8000,
+  10000,
+  12000,
+  14000,
+  16000,
+  18000
+ ],
+ "facts": 30,
+ "cold_max": 1200,
+ "rows": [
+  {
+   "chars": 4000,
+   "gate": "shannon",
+   "recall": 0.867,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 4000,
+   "gate": "uniform",
+   "recall": 0.767,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 6000,
+   "gate": "shannon",
+   "recall": 0.9,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 6000,
+   "gate": "uniform",
+   "recall": 0.7,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 8000,
+   "gate": "shannon",
+   "recall": 0.933,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 8000,
+   "gate": "uniform",
+   "recall": 0.9,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 10000,
+   "gate": "shannon",
+   "recall": 0.967,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 10000,
+   "gate": "uniform",
+   "recall": 0.967,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 12000,
+   "gate": "shannon",
+   "recall": 0.967,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 12000,
+   "gate": "uniform",
+   "recall": 0.967,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 14000,
+   "gate": "shannon",
+   "recall": 0.967,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 14000,
+   "gate": "uniform",
+   "recall": 0.967,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 16000,
+   "gate": "shannon",
+   "recall": 0.967,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 16000,
+   "gate": "uniform",
+   "recall": 0.967,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 18000,
+   "gate": "shannon",
+   "recall": 0.933,
+   "fact_mass_median": 10.0,
+   "store_median": 10.0,
+   "above_median": false,
+   "grams": 1200
+  },
+  {
+   "chars": 18000,
+   "gate": "uniform",
+   "recall": 0.967,
+   "fact_mass_median": 0.0,
+   "store_median": 2.0,
+   "above_median": false,
+   "grams": 1200
+  }
+ ],
+ "verdict": {
+  "R1_sd": {
+   "shannon": 0.0352,
+   "uniform": 0.1001
+  },
+  "R1_holds": true,
+  "R1_range": {
+   "shannon": [
+    0.867,
+    0.967
+   ],
+   "uniform": [
+    0.7,
+    0.967
+   ]
+  },
+  "R2_shannon_above_median": false,
+  "R2_uniform_at_median": true,
+  "R3_means": {
+   "shannon": 0.938,
+   "uniform": 0.9
+  },
+  "R3_holds": true
+ }
+}

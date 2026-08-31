@@ -146,8 +146,13 @@ def read_gated(s, text, gate, record=None):
                 nll_b += -lp
                 nll_m += -np.log(max(p, 1e-30))
                 cnt += 1
-                g = {"shannon": g_shannon, "bayes": g_bayes,
-                     "uniform": 1.0}[gate]
+                # a numeric gate is a CONSTANT one: that is how the
+                # matched-budget control is built (same plasticity
+                # budget as the modulated arm, only the allocation
+                # differs -- the BHD preprint's Phase D design)
+                g = (float(gate) if isinstance(gate, (int, float))
+                     else {"shannon": g_shannon, "bayes": g_bayes,
+                           "uniform": 1.0}[gate])
                 mem.write_all(qG, uG, qS, uS, truth, g, phi, p_base)
             if a + w >= len(ids):
                 break
