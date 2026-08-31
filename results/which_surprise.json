@@ -1,0 +1,49 @@
+{
+ "model": "gpt2",
+ "gates": {
+  "shannon": {
+   "tokens": 2257,
+   "ppl_first_pass": 90.97,
+   "ppl_frozen": 91.37,
+   "ppl_second_pass": 2.65,
+   "gain": 34.44,
+   "recall": 1.0,
+   "cold_grams": 2124,
+   "locality_nats": -0.0
+  },
+  "bayes": {
+   "tokens": 2257,
+   "ppl_first_pass": 90.97,
+   "ppl_frozen": 91.37,
+   "ppl_second_pass": 71.86,
+   "gain": 1.27,
+   "recall": 0.6666666666666666,
+   "cold_grams": 2124,
+   "locality_nats": 0.0047
+  },
+  "uniform": {
+   "tokens": 2257,
+   "ppl_first_pass": 90.97,
+   "ppl_frozen": 91.37,
+   "ppl_second_pass": 2.62,
+   "gain": 34.92,
+   "recall": 1.0,
+   "cold_grams": 2124,
+   "locality_nats": -0.0
+  }
+ },
+ "dissociation": {
+  "n": 2257,
+  "pearson": 0.012,
+  "spearman": -0.069,
+  "shannon_mean": 3.266,
+  "bayes_mean": 0.009,
+  "bayes_zero_share": 0.981
+ },
+ "verdict": {
+  "N1_shannon_beats_bayes": true,
+  "N2_gating_beats_uniform": false,
+  "N3_dissociation_r": 0.012,
+  "N3_holds": true
+ }
+}

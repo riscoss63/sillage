@@ -1,0 +1,90 @@
+{
+ "model": "gpt2",
+ "facts": 30,
+ "seeds": 2,
+ "cold_max": 1200,
+ "runs": [
+  {
+   "seed": 0,
+   "gate": "shannon",
+   "recall_before": 1.0,
+   "recall_after": 0.967,
+   "matrix_only": 0.933,
+   "grams": 1200,
+   "median_mass": 10.0
+  },
+  {
+   "seed": 0,
+   "gate": "uniform",
+   "recall_before": 1.0,
+   "recall_after": 0.967,
+   "matrix_only": 0.967,
+   "grams": 1200,
+   "median_mass": 2.0
+  },
+  {
+   "seed": 0,
+   "gate": "bayes",
+   "recall_before": 0.967,
+   "recall_after": 0.233,
+   "matrix_only": 0.0,
+   "grams": 1200,
+   "median_mass": 0.0
+  },
+  {
+   "seed": 1,
+   "gate": "shannon",
+   "recall_before": 1.0,
+   "recall_after": 0.967,
+   "matrix_only": 0.933,
+   "grams": 1200,
+   "median_mass": 10.0
+  },
+  {
+   "seed": 1,
+   "gate": "uniform",
+   "recall_before": 1.0,
+   "recall_after": 0.967,
+   "matrix_only": 0.967,
+   "grams": 1200,
+   "median_mass": 2.0
+  },
+  {
+   "seed": 1,
+   "gate": "bayes",
+   "recall_before": 0.967,
+   "recall_after": 0.233,
+   "matrix_only": 0.0,
+   "grams": 1200,
+   "median_mass": 0.0
+  }
+ ],
+ "summary": {
+  "shannon": {
+   "recall_before": 1.0,
+   "recall_after": 0.967,
+   "matrix_only": 0.933,
+   "median_mass": 10.0
+  },
+  "uniform": {
+   "recall_before": 1.0,
+   "recall_after": 0.967,
+   "matrix_only": 0.967,
+   "median_mass": 2.0
+  },
+  "bayes": {
+   "recall_before": 0.967,
+   "recall_after": 0.233,
+   "matrix_only": 0.0,
+   "median_mass": 0.0
+  }
+ },
+ "verdict": {
+  "P1_delta_after": 0.0,
+  "P1_holds": false,
+  "P2_delta_matrix": -0.034,
+  "P2_holds": false,
+  "P3_bayes_worst": true,
+  "one_fact_is": 0.033
+ }
+}

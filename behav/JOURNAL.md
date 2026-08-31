@@ -1805,3 +1805,58 @@ produit pour les autres.
 fermées, chacune en moins d'une journée et avec ses seuils enregistrés
 avant la mesure. Ce qui reste debout est ce qui existait déjà : un outil
 qui marche, huit preprints, une loi de capacité, et une méthode.
+
+### 2026-08-31, nuit — QUELLE SURPRISE ? Et la porte du papier 1 ne fait rien
+
+Question née du preprint BHD v2.2 (C4) : Shannon et bayésienne y sont
+quasi orthogonales (r = 0,13 en gridworld). Sillage écrit avec
+`g = −ln p` — du Shannon, choisi sans jamais avoir comparé.
+
+**① La dissociation TRANSPORTE** (`results/which_surprise.json`). Trois
+portes, tout tenu identique sauf `g`, papier 1 + 3 faits inventés :
+
+| porte | ppl 2ᵉ passage | rappel | localité |
+|---|---|---|---|
+| shannon | **2,65** | 100 % | −0,0000 |
+| bayes | **71,86** | 67 % | +0,0047 |
+| uniforme | **2,62** | 100 % | −0,0000 |
+
+**N1 ✓, N3 ✓ et c'est l'affirmation qui compte : r = 0,012** (Spearman
+−0,069) sur 2 257 tokens. La dissociation n'est pas un artefact de
+gridworld. Le mécanisme est visible : la porte bayésienne **vaut zéro sur
+98,1 % des tokens** (moyenne 0,009 contre 3,266) parce que la mémoire ne
+déplace pas encore la croyance — elle se tait exactement quand il
+faudrait écrire. Énoncé général : *tout système qui gate son
+apprentissage sur le déplacement de croyance se rend muet au démarrage.*
+
+**② N2 FALSIFIÉE, puis confirmée en puissance.** L'uniforme égale
+Shannon. Premier test sous-dimensionné (3 sondes, résolution 33 %), donc
+refait sous pression de capacité et interférence, puis **en puissance :
+30 faits, 2 graines, résolution 3,3 %** (`results/gate_power.json`) :
+
+| porte | avant | après interférence | matrice seule | masse médiane |
+|---|---|---|---|---|
+| shannon | 100 % | **96,7 %** | 93,3 % | 10,0 |
+| uniforme | 100 % | **96,7 %** | **96,7 %** | 2,0 |
+| bayes | 96,7 % | 23,3 % | 0 % | 0,0 |
+
+**P1 : écart 0,000. P2 : −0,034, l'uniforme est MEILLEURE d'un fait.**
+
+**La porte de surprise n'a aucun effet comportemental mesurable** — ni au
+repos, ni sous interférence, ni sous pression de capacité, ni matrice
+isolée — alors qu'elle fait bien son travail mécanique (masse médiane 10
+contre 2, facteur 5, correctement classée). Explication proposée : dans
+de la prose technique la surprise est à peu près uniformément répartie
+sur les positions porteuses, donc **la porte rééchelonne au lieu de
+sélectionner** ; les faits plantés se retrouvent À la médiane sous les
+deux régimes (10 contre médiane 9 ; 2 contre médiane 2).
+
+Et l'uniforme écrit **~3× moins de masse** (g moyen 3,266 contre 1,0)
+pour le même rappel.
+
+**RÉSERVES À LEVER AVANT DE PUBLIER ÇA** : bras non appariés en masse
+totale écrite (un test propre fixerait g uniforme à 3,266) ; un seul
+modèle (gpt2), un seul corpus (anglais technique), 2 graines. Le verdict
+porte sur ce régime et pas encore au-delà. C'est une affirmation sur le
+mécanisme central du projet : elle mérite d'être solide avant d'être
+annoncée.

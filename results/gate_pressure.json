@@ -1,0 +1,86 @@
+{
+ "model": "gpt2",
+ "cold_max": 1200,
+ "arms": {
+  "shannon": {
+   "interference_tokens": 3925,
+   "recall_before": 1.0,
+   "recall_after": 1.0,
+   "recall_after_matrix_only": 0.6666666666666666,
+   "grams_after": 1200,
+   "fact_grams_alive": 3,
+   "fact_mass_before": [
+    10.0,
+    10.0,
+    10.0
+   ],
+   "fact_mass_after": [
+    10.0,
+    10.0,
+    10.0
+   ],
+   "mass_median_store": 8.997
+  },
+  "bayes": {
+   "interference_tokens": 3925,
+   "recall_before": 0.6666666666666666,
+   "recall_after": 0.3333333333333333,
+   "recall_after_matrix_only": 0.0,
+   "grams_after": 1200,
+   "fact_grams_alive": 1,
+   "fact_mass_before": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "fact_mass_after": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "mass_median_store": 0.0
+  },
+  "uniform": {
+   "interference_tokens": 3925,
+   "recall_before": 1.0,
+   "recall_after": 1.0,
+   "recall_after_matrix_only": 0.6666666666666666,
+   "grams_after": 1200,
+   "fact_grams_alive": 3,
+   "fact_mass_before": [
+    2.0,
+    2.0,
+    2.0
+   ],
+   "fact_mass_after": [
+    2.0,
+    2.0,
+    2.0
+   ],
+   "mass_median_store": 2.0
+  }
+ },
+ "verdict": {
+  "O1_shannon_vs_uniform_after": [
+   1.0,
+   1.0
+  ],
+  "O1_holds": false,
+  "O2_matrix_only": [
+   0.6666666666666666,
+   0.6666666666666666
+  ],
+  "O2_holds": false,
+  "O3_bayes_worst": true,
+  "O4_fact_grams_alive": {
+   "shannon": 3,
+   "uniform": 3,
+   "bayes": 1
+  },
+  "O4_store_median_mass": {
+   "shannon": 8.997,
+   "uniform": 2.0,
+   "bayes": 0.0
+  }
+ }
+}
